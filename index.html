@@ -1110,7 +1110,7 @@ function rebuildComposeBody() {
 
 function openMailto() {
   if (!currentReq) return;
-  const subject = "Rosario — " + currentReq.espace + " le " + currentReq.date;
+  const subject = "Rosario - Privatisation le " + currentReq.date;
   const body = document.getElementById("composeBody").value;
   const url = "mailto:" + encodeURIComponent(currentReq.email) + "?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(body);
   window.location.href = url;
