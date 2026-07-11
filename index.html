@@ -171,7 +171,8 @@
       <option>Restaurant entier</option>
       <option>Terrasse</option>
     </select>
-    <button class="ghost" onclick="toggleAddForm()" style="margin-left:auto;" id="addFormToggleBtn">+ Ajouter une demande</button>
+    <button class="ghost" onclick="scanGmailInbox()" style="margin-left:auto;" id="scanGmailBtn">↻ Scanner mes emails</button>
+    <button class="ghost" onclick="toggleAddForm()" id="addFormToggleBtn">+ Ajouter une demande</button>
   </div>
 
   <div class="detail-card" id="addFormPanel" style="display:none;">
@@ -271,6 +272,7 @@
     <p class="section-title"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 7a6 6 0 1 0 0 10"/><line x1="4" y1="10" x2="14" y2="10"/><line x1="4" y1="14" x2="12" y2="14"/></svg> Suivi financier</p>
     <div class="detail-card">
       <div class="finance-grid">
+        <div><p class="k">Société / raison sociale</p><input type="text" id="finSociete" oninput="onFinanceInput()" placeholder="ex. Acme Corp"></div>
         <div><p class="k">Service</p>
           <select id="finService" onchange="onFinanceInput()">
             <option>Déjeuner</option>
@@ -519,10 +521,25 @@ const HISTORIQUE_CONFIRMES = [
   ["Fives", "17/06/2026", "Dîner", 16, 900, 200, "Paiement effectué", [{ canal: "Lien Sunday", montant: 615 }, { canal: "CB", montant: 615 }]]
 ];
 
+// Emails et sociétés retrouvés en fouillant l'historique Gmail (pour le rapprochement Qonto).
+const HISTORIQUE_EMAILS = {
+  "Nathalie Gentili": "nathalie.gentili@protonmail.com",
+  "Yara El-Haddad": "yara.el.haddad@gmail.com",
+  "Imane Nekmouche": "nekmoucheimane@gmail.com",
+  "Eric Pizigo": "epizigo@yahoo.fr",
+  "Joia Silva": "jjoialu@gmail.com",
+  "Rosalie": "rosalietytgat@gmail.com",
+  "Basile": "basile.ricordel@essca.eu",
+  "Julien Benattar": "julienbenatt@gmail.com"
+};
+const HISTORIQUE_SOCIETES = {
+  "Caroline Charles": "Caroline Charles Communication (EURL Caroline Charles)"
+};
+
 const DATA_HISTORIQUE = HISTORIQUE_CONFIRMES.map(([client, date, service, pax, caCuisineHT, caAlcoolsHT, statutPaiement, paiements]) => ({
-  client, email: "", espace: pax > 20 ? "Restaurant entier" : "Salon privatif", date, pax, statut: "Confirmé",
+  client, email: HISTORIQUE_EMAILS[client] || "", espace: pax > 20 ? "Restaurant entier" : "Salon privatif", date, pax, statut: "Confirmé",
   timeline: [{ dir: "out", title: "Réservation confirmée", meta: date + " — " + pax + " pers., " + service }],
-  finance: { service, caCuisineHT, caAlcoolsHT, statutPaiement, paiements }
+  finance: { service, societe: HISTORIQUE_SOCIETES[client] || "", caCuisineHT, caAlcoolsHT, statutPaiement, paiements }
 }));
 
 let DATA = [];
@@ -595,6 +612,35 @@ function pushData_(onDone) {
       if (onDone) onDone();
     })
     .catch(err => setSyncBanner_("Erreur de synchronisation (" + err.message + ") — modification gardée en local seulement.", 'error'));
+}
+
+function scanGmailInbox() {
+  if (!SYNC_MODE) { setSyncBanner_("Connecte d'abord SCRIPT_URL pour pouvoir scanner tes emails.", 'error'); return; }
+  const btn = document.getElementById("scanGmailBtn");
+  btn.disabled = true;
+  btn.textContent = "Scan en cours…";
+  setSyncBanner_("Scan des emails en cours (peut prendre 10-30s)…", 'warn');
+  fetch(SCRIPT_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify({ action: 'scan' })
+  })
+    .then(r => r.json())
+    .then(json => {
+      btn.disabled = false;
+      btn.textContent = "↻ Scanner mes emails";
+      if (json.ok) {
+        setSyncBanner_("Scan terminé — " + json.newMessages + " nouveau(x) échange(s) trouvé(s).", 'ok');
+        loadData();
+      } else {
+        setSyncBanner_("Erreur pendant le scan : " + json.error, 'error');
+      }
+    })
+    .catch(err => {
+      btn.disabled = false;
+      btn.textContent = "↻ Scanner mes emails";
+      setSyncBanner_("Erreur pendant le scan (" + err.message + ").", 'error');
+    });
 }
 
 function saveData() {
@@ -787,7 +833,7 @@ function submitAddForm() {
     timeline: [{ dir: "in", title: "Demande ajoutée manuellement", meta: todayStr_() }]
   };
   if (req.statut === "Confirmé") {
-    req.finance = { service: "Dîner", caCuisineHT: 0, caAlcoolsHT: 0, statutPaiement: "En attente d'acompte", paiements: [] };
+    req.finance = { service: "Dîner", societe: "", caCuisineHT: 0, caAlcoolsHT: 0, statutPaiement: "En attente d'acompte", paiements: [] };
   }
   DATA.push(req);
   saveData();
@@ -834,6 +880,7 @@ function openDetail(idx, origin) {
   const composeSection = document.getElementById("composeSection");
   if (r.finance) {
     finSection.style.display = "block";
+    document.getElementById("finSociete").value = r.finance.societe || "";
     document.getElementById("finService").value = r.finance.service;
     document.getElementById("finCuisineHT").value = r.finance.caCuisineHT;
     document.getElementById("finAlcoolsHT").value = r.finance.caAlcoolsHT;
@@ -859,11 +906,12 @@ function onStatutChange() {
   document.getElementById("detailCardTop").className = "detail-card detail-card-top " + STATUT_CLASS[val];
 
   if (val === "Confirmé" && !currentReq.finance) {
-    currentReq.finance = { service: "Dîner", caCuisineHT: 0, caAlcoolsHT: 0, statutPaiement: "En attente d'acompte", paiements: [] };
+    currentReq.finance = { service: "Dîner", societe: "", caCuisineHT: 0, caAlcoolsHT: 0, statutPaiement: "En attente d'acompte", paiements: [] };
   }
   const finSection = document.getElementById("financeSection");
   if (currentReq.finance) {
     finSection.style.display = "block";
+    document.getElementById("finSociete").value = currentReq.finance.societe || "";
     document.getElementById("finService").value = currentReq.finance.service;
     document.getElementById("finCuisineHT").value = currentReq.finance.caCuisineHT;
     document.getElementById("finAlcoolsHT").value = currentReq.finance.caAlcoolsHT;
@@ -911,6 +959,7 @@ function financeTotals(f) {
 
 function onFinanceInput() {
   if (!currentReq || !currentReq.finance) return;
+  currentReq.finance.societe = document.getElementById("finSociete").value;
   currentReq.finance.service = document.getElementById("finService").value;
   currentReq.finance.caCuisineHT = toNumber(document.getElementById("finCuisineHT").value);
   currentReq.finance.caAlcoolsHT = toNumber(document.getElementById("finAlcoolsHT").value);
