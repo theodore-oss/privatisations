@@ -132,6 +132,7 @@
   .timeline-item.clickable { cursor: pointer; margin: 0 -20px; padding: 12px 20px; }
   .timeline-item.clickable:hover { background: #fafafa; }
   .timeline-item .open-link { font-size: 11.5px; color: #4f46e5; white-space: nowrap; margin-left: auto; align-self: center; }
+  .scan-tag { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; color: #0b804b; background: #dcfce7; padding: 1px 6px; border-radius: 999px; vertical-align: middle; }
 </style>
 </head>
 <body>
@@ -872,7 +873,7 @@ function openDetail(idx, origin) {
   document.getElementById("detailTimeline").innerHTML = r.timeline.map(t => `
     <div class="timeline-item${hasLink ? ' clickable' : ''}" ${hasLink ? `onclick="window.open('${r.gmailThread}', '_blank')" title="Ouvrir l'échange dans Gmail"` : ''}>
       <span class="dir-badge dir-${t.dir}">${t.dir === "out" ? "↦" : "↤"}</span>
-      <div><p>${t.title}</p><p class="meta">${t.meta}</p></div>
+      <div><p>${t.title}${t.source && t.source.indexOf('scan') === 0 ? ' <span class="scan-tag" title="Trouvé automatiquement par le scan Gmail">auto</span>' : ''}</p><p class="meta">${t.meta}</p></div>
       ${hasLink ? '<span class="open-link">Ouvrir ↗</span>' : ''}
     </div>`).join("");
 
