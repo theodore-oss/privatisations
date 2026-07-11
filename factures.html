@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Rosario — Suivi factures fournisseurs</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #f7f7f8; color: #1a1a1a; padding: 20px; }
+  a.back { font-size: 13px; color: #4f46e5; text-decoration: none; }
+  h1 { font-size: 18px; font-weight: 600; margin: 10px 0 2px 0; }
+  .subtitle { font-size: 13px; color: #6b6b70; margin-bottom: 16px; }
+  .snapshot-banner { background: #eef2ff; border: 1px solid #c7d2fe; color: #3730a3; font-size: 12.5px; padding: 8px 14px; border-radius: 8px; margin-bottom: 16px; }
+  .toolbar { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+  select, button { font-size: 13px; padding: 6px 10px; border-radius: 6px; border: 1px solid #d9d9dc; background: white; cursor: pointer; color: #1a1a1a; }
+  button.primary { background: #4f46e5; color: white; border-color: #4f46e5; }
+  button.primary:hover { background: #4338ca; }
+  .cards { display: flex; gap: 12px; margin-bottom: 18px; flex-wrap: wrap; }
+  .card { background: white; border: 1px solid #e5e5e8; border-radius: 10px; padding: 12px 16px; min-width: 150px; }
+  .card .label { font-size: 11px; color: #8a8a90; text-transform: uppercase; letter-spacing: 0.04em; }
+  .card .value { font-size: 22px; font-weight: 650; margin-top: 4px; }
+  .card.warn .value { color: #b45309; }
+  .panel { background: white; border: 1px solid #e5e5e8; border-radius: 10px; overflow: hidden; margin-bottom: 16px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead th { text-align: left; padding: 10px 14px; background: #fafafa; color: #6b6b70; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.03em; border-bottom: 1px solid #e5e5e8; }
+  tbody td { padding: 10px 14px; border-bottom: 1px solid #f0f0f1; vertical-align: middle; }
+  tbody tr.supplier-row { cursor: pointer; }
+  tbody tr.supplier-row:hover { background: #fafafa; }
+  tbody tr.detail-row td { background: #fbfbfc; padding: 0; }
+  .amount { font-variant-numeric: tabular-nums; font-weight: 600; }
+  .amount.na { color: #b45309; font-weight: 500; font-style: italic; }
+  .pill { display: inline-block; font-size: 11px; padding: 2px 7px; border-radius: 999px; background: #fef3c7; color: #92400e; margin-left: 6px; }
+  .edit-icon { cursor: pointer; color: #9a9aa0; margin-left: 6px; font-size: 11px; }
+  .edit-icon:hover { color: #4f46e5; }
+  .detail-table { width: 100%; border-collapse: collapse; }
+  .detail-table td { padding: 7px 14px 7px 34px; border-bottom: 1px solid #f0f0f1; font-size: 12.5px; }
+  .muted { color: #8a8a90; }
+  .caret { display: inline-block; width: 10px; margin-right: 6px; color: #8a8a90; }
+  .empty, .loading, .error { padding: 40px; text-align: center; color: #8a8a90; font-size: 13px; }
+  .note { font-size: 12px; color: #8a8a90; line-height: 1.5; background: white; border: 1px solid #e5e5e8; border-radius: 10px; padding: 12px 16px; }
+</style>
+</head>
+<body>
+
+<a class="back" href="./index.html">&larr; Accueil</a>
+<h1>Suivi factures fournisseurs</h1>
+<div class="subtitle">Rosario — instantané des emails de facturation</div>
+
+<div class="snapshot-banner" id="snapshotBanner">Chargement de l'instantané…</div>
+
+<div class="toolbar">
+  <select id="rangeSelect">
+    <option value="7">7 derniers jours</option>
+    <option value="9" selected>9 derniers jours (données disponibles)</option>
+  </select>
+  <button class="primary" id="refreshBtn">Recalculer</button>
+</div>
+
+<div class="cards">
+  <div class="card"><div class="label">Fournisseurs</div><div class="value" id="cardSuppliers">—</div></div>
+  <div class="card"><div class="label">Montant connu</div><div class="value" id="cardTotal">—</div></div>
+  <div class="card warn"><div class="label">Docs à vérifier</div><div class="value" id="cardUnknown">—</div></div>
+  <div class="card"><div class="label">Documents totaux</div><div class="value" id="cardDocs">—</div></div>
+</div>
+
+<div class="panel">
+  <table>
+    <thead><tr><th style="width:40%">Fournisseur</th><th>Documents</th><th>À vérifier</th><th>Montant connu</th></tr></thead>
+    <tbody id="tbody"><tr><td colspan="4" class="loading">Chargement…</td></tr></tbody>
+  </table>
+</div>
+
+<div class="note">
+  Ceci est un instantané figé (pas de connexion Gmail en direct depuis ce site). Les montants sont extraits automatiquement du texte des emails quand disponible ; sinon marqués « à vérifier » — clique dessus pour saisir le montant manuellement (mémorisé dans ce navigateur). Demande à Claude de régénérer ce fichier pour rafraîchir les données.
+</div>
+
+<script>
+const EUR = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' });
+const DATE_FMT = new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+const INCLUDE_RE = /factur|avoir|relev[ée]|extrait de compte|relance|bon de livraison/i;
+const GENERIC_DOMAIN_RE = /(pennylane\.com|tedd\.email)$/i;
+const GENERIC_LOCAL_RE = /^(ne-pas-repondre|no-reply|noreply|no\.reply|contact|info|comptabilite|commandes|facturation|servicerh\d*)$/i;
+
+let RAW = null;
+
+function getOverrides() { try { return JSON.parse(localStorage.getItem('invoiceAmountOverrides') || '{}'); } catch (e) { return {}; } }
+function setOverride(id, val) { const o = getOverrides(); o[id] = val; localStorage.setItem('invoiceAmountOverrides', JSON.stringify(o)); }
+function getNames() { try { return JSON.parse(localStorage.getItem('supplierNameOverrides') || '{}'); } catch (e) { return {}; } }
+function setName(key, name) { const n = getNames(); n[key] = name; localStorage.setItem('supplierNameOverrides', JSON.stringify(n)); }
+
+function guessSupplier(sender) {
+  const at = sender.indexOf('@');
+  const local = at > -1 ? sender.slice(0, at) : sender;
+  const domain = at > -1 ? sender.slice(at + 1) : sender;
+  let base;
+  if (GENERIC_DOMAIN_RE.test(domain)) base = local.split(/[-_]/)[0];
+  else { const parts = domain.split('.'); base = parts.length >= 2 ? parts[parts.length - 2] : domain; }
+  if (GENERIC_LOCAL_RE.test(base)) base = domain.split('.')[0];
+  base = base.replace(/[^a-zA-Z0-9]/g, ' ').trim();
+  if (!base) base = domain;
+  return base.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+}
+
+function extractAmount(text) {
+  if (!text) return null;
+  const patterns = [
+    /montant[^\d€]{0,20}([\d\s]{1,7}[.,]\d{2})\s?€/i,
+    /total\s*(?:ttc)?[^\d€]{0,20}([\d\s]{1,7}[.,]\d{2})\s?€/i,
+    /([\d\s]{1,7}[.,]\d{2})\s?€/
+  ];
+  for (const p of patterns) {
+    const m = text.match(p);
+    if (m) { const num = parseFloat(m[1].replace(/\s/g, '').replace(',', '.')); if (!isNaN(num) && num > 0) return num; }
+  }
+  return null;
+}
+
+function flattenAndFilter(threads, cutoff) {
+  const records = [];
+  for (const t of threads) {
+    for (const m of (t.messages || [])) {
+      if (new Date(m.date) < cutoff) continue;
+      const text = `${m.subject || ''} ${m.snippet || ''}`;
+      if (!INCLUDE_RE.test(text)) continue;
+      records.push({ threadId: t.id, messageId: m.id, date: m.date, sender: m.sender || '', subject: m.subject || '(sans objet)', snippet: m.snippet || '', amount: extractAmount(text) });
+    }
+  }
+  return records;
+}
+
+function groupBySupplier(records) {
+  const overrides = getOverrides(); const names = getNames(); const groups = {};
+  for (const r of records) {
+    const at = r.sender.indexOf('@'); const domain = at > -1 ? r.sender.slice(at + 1) : r.sender; const key = domain.toLowerCase();
+    if (!groups[key]) groups[key] = { key, name: names[key] || guessSupplier(r.sender), items: [] };
+    const finalAmount = overrides[r.messageId] != null ? overrides[r.messageId] : r.amount;
+    groups[key].items.push({ ...r, finalAmount });
+  }
+  const list = Object.values(groups).map(g => {
+    g.items.sort((a, b) => new Date(b.date) - new Date(a.date));
+    g.total = g.items.reduce((s, i) => s + (i.finalAmount || 0), 0);
+    g.unknown = g.items.filter(i => i.finalAmount == null).length;
+    return g;
+  });
+  list.sort((a, b) => b.total - a.total);
+  return list;
+}
+
+function render(groups) {
+  const tbody = document.getElementById('tbody'); tbody.innerHTML = '';
+  if (groups.length === 0) tbody.innerHTML = '<tr><td colspan="4" class="empty">Aucune facture trouvée sur cette période.</td></tr>';
+  let grandTotal = 0, grandUnknown = 0, grandDocs = 0;
+  groups.forEach((g, idx) => {
+    grandTotal += g.total; grandUnknown += g.unknown; grandDocs += g.items.length;
+    const row = document.createElement('tr'); row.className = 'supplier-row';
+    row.innerHTML = `<td><span class="caret" data-caret="${idx}">▸</span><span>${g.name}</span><span class="edit-icon" data-rename="${idx}">✎</span></td>
+      <td>${g.items.length}</td><td>${g.unknown > 0 ? `<span class="pill">${g.unknown}</span>` : '—'}</td><td class="amount">${EUR.format(g.total)}</td>`;
+    tbody.appendChild(row);
+    const detailRow = document.createElement('tr'); detailRow.className = 'detail-row'; detailRow.style.display = 'none';
+    const detailCell = document.createElement('td'); detailCell.colSpan = 4;
+    const dt = document.createElement('table'); dt.className = 'detail-table';
+    dt.innerHTML = g.items.map(it => `<tr><td style="width:110px">${DATE_FMT.format(new Date(it.date))}</td><td>${it.subject}</td>
+      <td style="width:120px" class="amount ${it.finalAmount == null ? 'na' : ''}" data-msg="${it.messageId}">${it.finalAmount == null ? 'à vérifier' : EUR.format(it.finalAmount)}</td></tr>`).join('');
+    detailCell.appendChild(dt); detailRow.appendChild(detailCell); tbody.appendChild(detailRow);
+    row.addEventListener('click', (e) => {
+      if (e.target.dataset.rename !== undefined) return;
+      detailRow.style.display = detailRow.style.display === 'none' ? '' : 'none';
+      row.querySelector(`[data-caret="${idx}"]`).textContent = detailRow.style.display === 'none' ? '▸' : '▾';
+    });
+    row.querySelector(`[data-rename="${idx}"]`).addEventListener('click', (e) => {
+      e.stopPropagation();
+      const next = prompt('Renommer ce fournisseur :', g.name);
+      if (next && next.trim()) { setName(g.key, next.trim()); load(); }
+    });
+    dt.querySelectorAll('[data-msg]').forEach(cell => {
+      cell.style.cursor = 'pointer';
+      cell.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const raw = prompt('Montant TTC constaté sur la facture (ex: 123.45) :');
+        if (raw == null) return;
+        const val = parseFloat(raw.replace(',', '.'));
+        if (!isNaN(val)) { setOverride(cell.dataset.msg, val); load(); }
+      });
+    });
+  });
+  document.getElementById('cardSuppliers').textContent = groups.length;
+  document.getElementById('cardTotal').textContent = EUR.format(grandTotal);
+  document.getElementById('cardUnknown').textContent = grandUnknown;
+  document.getElementById('cardDocs').textContent = grandDocs;
+}
+
+function load() {
+  const days = parseInt(document.getElementById('rangeSelect').value, 10);
+  const cutoff = new Date(Date.now() - days * 86400000);
+  const records = flattenAndFilter(RAW.threads, cutoff);
+  render(groupBySupplier(records));
+}
+
+fetch('./data-factures.json').then(r => r.json()).then(data => {
+  RAW = data;
+  const gen = new Date(data.generatedAt);
+  document.getElementById('snapshotBanner').textContent = `Instantané généré le ${DATE_FMT.format(gen)} à ${gen.toLocaleTimeString('fr-FR')} — données non temps réel.`;
+  load();
+}).catch(err => {
+  document.getElementById('snapshotBanner').textContent = 'Impossible de charger data-factures.json';
+  document.getElementById('tbody').innerHTML = `<tr><td colspan="4" class="error">${err}</td></tr>`;
+});
+
+document.getElementById('refreshBtn').addEventListener('click', load);
+document.getElementById('rangeSelect').addEventListener('change', load);
+</script>
+</body>
+</html>

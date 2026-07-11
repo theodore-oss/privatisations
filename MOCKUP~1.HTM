@@ -1,0 +1,1178 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Privatisations - Rosario</title>
+<link rel="icon" type="image/png" href="favicon.png">
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #f7f7f8; color: #1a1a1a; padding: 24px; }
+  h1 { font-size: 18px; font-weight: 600; margin: 0 0 2px 0; }
+  .subtitle { font-size: 13px; color: #6b6b70; margin-bottom: 20px; }
+  .mock-banner { background: #eef2ff; border: 1px solid #c7d2fe; color: #3730a3; font-size: 12.5px; padding: 8px 14px; border-radius: 8px; margin-bottom: 18px; }
+  .tabs { display: flex; gap: 24px; border-bottom: 1px solid #e5e5e8; margin-bottom: 20px; }
+  .tab-btn { background: transparent; border: none; padding: 8px 2px; font-size: 14px; font-weight: 500; color: #8a8a90; cursor: pointer; border-bottom: 2px solid transparent; }
+  .tab-btn.active { color: #1a1a1a; border-bottom-color: #4f46e5; }
+  .toolbar { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+  select, input[type=text], button, textarea { font-size: 13px; padding: 7px 12px; border-radius: 6px; border: 1px solid #d9d9dc; background: white; cursor: pointer; color: #1a1a1a; font-family: inherit; }
+  input[type=text] { cursor: text; min-width: 200px; }
+  textarea { cursor: text; width: 100%; resize: vertical; line-height: 1.5; }
+  button.primary { background: #4f46e5; color: white; border-color: #4f46e5; }
+  button.ghost { background: transparent; border-color: transparent; color: #6b6b70; }
+  .cards { display: flex; gap: 12px; margin-bottom: 18px; flex-wrap: wrap; }
+  .card { background: white; border: 1px solid #e5e5e8; border-radius: 10px; padding: 12px 16px; min-width: 140px; cursor: pointer; transition: border-color .15s, box-shadow .15s; }
+  .card:hover { border-color: #c7c7cf; }
+  .card.active { border-color: #4f46e5; box-shadow: 0 0 0 1px #4f46e5 inset; }
+  .card .label { font-size: 11px; color: #8a8a90; text-transform: uppercase; letter-spacing: 0.04em; }
+  .card .value { font-size: 22px; font-weight: 650; margin-top: 4px; }
+  .card.urgent .value { color: #b91c1c; }
+  .card.warn .value { color: #b45309; }
+  .card.good .value { color: #0b804b; }
+  .panel { background: white; border: 1px solid #e5e5e8; border-radius: 10px; overflow: hidden; margin-bottom: 16px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead th { text-align: left; padding: 10px 14px; background: #fafafa; color: #6b6b70; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.03em; border-bottom: 1px solid #e5e5e8; }
+  tbody td { padding: 10px 14px; border-bottom: 1px solid #f0f0f1; vertical-align: middle; }
+  tbody tr.req-row { cursor: pointer; }
+  tbody tr.req-row:hover { background: #fafafa; }
+  .client-name { font-weight: 600; } .client-sub { font-size: 11.5px; color: #8a8a90; }
+  .badge { display: inline-block; font-size: 11px; padding: 3px 9px; border-radius: 999px; font-weight: 600; white-space: nowrap; }
+  .badge.new { background: #dbeafe; color: #1e40af; }
+  .badge.waiting { background: #f3f4f6; color: #4b5563; }
+  .badge.answer { background: #fee2e2; color: #b91c1c; }
+  .badge.confirmed { background: #dcfce7; color: #166534; }
+  .badge.cancelled { background: #f3f4f6; color: #9ca3af; }
+  .badge-select { font-size: 12px; font-weight: 700; padding: 6px 10px; border-radius: 8px; cursor: pointer; }
+  .badge-select.new { background: #dbeafe; color: #1e40af; border-color: #bfdbfe; }
+  .badge-select.waiting { background: #f3f4f6; color: #4b5563; border-color: #e5e7eb; }
+  .badge-select.answer { background: #fee2e2; color: #b91c1c; border-color: #fecaca; }
+  .badge-select.confirmed { background: #dcfce7; color: #166534; border-color: #bbf7d0; }
+  .badge-select.cancelled { background: #f3f4f6; color: #9ca3af; border-color: #e5e7eb; }
+  .relance-flag { color: #b45309; font-size: 11px; font-weight: 600; margin-left: 6px; }
+  .back-btn { display: inline-flex; align-items: center; gap: 6px; margin-bottom: 16px; }
+  .detail-card { background: white; border: 1px solid #e5e5e8; border-radius: 12px; padding: 16px 20px; margin-bottom: 20px; }
+  .avatar { width: 40px; height: 40px; border-radius: 50%; background: #eef2ff; color: #4338ca; display: flex; align-items: center; justify-content: center; font-weight: 650; font-size: 14px; }
+  .detail-meta { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 16px; border-top: 1px solid #f0f0f1; padding-top: 14px; }
+  .detail-meta .k { font-size: 11px; color: #8a8a90; margin: 0; }
+  .detail-meta .v { font-size: 13px; margin: 2px 0 0; }
+  .section-title { font-size: 13px; font-weight: 600; margin: 0 0 8px; }
+  .timeline { background: white; border: 1px solid #e5e5e8; border-radius: 12px; padding: 4px 20px; margin-bottom: 20px; }
+  .timeline-item { padding: 12px 0; border-bottom: 1px solid #f0f0f1; display: flex; gap: 10px; }
+  .timeline-item:last-child { border-bottom: none; }
+  .dir-icon { font-size: 15px; margin-top: 1px; width: 16px; text-align: center; }
+  .dir-out { color: #4f46e5; } .dir-in { color: #b45309; }
+  .timeline-item p { margin: 0; font-size: 13px; }
+  .timeline-item .meta { font-size: 12px; color: #8a8a90; margin-top: 2px; }
+  .compose-card { background: white; border: 1px solid #e5e5e8; border-radius: 12px; padding: 16px 20px; }
+  .compose-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; align-items: center; }
+  .option-btn { font-size: 12.5px; }
+  .option-btn.active { border-color: #4f46e5; color: #4f46e5; }
+  .mode-btn.active { background: #4f46e5; color: white; border-color: #4f46e5; }
+  .relance-active-note { font-size: 11.5px; color: #b45309; font-weight: 600; }
+  .compose-actions { display: flex; gap: 10px; margin-top: 10px; }
+  .template-card { background: white; border: 1px solid #e5e5e8; border-radius: 12px; padding: 16px 20px; margin-bottom: 14px; }
+  .template-card .name { font-size: 13.5px; font-weight: 600; margin: 0 0 8px; }
+  .settings-toolbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+  .settings-toolbar p { font-size: 13px; color: #6b6b70; margin: 0; }
+  .subtabs { display: flex; gap: 6px; background: #eef0f2; padding: 4px; border-radius: 8px; }
+  .subtab-btn { background: transparent; border: none; padding: 6px 14px; font-size: 12.5px; font-weight: 600; color: #6b6b70; cursor: pointer; border-radius: 6px; }
+  .subtab-btn.active { background: white; color: #1a1a1a; box-shadow: 0 1px 2px rgba(16,16,20,0.08); }
+  .price-row { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+  .price-row label { font-size: 12px; color: #6b6b70; }
+  .price-row input { width: 100px; }
+  .save-note { font-size: 12px; color: #0b804b; margin-left: 10px; display: none; }
+  .finance-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .finance-grid.readout { border-top: 1px solid #f0f0f1; padding-top: 14px; margin-top: 4px; }
+  .finance-grid .k { font-size: 11px; color: #8a8a90; margin: 0 0 4px; }
+  .finance-grid .v { font-size: 13px; margin: 0; }
+  .finance-grid select, .finance-grid input { width: 100%; }
+  table input[type=text], table select { width: 100%; padding: 5px 8px; }
+
+  .brand-header { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; }
+  .brand-logo { height: 44px; width: auto; display: block; }
+  .brand-sub { font-size: 12.5px; color: #8a8a90; letter-spacing: 0.03em; border-left: 1px solid #e5e5e8; padding-left: 14px; }
+
+  .panel, .detail-card, .timeline, .compose-card, .template-card { box-shadow: 0 1px 3px rgba(16,16,20,0.05); }
+  .card { box-shadow: 0 1px 3px rgba(16,16,20,0.05); }
+
+  .section-title { text-transform: uppercase; letter-spacing: 0.05em; font-size: 11.5px; color: #6b6b70; margin-top: 26px; display: flex; align-items: center; gap: 6px; }
+  .section-title:first-of-type { margin-top: 0; }
+  .section-title svg { flex-shrink: 0; color: #4f46e5; }
+
+  .detail-card-top { border-left: 4px solid #d9d9dc; }
+  .detail-card-top.new { border-left-color: #3b82f6; }
+  .detail-card-top.waiting { border-left-color: #9ca3af; }
+  .detail-card-top.answer { border-left-color: #ef4444; }
+  .detail-card-top.confirmed { border-left-color: #22c55e; }
+  .detail-card-top.cancelled { border-left-color: #c7c7cf; }
+
+  .detail-meta .k { display: flex; align-items: center; gap: 5px; color: #8a8a90; }
+  .detail-meta .k svg { color: #b5b5bb; }
+  .detail-meta .v { font-weight: 650; font-size: 14px; }
+  .pax-value { color: #4f46e5; font-size: 17px !important; font-weight: 800 !important; }
+
+  .fin-headline { font-size: 22px !important; font-weight: 800 !important; color: #1a1a1a; }
+  .fin-headline-wrap { background: #f7f7fb; border-radius: 8px; padding: 10px 14px !important; }
+
+  .balance-progress { height: 8px; border-radius: 999px; background: rgba(0,0,0,0.08); margin-top: 10px; overflow: hidden; }
+  .balance-progress-fill { height: 100%; border-radius: 999px; background: currentColor; transition: width .2s; }
+
+  .dir-badge { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0; margin-top: 1px; }
+  .dir-badge.dir-out { background: #eef2ff; color: #4f46e5; }
+  .dir-badge.dir-in { background: #fef3c7; color: #b45309; }
+
+  .settings-subheading { font-size: 13px; font-weight: 700; color: #4f46e5; margin: 0 0 12px; padding-bottom: 8px; border-bottom: 1px solid #e5e5e8; }
+  .settings-subheading.second { margin-top: 30px; }
+
+  .finance-balance { margin: 14px 0 20px; padding: 14px 18px; border-radius: 10px; font-size: 17px; font-weight: 700; }
+  .finance-balance.paid { background: #dcfce7; color: #166534; }
+  .finance-balance.partial { background: #fef3c7; color: #92400e; }
+  .finance-balance.unpaid { background: #fee2e2; color: #b91c1c; }
+
+  .timeline-item.clickable { cursor: pointer; margin: 0 -20px; padding: 12px 20px; }
+  .timeline-item.clickable:hover { background: #fafafa; }
+  .timeline-item .open-link { font-size: 11.5px; color: #4f46e5; white-space: nowrap; margin-left: auto; align-self: center; }
+</style>
+</head>
+<body>
+
+<div class="brand-header">
+  <img src="logo.png" alt="Rosario" class="brand-logo">
+  <div class="brand-sub">Suivi des demandes de privatisation</div>
+</div>
+<div class="mock-banner" id="syncBanner">Chargement…</div>
+
+<div class="tabs">
+  <button class="tab-btn active" data-tab="list" onclick="showTab('list')">Demandes</button>
+  <button class="tab-btn" data-tab="confirmed" onclick="showTab('confirmed')">Confirmées</button>
+  <button class="tab-btn" data-tab="settings" onclick="showTab('settings')">Paramètres</button>
+</div>
+
+<div id="view-list">
+  <div class="cards">
+    <div class="card" id="cardBoxTotal" onclick="toggleCardFilter('total')"><div class="label">Demandes</div><div class="value" id="cardTotal">—</div></div>
+    <div class="card urgent" id="cardBoxAnswer" onclick="toggleCardFilter('answer')"><div class="label">Nouvelles demandes</div><div class="value" id="cardAnswer">—</div></div>
+    <div class="card warn" id="cardBoxRelance" onclick="toggleCardFilter('relance')"><div class="label">À relancer</div><div class="value" id="cardRelance">—</div></div>
+    <div class="card good" id="cardBoxConfirmed" onclick="toggleCardFilter('confirmed')"><div class="label">Confirmées</div><div class="value" id="cardConfirmed">—</div></div>
+  </div>
+
+  <div class="toolbar">
+    <input type="text" id="fClient" placeholder="Rechercher un client" oninput="applyFilters()" />
+    <select id="fStatut" onchange="applyFilters()">
+      <option value="">Tous les statuts</option>
+      <option>Nouvelle demande</option>
+      <option>En attente client</option>
+      <option>Confirmé</option>
+      <option>Refusé</option>
+    </select>
+    <select id="fEspace" onchange="applyFilters()">
+      <option value="">Tous les espaces</option>
+      <option>Salon privatif</option>
+      <option>Restaurant entier</option>
+      <option>Terrasse</option>
+    </select>
+    <button class="ghost" onclick="toggleAddForm()" style="margin-left:auto;" id="addFormToggleBtn">+ Ajouter une demande</button>
+  </div>
+
+  <div class="detail-card" id="addFormPanel" style="display:none;">
+    <p class="name" style="font-weight:600; font-size:13.5px; margin:0 0 12px;">Nouvelle demande</p>
+    <div class="finance-grid">
+      <div><p class="k">Client *</p><input type="text" id="addClient"></div>
+      <div><p class="k">Email</p><input type="text" id="addEmail"></div>
+      <div><p class="k">Espace</p>
+        <select id="addEspace">
+          <option>Salon privatif</option>
+          <option>Restaurant entier</option>
+          <option>Terrasse</option>
+        </select>
+      </div>
+      <div><p class="k">Pax</p><input type="text" id="addPax"></div>
+      <div><p class="k">Date de l'évènement (jj/mm/aaaa) *</p><input type="text" id="addDate" placeholder="jj/mm/aaaa"></div>
+      <div><p class="k">Date de demande (jj/mm/aaaa)</p><input type="text" id="addDateDemande" placeholder="jj/mm/aaaa"></div>
+      <div><p class="k">Statut</p>
+        <select id="addStatut">
+          <option>Nouvelle demande</option>
+          <option>En attente client</option>
+          <option>Confirmé</option>
+          <option>Refusé</option>
+        </select>
+      </div>
+      <div><p class="k">Lien Gmail (optionnel)</p><input type="text" id="addGmailThread" placeholder="https://mail.google.com/..."></div>
+    </div>
+    <div style="margin-top:12px;"><p class="k">Commentaire</p><textarea id="addCommentaire" rows="2" style="width:100%;"></textarea></div>
+    <div class="compose-actions">
+      <button class="primary" onclick="submitAddForm()">Ajouter</button>
+      <button class="ghost" onclick="toggleAddForm()">Annuler</button>
+      <span class="save-note" id="addFormError" style="display:none; color:#b91c1c;"></span>
+    </div>
+  </div>
+
+  <div class="panel">
+    <table>
+      <thead><tr><th style="width:22%">Client</th><th>Espace</th><th>Date de demande</th><th>Date de l'évènement</th><th>Pax</th><th>Statut</th></tr></thead>
+      <tbody id="reqTbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<div id="view-confirmed" style="display:none;">
+  <p class="section-title">À venir</p>
+  <div class="panel">
+    <table>
+      <thead><tr><th style="width:22%">Client</th><th>Date</th><th>Service</th><th>Espace</th><th>Pax</th><th>Total TTC</th><th>Paiement</th></tr></thead>
+      <tbody id="confUpcomingTbody"></tbody>
+    </table>
+  </div>
+
+  <p class="section-title">Passées</p>
+  <div class="panel">
+    <table>
+      <thead><tr><th style="width:22%">Client</th><th>Date</th><th>Service</th><th>Espace</th><th>Pax</th><th>Total TTC</th><th>Paiement</th></tr></thead>
+      <tbody id="confPastTbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<div id="view-detail" style="display:none;">
+  <button class="back-btn" onclick="showTab(originTab)">&larr; Retour</button>
+
+  <div class="detail-card detail-card-top" id="detailCardTop">
+    <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <div class="avatar" id="detailAvatar">PD</div>
+        <div>
+          <p style="font-weight:700; font-size:16px; margin:0;" id="detailName">Pauline Duval</p>
+          <p style="font-size:12.5px; color:#8a8a90; margin:2px 0 0;" id="detailEmail">paulineanne.duval@gmail.com</p>
+        </div>
+      </div>
+      <select id="detailStatutSelect" class="badge-select waiting" onchange="onStatutChange()">
+        <option>Nouvelle demande</option>
+        <option>En attente client</option>
+        <option>Confirmé</option>
+        <option>Refusé</option>
+      </select>
+    </div>
+    <div class="detail-meta">
+      <div><p class="k"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> Espace</p><p class="v" id="detailEspace">Restaurant entier</p></div>
+      <div><p class="k"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Date souhaitée</p><p class="v" id="detailDate">03/10/2026</p></div>
+      <div><p class="k"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> Pax</p><p class="v pax-value" id="detailPax">65</p></div>
+    </div>
+  </div>
+
+  <div id="commentSection" style="display:none;">
+    <p class="section-title"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V21z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v4z"/></svg> Commentaire du client (formulaire)</p>
+    <div class="detail-card" style="font-style: italic; color: #3a3a3e; line-height: 1.6;">« <span id="detailComment"></span> »</div>
+  </div>
+
+  <p class="section-title"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> Historique des échanges</p>
+  <div class="timeline" id="detailTimeline"></div>
+
+  <div id="financeSection" style="display:none;">
+    <p class="section-title"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 7a6 6 0 1 0 0 10"/><line x1="4" y1="10" x2="14" y2="10"/><line x1="4" y1="14" x2="12" y2="14"/></svg> Suivi financier</p>
+    <div class="detail-card">
+      <div class="finance-grid">
+        <div><p class="k">Service</p>
+          <select id="finService" onchange="onFinanceInput()">
+            <option>Déjeuner</option>
+            <option>Dîner</option>
+          </select>
+        </div>
+        <div><p class="k">CA Cuisine HT</p><input type="text" id="finCuisineHT" oninput="onFinanceInput()"></div>
+        <div><p class="k">CA Alcools HT</p><input type="text" id="finAlcoolsHT" oninput="onFinanceInput()"></div>
+        <div><p class="k">Statut paiement</p>
+          <select id="finStatutPaiement" onchange="onFinanceInput()">
+            <option>En attente d'acompte</option>
+            <option>Acompte versé</option>
+            <option>Paiement effectué</option>
+          </select>
+        </div>
+      </div>
+      <div class="finance-grid readout">
+        <div><p class="k">TVA cuisine (10%)</p><p class="v" id="finTvaCuisine">—</p></div>
+        <div><p class="k">TVA alcools (20%)</p><p class="v" id="finTvaAlcools">—</p></div>
+        <div><p class="k">Total HT</p><p class="v" id="finTotalHT">—</p></div>
+        <div class="fin-headline-wrap"><p class="k">Total TTC</p><p class="v fin-headline" id="finTotalTTC">—</p></div>
+      </div>
+    </div>
+
+    <p class="section-title"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg> Paiements reçus</p>
+    <div class="panel">
+      <table>
+        <thead><tr><th>Canal</th><th>Montant</th><th style="width:80px;"></th></tr></thead>
+        <tbody id="finPaymentsTbody"></tbody>
+      </table>
+    </div>
+    <button class="ghost" onclick="addPaymentLine()" style="margin-bottom:20px;">+ Ajouter un paiement</button>
+
+    <div class="finance-balance" id="finBalanceBanner">
+      <span id="finBalanceText">—</span>
+      <div class="balance-progress"><div class="balance-progress-fill" id="finBalanceProgress" style="width:0%;"></div></div>
+    </div>
+
+    <div id="dishesSection">
+      <p class="section-title"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h0a2 2 0 0 0 2-2V2"/><path d="M5 9v13"/><path d="M17 2v7a2 2 0 0 1-2 2h0"/><path d="M19 2v20"/></svg> Quantités à préparer (selon pax)</p>
+      <div class="panel">
+        <table>
+          <thead><tr><th>Plat</th><th style="width:120px;">Qté totale</th></tr></thead>
+          <tbody id="finDishesTbody"></tbody>
+        </table>
+      </div>
+      <p style="font-size:11.5px; color:#8a8a90; margin: 8px 0 20px;">Basé sur le menu configuré dans Paramètres.</p>
+    </div>
+  </div>
+
+  <div id="composeSection">
+  <p class="section-title"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 6-10 7L2 6"/></svg> Rédiger une réponse</p>
+  <div class="compose-card">
+    <div class="compose-row" id="composeModeRow" style="display:none;">
+      <span style="font-size:12.5px; color:#6b6b70;">Type de message :</span>
+      <button type="button" class="option-btn mode-btn" id="modeBtnInitial" onclick="setRelanceMode(false)">Message initial</button>
+      <button type="button" class="option-btn mode-btn" id="modeBtnRelance" onclick="setRelanceMode(true)">Relance</button>
+      <span class="relance-active-note" id="relanceActiveNote" style="display:none;">Aucune réponse du client depuis le dernier message — relance pré-remplie.</span>
+    </div>
+    <div class="compose-row">
+      <span style="font-size:12.5px; color:#6b6b70;">Options à proposer (plusieurs possibles) :</span>
+      <button type="button" class="option-btn" data-key="salon" onclick="toggleOption('salon', this)">Salon privatif — 20 pax</button>
+      <button type="button" class="option-btn" data-key="etage" onclick="toggleOption('etage', this)">Étage — 45 pax</button>
+      <button type="button" class="option-btn" data-key="etablissement" onclick="toggleOption('etablissement', this)">Établissement entier — 100 pax</button>
+      <button type="button" class="option-btn" data-key="groupe" onclick="toggleOption('groupe', this)">Formule groupe — 45€/pers</button>
+    </div>
+    <div class="compose-row">
+      <span style="font-size:12.5px; color:#6b6b70;">Signature :</span>
+      <select id="composeSignature" onchange="rebuildComposeBody()">
+        <option value="theodore">Théodore</option>
+        <option value="adrien">Adrien</option>
+      </select>
+      <button class="ghost" onclick="resetCompose()">Recommencer</button>
+    </div>
+    <textarea id="composeBody" rows="14"></textarea>
+    <div class="compose-actions">
+      <button class="primary" onclick="openMailto()">Ouvrir dans Gmail ↗</button>
+      <button onclick="copyCompose()">Copier le texte</button>
+      <span class="save-note" id="copyNote">Copié.</span>
+    </div>
+  </div>
+  </div>
+</div>
+
+<div id="view-settings" style="display:none;">
+  <div class="settings-toolbar">
+    <div class="subtabs">
+      <button class="subtab-btn active" data-subtab="reponse" onclick="showSettingsSubtab('reponse')">Réponse</button>
+      <button class="subtab-btn" data-subtab="menu" onclick="showSettingsSubtab('menu')">Menu</button>
+    </div>
+    <span><button class="primary" onclick="saveTemplates()">Enregistrer</button><span class="save-note" id="saveNote">Enregistré.</span></span>
+  </div>
+
+  <div id="settings-reponse">
+    <p style="font-size:12.5px; color:#6b6b70; margin: -6px 0 16px;">Ces blocs servent à composer les réponses dans l'onglet Demandes. {prenom}, {date}, {pax} sont remplacés automatiquement.</p>
+
+    <div class="template-card">
+      <p class="name">Introduction</p>
+      <textarea id="tplIntro" rows="4"></textarea>
+    </div>
+
+    <div class="template-card">
+      <p class="name">Message de relance (sans réponse du client)</p>
+      <textarea id="tplRelance" rows="5"></textarea>
+    </div>
+
+    <div class="template-card">
+      <p class="name">Option — Salon privatif (jusqu'à 20 pax)</p>
+      <textarea id="tplSalon" rows="6"></textarea>
+    </div>
+
+    <div class="template-card">
+      <p class="name">Option — Étage (jusqu'à 45 pax)</p>
+      <textarea id="tplEtage" rows="6"></textarea>
+    </div>
+
+    <div class="template-card">
+      <p class="name">Option — Établissement entier (jusqu'à 100 pax)</p>
+      <textarea id="tplEtablissement" rows="7"></textarea>
+    </div>
+
+    <div class="template-card">
+      <p class="name">Option — Formule groupe (45€/pers, un service)</p>
+      <textarea id="tplGroupe" rows="6"></textarea>
+    </div>
+
+    <div class="template-card">
+      <p class="name">Clôture</p>
+      <textarea id="tplCloture" rows="3"></textarea>
+    </div>
+
+    <div class="template-card">
+      <p class="name">Signature — Théodore</p>
+      <textarea id="tplSigTheodore" rows="4"></textarea>
+    </div>
+
+    <div class="template-card">
+      <p class="name">Signature — Adrien</p>
+      <textarea id="tplSigAdrien" rows="4"></textarea>
+    </div>
+  </div>
+
+  <div id="settings-menu" style="display:none;">
+    <p style="font-size:12.5px; color:#6b6b70; margin: -6px 0 16px;">Coche les plats à inclure dans le calcul « Quantités à préparer » de chaque fiche confirmée. Prix et totaux ci-dessous sont indicatifs, calculés pour le nombre de personnes de référence.</p>
+
+    <div class="finance-grid" style="margin-bottom:18px;">
+      <div><p class="k">Total tapas / personne</p><p class="v" id="menuSumPerPerson" style="font-weight:650; font-size:16px;">—</p></div>
+      <div><p class="k">Prix indicatif / personne</p><p class="v" id="menuSumPricePerPerson" style="font-weight:650; font-size:16px;">—</p></div>
+      <div><p class="k">Pax de référence</p><input type="text" id="menuRefPax" value="20" oninput="onMenuRefPaxChange()"></div>
+      <div><p class="k">Prix indicatif total</p><p class="v" id="menuSumPriceTotal" style="font-weight:650; font-size:16px;">—</p></div>
+    </div>
+
+    <div class="panel">
+      <table>
+        <thead><tr><th style="width:60px;">Actif</th><th>Plat</th><th style="width:110px;">Prix unitaire</th><th style="width:120px;">Qté / personne</th><th style="width:100px;">Qté totale</th><th style="width:110px;">Prix total</th></tr></thead>
+        <tbody id="menuTbody"></tbody>
+      </table>
+    </div>
+
+    <p style="margin-top:30px; padding-top:16px; border-top:1px solid #e5e5e8;">
+      <button class="ghost" onclick="resetDemoData()">Réinitialiser les données de démo</button>
+      <span style="font-size:11.5px; color:#8a8a90; margin-left:6px;">Efface tes modifications locales (statuts, paiements) et recharge les données par défaut.</span>
+    </p>
+  </div>
+</div>
+
+<script>
+// Colle ici l'URL de ton Apps Script déployé en Application Web (se termine par /exec).
+// Laisse vide pour rester en mode local (données stockées uniquement dans ce navigateur).
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbypcmj9GKvf07PNRzYjBg3YkiDjN2u84AN19Alk-5gI2r-zB9F8TfMPu5CjFL0ndskd/exec";
+
+const DATA_DEFAULT = [
+  { client: "Alison Nassiri", email: "alison_nassiri@hotmail.com", espace: "Restaurant entier", date: "11/07/2026", dateDemande: "01/07/2026", pax: 15, statut: "En attente client",
+    gmailThread: "https://mail.google.com/mail/u/0/#all/19f1ce7db93d7584",
+    commentaire: "On fête un anniversaire, on aimerait un espace assez intimiste avec un peu de musique si possible.",
+    timeline: [{ dir: "out", title: "Proposition envoyée", meta: "1 juillet — menu groupe proposé" }] },
+  { client: "Alexandre Applegate", email: "alexandre.applegate@gmail.com", espace: "Salon privatif", date: "25/07/2026", dateDemande: "28/06/2026", pax: 10, statut: "En attente client",
+    gmailThread: "https://mail.google.com/mail/u/0/#all/19f0eab5c471302c",
+    commentaire: "Dîner d'anniversaire entre amis, on cherche un lieu convivial pour une dizaine de personnes.",
+    timeline: [{ dir: "out", title: "Proposition envoyée", meta: "28 juin — menu groupe proposé" }] },
+  { client: "Pauline Duval", email: "paulineanne.duval@gmail.com", espace: "Restaurant entier", date: "03/10/2026", dateDemande: "24/06/2026", pax: 65, statut: "En attente client", relance: true,
+    gmailThread: "https://mail.google.com/mail/u/0/#all/19efdbc4dc452774",
+    commentaire: "Nous organisons un dîner d'entreprise, serait-il possible d'avoir le restaurant complet avec un menu adapté au format groupe ?",
+    timeline: [
+      { dir: "out", title: "Proposition initiale envoyée", meta: "25 juin, 07:43 — menu groupe et privatisation du restaurant proposés" },
+      { dir: "in", title: "Réponse du client", meta: "25 juin, 07:55 — la proposition correspond à ses attentes" },
+      { dir: "out", title: "Proposition mise à jour envoyée", meta: "25 juin, 08:14 — aucune réponse depuis 16 jours" }
+    ] },
+  { client: "Camper (Adeline Hoffmann)", email: "ahoffmann@camper.com", espace: "Terrasse", date: "28/09/2026", dateDemande: "23/06/2026", pax: 25, statut: "Nouvelle demande",
+    gmailThread: "https://mail.google.com/mail/u/0/#all/19ef054b9c293c78",
+    commentaire: "Nous cherchons un lieu pour un événement de marque, avec possibilité de personnaliser légèrement la déco.",
+    timeline: [
+      { dir: "out", title: "Premier échange", meta: "23 juin — présentation des formats" },
+      { dir: "in", title: "Nouvelle demande du client", meta: "10 juillet — intérêt confirmé pour le 28 septembre, 25 personnes" }
+    ] },
+  { client: "Aimée Deslandes", email: "mylena.desl@gmail.com", espace: "Salon privatif", date: "22/06/2026", dateDemande: "13/06/2026", pax: 16, statut: "Nouvelle demande",
+    gmailThread: "https://mail.google.com/mail/u/0/#all/19ec06d778571cf9",
+    commentaire: "C'est pour mon anniversaire (30 ans), on aimerait une ambiance festive avec de la musique si possible.",
+    timeline: [{ dir: "in", title: "Nouvelle demande reçue via le formulaire du site", meta: "13 juin — 16 personnes, anniversaire" }] },
+  { client: "Margo et Julien", email: "julien.delgrandi@gmail.com", espace: "Restaurant entier", date: "19/09/2026", dateDemande: "08/06/2026", pax: 90, statut: "Refusé",
+    gmailThread: "https://mail.google.com/mail/u/0/#all/19ee995d94c9a737",
+    commentaire: "Nous recherchions le restaurant entier comme option pour un mariage — finalement nous ne donnons pas suite, merci.",
+    timeline: [
+      { dir: "out", title: "Proposition envoyée", meta: "10 juin" },
+      { dir: "in", title: "Annulation", meta: "21 juin — ne donneront pas suite" }
+    ] }
+];
+
+// Historique réel des privatisations confirmées (fourni par Théo).
+// Format par ligne : [client, date, service, pax, CA cuisine HT, CA alcools HT, statut paiement, paiements[]]
+const HISTORIQUE_CONFIRMES = [
+  ["Gas bijoux", "27/11/2025", "Dîner", 50, 2350, 1650, "Paiement effectué", [{ canal: "Qonto", montant: 4571 }]],
+  ["Atelier Tortil", "02/12/2025", "Dîner", 15, 1000, 600, "Paiement effectué", [{ canal: "Qonto", montant: 1820 }]],
+  ["Rothschild", "04/12/2025", "Dîner", 17, 1500, 766, "Paiement effectué", [{ canal: "Qonto", montant: 2569 }]],
+  ["Nathalie Gentili", "11/12/2025", "Déjeuner", 13, 591, 0, "Paiement effectué", [{ canal: "CB", montant: 650 }]],
+  ["Limonetik", "11/12/2025", "Dîner", 35, 1725, 1400, "Paiement effectué", [{ canal: "Qonto", montant: 3578 }]],
+  ["Maison de vacances", "16/12/2025", "Dîner", 19, 1150, 850, "Paiement effectué", [{ canal: "Qonto", montant: 1085 }, { canal: "BNP", montant: 1200 }]],
+  ["COGEDIM", "17/12/2025", "Dîner", 40, 2000, 1766, "Paiement effectué", [{ canal: "BNP", montant: 4120 }]],
+  ["Ring Capital", "18/12/2025", "Dîner", 30, 2200, 1500, "Paiement effectué", [{ canal: "Qonto", montant: 4220 }]],
+  ["BBVA", "18/12/2025", "Déjeuner", 10, 500, 0, "Paiement effectué", [{ canal: "CB", montant: 550 }]],
+  ["Basile", "07/01/2026", "Dîner", 16, 0, 0, "Paiement effectué", []],
+  ["Yara El-Haddad", "09/01/2026", "Dîner", 15, 909, 0, "Paiement effectué", [{ canal: "Lien Sunday", montant: 1000 }]],
+  ["Pinterest", "13/01/2026", "Dîner", 45, 3300, 1200, "Paiement effectué", [{ canal: "Lien Sunday", montant: 2475 }, { canal: "CB", montant: 2595 }]],
+  ["BNP Paribas", "15/01/2026", "Dîner", 50, 3000, 2000, "Paiement effectué", [{ canal: "Qonto", montant: 5700 }]],
+  ["Imane Nekmouche", "30/01/2026", "Dîner", 16, 909, 0, "Paiement effectué", [{ canal: "Lien Sunday", montant: 2000 }]],
+  ["Kactus (pour RATP)", "03/02/2026", "Dîner", 10, 600, 200, "Paiement effectué", [{ canal: "Qonto", montant: 900 }]],
+  ["Histoire & Patrimoine", "16/02/2026", "Déjeuner", 15, 614, 0, "Paiement effectué", [{ canal: "Qonto", montant: 675 }]],
+  ["Phibor", "19/02/2026", "Dîner", 15, 614, 0, "Paiement effectué", [{ canal: "Lien Sunday", montant: 675 }]],
+  ["Manolivia", "21/02/2026", "Dîner", 40, 2861, 0, "Paiement effectué", [{ canal: "Qonto", montant: 2148 }, { canal: "Lien Sunday", montant: 1000 }]],
+  ["Advancy", "18/03/2026", "Dîner", 15, 1500, 600, "Paiement effectué", [{ canal: "Qonto", montant: 2453 }]],
+  ["MKG", "26/03/2026", "Dîner", 40, 2700, 1100, "Paiement effectué", [{ canal: "Qonto", montant: 4290 }]],
+  ["BNP Paribas", "09/04/2026", "Dîner", 45, 3000, 1500, "Paiement effectué", [{ canal: "Qonto", montant: 5100 }]],
+  ["Caroline Charles", "15/04/2026", "Déjeuner", 30, 5500, 0, "Paiement effectué", [{ canal: "Qonto", montant: 6050 }]],
+  ["Condé Nast", "24/03/2026", "Dîner", 40, 4000, 0, "Paiement effectué", [{ canal: "Qonto", montant: 4400 }]],
+  ["Advancy", "23/04/2026", "Dîner", 50, 3500, 2224, "Paiement effectué", [{ canal: "Qonto", montant: 6519 }]],
+  ["Coty / Tharsana", "23/04/2026", "Dîner", 52, 3332, 917, "Paiement effectué", [{ canal: "Qonto", montant: 4773 }]],
+  ["Julien Benattar", "18/07/2026", "Déjeuner", 80, 4590, 0, "En attente d'acompte", []],
+  ["Eric Pizigo", "06/06/2026", "Déjeuner", 25, 1125, 0, "Paiement effectué", [{ canal: "Lien Sunday", montant: 563 }]],
+  ["Joia Silva", "13/06/2026", "Dîner", 9, 600, 200, "Paiement effectué", [{ canal: "Lien Sunday", montant: 450 }]],
+  ["Rosalie", "27/05/2026", "Dîner", 17, 765, 0, "Paiement effectué", [{ canal: "Lien Sunday", montant: 383 }]],
+  ["Bpi / Business profilers", "18/06/2026", "Déjeuner", 50, 3000, 0, "Acompte versé", [{ canal: "Qonto", montant: 990 }]],
+  ["Hyperline", "26/06/2026", "Déjeuner", 22, 1120, 0, "Acompte versé", [{ canal: "Qonto", montant: 616 }]],
+  ["Alhaja", "16/06/2026", "Dîner", 0, 0, 800, "En attente d'acompte", []],
+  ["PSG / Les camionneuses", "30/05/2026", "Dîner", 0, 1300, 0, "Paiement effectué", [{ canal: "Qonto", montant: 1430 }]],
+  ["Nareg / LVMH", "02/07/2026", "Dîner", 16, 1500, 403, "En attente d'acompte", []],
+  ["Fives", "17/06/2026", "Dîner", 16, 900, 200, "Paiement effectué", [{ canal: "Lien Sunday", montant: 615 }, { canal: "CB", montant: 615 }]]
+];
+
+const DATA_HISTORIQUE = HISTORIQUE_CONFIRMES.map(([client, date, service, pax, caCuisineHT, caAlcoolsHT, statutPaiement, paiements]) => ({
+  client, email: "", espace: pax > 20 ? "Restaurant entier" : "Salon privatif", date, pax, statut: "Confirmé",
+  timeline: [{ dir: "out", title: "Réservation confirmée", meta: date + " — " + pax + " pers., " + service }],
+  finance: { service, caCuisineHT, caAlcoolsHT, statutPaiement, paiements }
+}));
+
+let DATA = [];
+let SYNC_MODE = !!SCRIPT_URL;
+
+function ensureIds_(arr) {
+  arr.forEach((d, i) => { if (!d.id) d.id = 'local_' + i + '_' + Date.now(); });
+  return arr;
+}
+
+function setSyncBanner_(text, tone) {
+  const el = document.getElementById('syncBanner');
+  if (!el) return;
+  el.textContent = text;
+  el.style.background = tone === 'error' ? '#fee2e2' : (tone === 'ok' ? '#dcfce7' : '#eef2ff');
+  el.style.borderColor = tone === 'error' ? '#fecaca' : (tone === 'ok' ? '#bbf7d0' : '#c7d2fe');
+  el.style.color = tone === 'error' ? '#b91c1c' : (tone === 'ok' ? '#166534' : '#3730a3');
+}
+
+function loadData() {
+  const localFallback = () => ensureIds_(JSON.parse(localStorage.getItem('rosarioData') || 'null') || DATA_DEFAULT.concat(DATA_HISTORIQUE));
+
+  if (!SYNC_MODE) {
+    DATA = localFallback();
+    setSyncBanner_("Mode local — non connecté au cloud. Configure SCRIPT_URL en haut du script pour synchroniser en ligne.", 'warn');
+    afterDataLoaded_();
+    return;
+  }
+
+  setSyncBanner_("Connexion au cloud…", 'warn');
+  fetch(SCRIPT_URL)
+    .then(r => r.json())
+    .then(json => {
+      if (json.data && json.data.length > 0) {
+        DATA = ensureIds_(json.data);
+        applyCloudConfig_(json.config);
+        setSyncBanner_("Connecté au cloud — données partagées, à jour.", 'ok');
+        afterDataLoaded_();
+      } else {
+        // Sheet vide : on amorce avec les données de démo locales.
+        DATA = ensureIds_(DATA_DEFAULT.concat(DATA_HISTORIQUE));
+        pushData_(() => setSyncBanner_("Connecté au cloud — données initiales envoyées.", 'ok'));
+        afterDataLoaded_();
+      }
+    })
+    .catch(err => {
+      DATA = localFallback();
+      setSyncBanner_("Impossible de joindre le cloud (" + err.message + ") — mode local de secours.", 'error');
+      afterDataLoaded_();
+    });
+}
+
+function afterDataLoaded_() {
+  applyFilters();
+  if (originTab === 'confirmed') renderConfirmedLists();
+}
+
+function pushData_(onDone) {
+  localStorage.setItem('rosarioData', JSON.stringify(DATA));
+  if (!SYNC_MODE) return;
+  fetch(SCRIPT_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain' }, // évite le preflight CORS, Apps Script ne le gère pas
+    body: JSON.stringify({ data: DATA, config: { templates: TEMPLATES, menu: MENU } })
+  })
+    .then(r => r.json())
+    .then(json => {
+      if (json.ok) { setSyncBanner_("Connecté au cloud — modifications enregistrées.", 'ok'); }
+      else { setSyncBanner_("Erreur de synchronisation : " + json.error, 'error'); }
+      if (onDone) onDone();
+    })
+    .catch(err => setSyncBanner_("Erreur de synchronisation (" + err.message + ") — modification gardée en local seulement.", 'error'));
+}
+
+function saveData() {
+  localStorage.setItem('rosarioData', JSON.stringify(DATA));
+  if (SYNC_MODE) pushData_();
+}
+
+function resetDemoData() {
+  const msg = SYNC_MODE
+    ? "Réinitialiser ton cache local ? Cela ne touche pas les données partagées dans le cloud, seulement la copie de secours de ce navigateur."
+    : "Réinitialiser toutes les données de démonstration ? Tes modifications locales (statuts, paiements) seront effacées.";
+  if (confirm(msg)) {
+    localStorage.removeItem('rosarioData');
+    localStorage.removeItem('rosarioMenu');
+    localStorage.removeItem('rosarioTemplates');
+    location.reload();
+  }
+}
+
+const STATUT_CLASS = { "Nouvelle demande": "new", "En attente client": "waiting", "Confirmé": "confirmed", "Refusé": "cancelled" };
+
+const DEFAULT_TEMPLATES = {
+  intro: "Hola {prenom},\n\nMerci beaucoup pour l'intérêt porté à Rosario pour votre événement, nous vous accueillerons avec plaisir !\n\nVoici ce que nous pouvons vous proposer pour {pax} personnes :\n",
+  relance: "Bonjour {prenom},\n\nAvez-vous pu prendre connaissance de mon dernier message ?\n\nNous restons naturellement disponibles pour échanger sur les modalités de notre proposition.\n\nJe vous remercie et vous souhaite une excellente journée,\n",
+  salon: "- date : {date}\n- lieu : privatisation du salon privatif, staff dédié pour l'événement, système son dédié, possibilité de décorer le lieu si besoin\n- format : cocktail dînatoire avec assises disponibles également, assortiment de tapas (~3/4 par personne), assortiment de desserts (1 par personne), boissons : forfait à définir ensemble\n- budget : [PRIX]€ TTC",
+  etage: "- date : {date}\n- lieu : privatisation de l'étage, staff dédié pour l'événement, système son dédié, possibilité de décorer le lieu si besoin\n- format : cocktail dînatoire avec assises disponibles également, assortiment de tapas (~3/4 par personne), assortiment de desserts (1 par personne), boissons : forfait à définir ensemble\n- budget : [PRIX]€ TTC",
+  etablissement: "- date : {date}\n- lieu : privatisation entière du restaurant, staff dédié pour l'événement, système son dédié, possibilité de décorer le lieu si besoin\n- format : cocktail dînatoire avec assises disponibles également, assortiment de tapas (~3/4 par personne), assortiment de desserts (1 par personne), boissons : forfait à définir ensemble\n- budget : [PRIX]€ TTC",
+  groupe: "- date : {date}\n- format : menu fixe, assortiment de tapas à partager\n- budget : 45€ TTC par personne (boissons non incluses)",
+  cloture: "\nJe reste à votre disposition si vous avez la moindre question,\n\nMerci encore et très bonne journée,\n",
+  sigTheodore: "Théodore\n\nThéodore Ballu\n06 62 70 99 38\nRosario – 96 rue de Richelieu, Paris 02",
+  sigAdrien: "Adrien\n\nAdrien DELRUE\nCo-fondateur\n06 86 75 65 66\nRosario – 96 rue de Richelieu, Paris 02"
+};
+
+let TEMPLATES = Object.assign({}, DEFAULT_TEMPLATES, JSON.parse(localStorage.getItem('rosarioTemplates') || 'null') || {});
+
+const MENU_DEFAULT = [
+  { nom: "Pan con tomate", prix: 4 },
+  { nom: "Gilda", prix: 3.5 },
+  { nom: "Pimientos de Padron", prix: 9 },
+  { nom: "Tortilla", prix: 12 },
+  { nom: "Tortilla con chistorra", prix: 15 },
+  { nom: "Patatas bravas", prix: 8 },
+  { nom: "Salmorejo", prix: 9 },
+  { nom: "Salpicon", prix: 13 },
+  { nom: "Mejillones", prix: 13 },
+  { nom: "Empanada", prix: 22 },
+  { nom: "Cecina", prix: 17 },
+  { nom: "Cebo de campo", prix: 23 },
+  { nom: "Bellota", prix: 28 }
+].map(d => ({ nom: d.nom, included: true, qtePerPers: 0.5, prixUnitaire: d.prix }));
+let MENU = JSON.parse(localStorage.getItem('rosarioMenu') || 'null') || MENU_DEFAULT;
+
+function applyCloudConfig_(config) {
+  if (!config) return;
+  if (config.templates) { TEMPLATES = Object.assign({}, DEFAULT_TEMPLATES, config.templates); localStorage.setItem('rosarioTemplates', JSON.stringify(TEMPLATES)); }
+  if (config.menu) { MENU = config.menu; localStorage.setItem('rosarioMenu', JSON.stringify(MENU)); }
+}
+
+let currentReq = null;
+let selectedOptions = [];
+let relanceMode = false;
+let relanceOnly = false;
+let originTab = 'list';
+const PAYMENT_CHANNELS = ['Qonto', 'BNP', 'Lien Sunday', 'CB'];
+
+const OPTION_ORDER = ['salon', 'etage', 'etablissement', 'groupe'];
+const OPTION_TITLES = {
+  salon: "Privatisation du salon",
+  etage: "Privatisation de l'étage",
+  etablissement: "Privatisation de l'établissement",
+  groupe: "Formule groupe"
+};
+
+function initials(name) { return name.split(" ").filter(Boolean).slice(0, 2).map(w => w[0]).join("").toUpperCase(); }
+function firstName(name) { return name.split(" ")[0].replace(/[(].*$/, '').trim(); }
+
+function renderRows(rows) {
+  const tbody = document.getElementById("reqTbody");
+  if (rows.length === 0) { tbody.innerHTML = '<tr><td colspan="5" style="padding:40px; text-align:center; color:#8a8a90;">Aucune demande sur ce filtre.</td></tr>'; return; }
+  tbody.innerHTML = rows.map(r => {
+    const idx = DATA.indexOf(r);
+    return `<tr class="req-row" onclick="openDetail(${idx})">
+      <td><span class="client-name">${r.client}</span><div class="client-sub">${r.email}</div></td>
+      <td>${r.espace}</td>
+      <td>${r.dateDemande || '—'}</td>
+      <td>${r.date}</td>
+      <td>${r.pax}</td>
+      <td><span class="badge ${STATUT_CLASS[r.statut] || 'waiting'}">${r.statut}</span>${r.relance ? '<span class="relance-flag">&bull; à relancer</span>' : ''}</td>
+    </tr>`;
+  }).join("");
+}
+
+function applyFilters() {
+  const client = document.getElementById("fClient").value.toLowerCase();
+  const statut = document.getElementById("fStatut").value;
+  const espace = document.getElementById("fEspace").value;
+  const rows = DATA.filter(r =>
+    (!client || r.client.toLowerCase().includes(client)) &&
+    (!statut || r.statut === statut) &&
+    (!espace || r.espace === espace) &&
+    (!relanceOnly || r.relance)
+  );
+  renderRows(rows);
+
+  // Les cartouches reflètent toujours les totaux globaux, pas le filtre en cours.
+  document.getElementById("cardTotal").textContent = DATA.length;
+  document.getElementById("cardAnswer").textContent = DATA.filter(r => r.statut === "Nouvelle demande").length;
+  document.getElementById("cardRelance").textContent = DATA.filter(r => r.relance).length;
+  document.getElementById("cardConfirmed").textContent = DATA.filter(r => r.statut === "Confirmé").length;
+
+  document.getElementById("cardBoxAnswer").classList.toggle("active", statut === "Nouvelle demande");
+  document.getElementById("cardBoxConfirmed").classList.toggle("active", statut === "Confirmé");
+  document.getElementById("cardBoxRelance").classList.toggle("active", relanceOnly);
+  document.getElementById("cardBoxTotal").classList.toggle("active", !statut && !relanceOnly && !client && !espace);
+}
+
+function toggleCardFilter(type) {
+  const fStatut = document.getElementById("fStatut");
+  if (type === "total") {
+    fStatut.value = "";
+    relanceOnly = false;
+    document.getElementById("fClient").value = "";
+    document.getElementById("fEspace").value = "";
+  } else if (type === "answer") {
+    relanceOnly = false;
+    fStatut.value = fStatut.value === "Nouvelle demande" ? "" : "Nouvelle demande";
+  } else if (type === "confirmed") {
+    relanceOnly = false;
+    fStatut.value = fStatut.value === "Confirmé" ? "" : "Confirmé";
+  } else if (type === "relance") {
+    const turningOn = !relanceOnly;
+    fStatut.value = "";
+    relanceOnly = turningOn;
+  }
+  applyFilters();
+}
+
+function todayStr_() {
+  const d = new Date();
+  const pad = n => String(n).padStart(2, "0");
+  return pad(d.getDate()) + "/" + pad(d.getMonth() + 1) + "/" + d.getFullYear();
+}
+
+function isValidDateStr_(str) {
+  if (!/^\d{2}\/\d{2}\/\d{4}$/.test(str)) return false;
+  const [d, m, y] = str.split("/").map(Number);
+  const date = new Date(y, m - 1, d);
+  return date.getDate() === d && date.getMonth() === m - 1 && date.getFullYear() === y;
+}
+
+function toggleAddForm() {
+  const panel = document.getElementById("addFormPanel");
+  const opening = panel.style.display === "none";
+  panel.style.display = opening ? "block" : "none";
+  if (opening) {
+    document.getElementById("addClient").value = "";
+    document.getElementById("addEmail").value = "";
+    document.getElementById("addEspace").value = "Salon privatif";
+    document.getElementById("addPax").value = "";
+    document.getElementById("addDate").value = "";
+    document.getElementById("addDateDemande").value = todayStr_();
+    document.getElementById("addStatut").value = "Nouvelle demande";
+    document.getElementById("addGmailThread").value = "";
+    document.getElementById("addCommentaire").value = "";
+    document.getElementById("addFormError").style.display = "none";
+  }
+}
+
+function submitAddForm() {
+  const client = document.getElementById("addClient").value.trim();
+  const date = document.getElementById("addDate").value.trim();
+  const errEl = document.getElementById("addFormError");
+  if (!client || !isValidDateStr_(date)) {
+    errEl.textContent = "Le nom du client et une date d'évènement valide (jj/mm/aaaa) sont obligatoires.";
+    errEl.style.display = "inline";
+    return;
+  }
+  const dateDemande = document.getElementById("addDateDemande").value.trim();
+  const req = {
+    id: 'local_' + DATA.length + '_' + Date.now(),
+    client: client,
+    email: document.getElementById("addEmail").value.trim(),
+    espace: document.getElementById("addEspace").value,
+    date: date,
+    dateDemande: isValidDateStr_(dateDemande) ? dateDemande : todayStr_(),
+    pax: toNumber(document.getElementById("addPax").value),
+    statut: document.getElementById("addStatut").value,
+    commentaire: document.getElementById("addCommentaire").value.trim(),
+    gmailThread: document.getElementById("addGmailThread").value.trim(),
+    timeline: [{ dir: "in", title: "Demande ajoutée manuellement", meta: todayStr_() }]
+  };
+  if (req.statut === "Confirmé") {
+    req.finance = { service: "Dîner", caCuisineHT: 0, caAlcoolsHT: 0, statutPaiement: "En attente d'acompte", paiements: [] };
+  }
+  DATA.push(req);
+  saveData();
+  toggleAddForm();
+  applyFilters();
+  openDetail(DATA.length - 1, "list");
+}
+
+function openDetail(idx, origin) {
+  const r = DATA[idx];
+  if (!r) return;
+  if (!r.timeline) r.timeline = [];
+  currentReq = r;
+  originTab = origin || "list";
+  document.getElementById("detailAvatar").textContent = initials(r.client);
+  document.getElementById("detailName").textContent = r.client;
+  document.getElementById("detailEmail").textContent = r.email;
+  document.getElementById("detailEspace").textContent = r.espace;
+  document.getElementById("detailDate").textContent = r.date;
+  document.getElementById("detailPax").textContent = r.pax;
+  const statutClass = STATUT_CLASS[r.statut] || "waiting";
+  const statutSelect = document.getElementById("detailStatutSelect");
+  statutSelect.value = r.statut;
+  statutSelect.className = "badge-select " + statutClass;
+  document.getElementById("detailCardTop").className = "detail-card detail-card-top " + statutClass;
+
+  const commentSection = document.getElementById("commentSection");
+  if (r.commentaire) {
+    commentSection.style.display = "block";
+    document.getElementById("detailComment").textContent = r.commentaire;
+  } else {
+    commentSection.style.display = "none";
+  }
+
+  const hasLink = !!r.gmailThread;
+  document.getElementById("detailTimeline").innerHTML = r.timeline.map(t => `
+    <div class="timeline-item${hasLink ? ' clickable' : ''}" ${hasLink ? `onclick="window.open('${r.gmailThread}', '_blank')" title="Ouvrir l'échange dans Gmail"` : ''}>
+      <span class="dir-badge dir-${t.dir}">${t.dir === "out" ? "↦" : "↤"}</span>
+      <div><p>${t.title}</p><p class="meta">${t.meta}</p></div>
+      ${hasLink ? '<span class="open-link">Ouvrir ↗</span>' : ''}
+    </div>`).join("");
+
+  const finSection = document.getElementById("financeSection");
+  const composeSection = document.getElementById("composeSection");
+  if (r.finance) {
+    finSection.style.display = "block";
+    document.getElementById("finService").value = r.finance.service;
+    document.getElementById("finCuisineHT").value = r.finance.caCuisineHT;
+    document.getElementById("finAlcoolsHT").value = r.finance.caAlcoolsHT;
+    document.getElementById("finStatutPaiement").value = r.finance.statutPaiement;
+    renderPaymentLines();
+    renderDishRows();
+    updateFinanceComputed();
+    document.getElementById("dishesSection").style.display = isPastDate(r.date) ? "none" : "block";
+  } else {
+    finSection.style.display = "none";
+  }
+  composeSection.style.display = r.statut === "Confirmé" ? "none" : "block";
+
+  resetCompose();
+  showTab("detail");
+}
+
+function onStatutChange() {
+  if (!currentReq) return;
+  const val = document.getElementById("detailStatutSelect").value;
+  currentReq.statut = val;
+  document.getElementById("detailStatutSelect").className = "badge-select " + STATUT_CLASS[val];
+  document.getElementById("detailCardTop").className = "detail-card detail-card-top " + STATUT_CLASS[val];
+
+  if (val === "Confirmé" && !currentReq.finance) {
+    currentReq.finance = { service: "Dîner", caCuisineHT: 0, caAlcoolsHT: 0, statutPaiement: "En attente d'acompte", paiements: [] };
+  }
+  const finSection = document.getElementById("financeSection");
+  if (currentReq.finance) {
+    finSection.style.display = "block";
+    document.getElementById("finService").value = currentReq.finance.service;
+    document.getElementById("finCuisineHT").value = currentReq.finance.caCuisineHT;
+    document.getElementById("finAlcoolsHT").value = currentReq.finance.caAlcoolsHT;
+    document.getElementById("finStatutPaiement").value = currentReq.finance.statutPaiement;
+    renderPaymentLines();
+    renderDishRows();
+    updateFinanceComputed();
+    document.getElementById("dishesSection").style.display = isPastDate(currentReq.date) ? "none" : "block";
+  } else {
+    finSection.style.display = "none";
+  }
+  document.getElementById("composeSection").style.display = val === "Confirmé" ? "none" : "block";
+
+  saveData();
+  applyFilters();
+}
+
+function parseDate(str) {
+  const [d, m, y] = str.split("/").map(Number);
+  return new Date(y, m - 1, d);
+}
+
+function isPastDate(str) {
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  return parseDate(str) < today;
+}
+
+function toNumber(v) {
+  if (typeof v === "number") return v;
+  return parseFloat(String(v).trim().replace(",", ".")) || 0;
+}
+
+function fmtEUR(n) {
+  return (Math.round((n || 0) * 100) / 100).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €";
+}
+
+function financeTotals(f) {
+  const tvaCuisine = f.caCuisineHT * 0.10;
+  const tvaAlcools = f.caAlcoolsHT * 0.20;
+  const totalHT = f.caCuisineHT + f.caAlcoolsHT;
+  const totalTVA = tvaCuisine + tvaAlcools;
+  const totalTTC = totalHT + totalTVA;
+  return { tvaCuisine, tvaAlcools, totalHT, totalTVA, totalTTC };
+}
+
+function onFinanceInput() {
+  if (!currentReq || !currentReq.finance) return;
+  currentReq.finance.service = document.getElementById("finService").value;
+  currentReq.finance.caCuisineHT = toNumber(document.getElementById("finCuisineHT").value);
+  currentReq.finance.caAlcoolsHT = toNumber(document.getElementById("finAlcoolsHT").value);
+  currentReq.finance.statutPaiement = document.getElementById("finStatutPaiement").value;
+  updateFinanceComputed();
+  saveData();
+}
+
+function updateFinanceComputed() {
+  const t = financeTotals(currentReq.finance);
+  document.getElementById("finTvaCuisine").textContent = fmtEUR(t.tvaCuisine);
+  document.getElementById("finTvaAlcools").textContent = fmtEUR(t.tvaAlcools);
+  document.getElementById("finTotalHT").textContent = fmtEUR(t.totalHT);
+  document.getElementById("finTotalTTC").textContent = fmtEUR(t.totalTTC);
+  const paid = (currentReq.finance.paiements || []).reduce((s, p) => s + toNumber(p.montant), 0);
+  const balance = t.totalTTC - paid;
+  const banner = document.getElementById("finBalanceBanner");
+  const statusClass = balance <= 0.01 ? "paid" : (paid > 0 ? "partial" : "unpaid");
+  banner.className = "finance-balance " + statusClass;
+  document.getElementById("finBalanceText").textContent = fmtEUR(paid) + " reçus sur " + fmtEUR(t.totalTTC) + (balance > 0.01 ? " — reste " + fmtEUR(balance) : " — soldé ✓");
+  const pct = t.totalTTC > 0 ? Math.min(100, Math.max(0, (paid / t.totalTTC) * 100)) : 0;
+  document.getElementById("finBalanceProgress").style.width = pct + "%";
+}
+
+function renderPaymentLines() {
+  const tbody = document.getElementById("finPaymentsTbody");
+  const list = currentReq.finance.paiements || [];
+  if (list.length === 0) { tbody.innerHTML = '<tr><td colspan="3" style="padding:16px; text-align:center; color:#8a8a90;">Aucun paiement enregistré.</td></tr>'; return; }
+  tbody.innerHTML = list.map((p, i) => `
+    <tr>
+      <td><select onchange="updatePayment(${i}, 'canal', this.value)">${PAYMENT_CHANNELS.map(c => `<option ${c === p.canal ? "selected" : ""}>${c}</option>`).join("")}</select></td>
+      <td><input type="text" value="${p.montant}" oninput="updatePayment(${i}, 'montant', this.value)"></td>
+      <td><button class="ghost" onclick="removePaymentLine(${i})">Retirer</button></td>
+    </tr>`).join("");
+}
+
+function addPaymentLine() {
+  currentReq.finance.paiements = currentReq.finance.paiements || [];
+  currentReq.finance.paiements.push({ canal: "Qonto", montant: 0 });
+  renderPaymentLines();
+  updateFinanceComputed();
+  saveData();
+}
+
+function removePaymentLine(i) {
+  currentReq.finance.paiements.splice(i, 1);
+  renderPaymentLines();
+  updateFinanceComputed();
+  saveData();
+}
+
+function updatePayment(i, field, value) {
+  currentReq.finance.paiements[i][field] = field === "montant" ? toNumber(value) : value;
+  updateFinanceComputed();
+  saveData();
+}
+
+function renderDishRows() {
+  const tbody = document.getElementById("finDishesTbody");
+  const list = MENU.filter(m => m.included);
+  if (list.length === 0) { tbody.innerHTML = '<tr><td colspan="2" style="padding:16px; text-align:center; color:#8a8a90;">Aucun plat actif — configure le menu dans Paramètres.</td></tr>'; return; }
+  tbody.innerHTML = list.map(m => `
+    <tr>
+      <td>${m.nom}</td>
+      <td style="font-weight:600;">${Math.ceil(toNumber(m.qtePerPers) * currentReq.pax)}</td>
+    </tr>`).join("");
+}
+
+function renderMenuForm() {
+  document.getElementById("menuTbody").innerHTML = MENU.map((m, i) => `
+    <tr>
+      <td><input type="checkbox" ${m.included ? "checked" : ""} onchange="MENU[${i}].included = this.checked; updateMenuSummary();" style="width:auto; cursor:pointer;"></td>
+      <td>${m.nom}</td>
+      <td><input type="text" value="${m.prixUnitaire}" oninput="MENU[${i}].prixUnitaire = toNumber(this.value); updateMenuRow(${i}); updateMenuSummary();"></td>
+      <td><input type="text" value="${m.qtePerPers}" oninput="MENU[${i}].qtePerPers = toNumber(this.value); updateMenuRow(${i}); updateMenuSummary();"></td>
+      <td id="menuQte_${i}" style="font-weight:600;">—</td>
+      <td id="menuPrixLigne_${i}">—</td>
+    </tr>`).join("");
+  MENU.forEach((m, i) => updateMenuRow(i));
+  updateMenuSummary();
+}
+
+function refPax() {
+  return toNumber(document.getElementById("menuRefPax").value) || 0;
+}
+
+function updateMenuRow(i) {
+  const m = MENU[i];
+  const qte = Math.ceil(toNumber(m.qtePerPers) * refPax());
+  document.getElementById("menuQte_" + i).textContent = qte;
+  document.getElementById("menuPrixLigne_" + i).textContent = fmtEUR(toNumber(m.prixUnitaire) * qte);
+}
+
+function onMenuRefPaxChange() {
+  MENU.forEach((m, i) => updateMenuRow(i));
+  updateMenuSummary();
+}
+
+function updateMenuSummary() {
+  const active = MENU.filter(m => m.included);
+  const perPerson = active.reduce((s, m) => s + toNumber(m.qtePerPers), 0);
+  const pricePerPerson = active.reduce((s, m) => s + toNumber(m.qtePerPers) * toNumber(m.prixUnitaire), 0);
+  document.getElementById("menuSumPerPerson").textContent = perPerson.toLocaleString("fr-FR", { maximumFractionDigits: 2 }) + " / pers";
+  document.getElementById("menuSumPricePerPerson").textContent = fmtEUR(pricePerPerson) + " / pers";
+  document.getElementById("menuSumPriceTotal").textContent = fmtEUR(pricePerPerson * refPax());
+}
+
+function renderConfirmedLists() {
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const confirmed = DATA.map((r, idx) => ({ r, idx })).filter(x => x.r.statut === "Confirmé" && x.r.finance);
+  const upcoming = confirmed.filter(x => parseDate(x.r.date) >= today).sort((a, b) => parseDate(a.r.date) - parseDate(b.r.date));
+  const past = confirmed.filter(x => parseDate(x.r.date) < today).sort((a, b) => parseDate(b.r.date) - parseDate(a.r.date));
+
+  const rowHtml = (x) => {
+    const t = financeTotals(x.r.finance);
+    return `<tr class="req-row" onclick="openDetail(${x.idx}, 'confirmed')">
+      <td><span class="client-name">${x.r.client}</span><div class="client-sub">${x.r.email}</div></td>
+      <td>${x.r.date}</td>
+      <td>${x.r.finance.service}</td>
+      <td>${x.r.espace}</td>
+      <td>${x.r.pax}</td>
+      <td>${fmtEUR(t.totalTTC)}</td>
+      <td>${x.r.finance.statutPaiement}</td>
+    </tr>`;
+  };
+
+  document.getElementById("confUpcomingTbody").innerHTML = upcoming.length ? upcoming.map(rowHtml).join("") : '<tr><td colspan="7" style="padding:30px; text-align:center; color:#8a8a90;">Aucune privatisation confirmée à venir.</td></tr>';
+  document.getElementById("confPastTbody").innerHTML = past.length ? past.map(rowHtml).join("") : '<tr><td colspan="7" style="padding:30px; text-align:center; color:#8a8a90;">Aucune privatisation confirmée passée.</td></tr>';
+}
+
+function fillPlaceholders(text) {
+  if (!currentReq) return text;
+  return text
+    .replace(/{prenom}/g, firstName(currentReq.client))
+    .replace(/{date}/g, currentReq.date)
+    .replace(/{pax}/g, currentReq.pax);
+}
+
+function needsRelance(r) {
+  return !!(r && r.timeline && r.timeline.length && r.timeline[r.timeline.length - 1].dir === "out");
+}
+
+function resetCompose() {
+  selectedOptions = [];
+  document.querySelectorAll(".option-btn").forEach(b => b.classList.remove("active"));
+
+  const hasOutMessage = !!(currentReq && currentReq.timeline && currentReq.timeline.some(t => t.dir === "out"));
+  const modeRow = document.getElementById("composeModeRow");
+  modeRow.style.display = hasOutMessage ? "flex" : "none";
+  relanceMode = hasOutMessage && needsRelance(currentReq);
+  updateModeButtons();
+
+  rebuildComposeBody();
+}
+
+function setRelanceMode(isRelance) {
+  relanceMode = isRelance;
+  updateModeButtons();
+  rebuildComposeBody();
+}
+
+function updateModeButtons() {
+  document.getElementById("modeBtnInitial").classList.toggle("active", !relanceMode);
+  document.getElementById("modeBtnRelance").classList.toggle("active", relanceMode);
+  document.getElementById("relanceActiveNote").style.display = (relanceMode && needsRelance(currentReq)) ? "inline" : "none";
+}
+
+function toggleOption(key, btn) {
+  const i = selectedOptions.indexOf(key);
+  if (i >= 0) { selectedOptions.splice(i, 1); btn.classList.remove("active"); }
+  else { selectedOptions.push(key); btn.classList.add("active"); }
+  rebuildComposeBody();
+}
+
+function rebuildComposeBody() {
+  const intro = fillPlaceholders(relanceMode ? TEMPLATES.relance : TEMPLATES.intro);
+  const sig = document.getElementById("composeSignature").value;
+  const signature = sig === "theodore" ? TEMPLATES.sigTheodore : TEMPLATES.sigAdrien;
+
+  const titleWithSchedule = (key) => OPTION_TITLES[key] + (key === "groupe" ? " — 19h-21h ou 21h15-minuit" : " — toute la soirée");
+
+  let optionsText = "";
+  if (selectedOptions.length === 1) {
+    const key = selectedOptions[0];
+    optionsText = titleWithSchedule(key) + "\n" + fillPlaceholders(TEMPLATES[key]);
+  } else if (selectedOptions.length > 1) {
+    const ordered = OPTION_ORDER.filter(k => selectedOptions.includes(k));
+    optionsText = ordered.map((key) => titleWithSchedule(key) + "\n" + fillPlaceholders(TEMPLATES[key])).join("\n\n");
+  }
+
+  // Le message de relance se suffit à lui-même (il a déjà sa propre formule de politesse) :
+  // on n'ajoute la clôture standard que si on repropose une offre (options sélectionnées).
+  const skipCloture = relanceMode && !optionsText;
+  const body = optionsText ? intro + "\n" + optionsText + "\n" : intro;
+  document.getElementById("composeBody").value = body + (skipCloture ? "" : TEMPLATES.cloture) + "\n" + signature;
+}
+
+function openMailto() {
+  if (!currentReq) return;
+  const subject = "Rosario — " + currentReq.espace + " le " + currentReq.date;
+  const body = document.getElementById("composeBody").value;
+  const url = "mailto:" + encodeURIComponent(currentReq.email) + "?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(body);
+  window.location.href = url;
+}
+
+function copyCompose() {
+  navigator.clipboard.writeText(document.getElementById("composeBody").value).then(() => {
+    const note = document.getElementById("copyNote");
+    note.style.display = "inline";
+    setTimeout(() => note.style.display = "none", 1500);
+  });
+}
+
+function loadTemplatesIntoForm() {
+  document.getElementById("tplIntro").value = TEMPLATES.intro;
+  document.getElementById("tplRelance").value = TEMPLATES.relance;
+  document.getElementById("tplSalon").value = TEMPLATES.salon;
+  document.getElementById("tplEtage").value = TEMPLATES.etage;
+  document.getElementById("tplEtablissement").value = TEMPLATES.etablissement;
+  document.getElementById("tplGroupe").value = TEMPLATES.groupe;
+  document.getElementById("tplCloture").value = TEMPLATES.cloture;
+  document.getElementById("tplSigTheodore").value = TEMPLATES.sigTheodore;
+  document.getElementById("tplSigAdrien").value = TEMPLATES.sigAdrien;
+}
+
+function saveTemplates() {
+  TEMPLATES = {
+    intro: document.getElementById("tplIntro").value,
+    relance: document.getElementById("tplRelance").value,
+    salon: document.getElementById("tplSalon").value,
+    etage: document.getElementById("tplEtage").value,
+    etablissement: document.getElementById("tplEtablissement").value,
+    groupe: document.getElementById("tplGroupe").value,
+    cloture: document.getElementById("tplCloture").value,
+    sigTheodore: document.getElementById("tplSigTheodore").value,
+    sigAdrien: document.getElementById("tplSigAdrien").value
+  };
+  localStorage.setItem('rosarioTemplates', JSON.stringify(TEMPLATES));
+  localStorage.setItem('rosarioMenu', JSON.stringify(MENU));
+  if (SYNC_MODE) pushData_();
+  const note = document.getElementById("saveNote");
+  note.style.display = "inline";
+  setTimeout(() => note.style.display = "none", 1500);
+}
+
+function showSettingsSubtab(name) {
+  document.getElementById("settings-reponse").style.display = name === "reponse" ? "block" : "none";
+  document.getElementById("settings-menu").style.display = name === "menu" ? "block" : "none";
+  document.querySelectorAll(".subtab-btn").forEach(b => b.classList.toggle("active", b.dataset.subtab === name));
+}
+
+function showTab(tab) {
+  document.getElementById("view-list").style.display = tab === "list" ? "block" : "none";
+  document.getElementById("view-confirmed").style.display = tab === "confirmed" ? "block" : "none";
+  document.getElementById("view-detail").style.display = tab === "detail" ? "block" : "none";
+  document.getElementById("view-settings").style.display = tab === "settings" ? "block" : "none";
+  document.querySelectorAll(".tab-btn").forEach(b => b.classList.toggle("active", b.dataset.tab === tab || (tab === "detail" && b.dataset.tab === originTab)));
+  if (tab === "settings") { loadTemplatesIntoForm(); renderMenuForm(); }
+  if (tab === "confirmed") renderConfirmedLists();
+}
+
+loadData();
+</script>
+</body>
+</html>
