@@ -148,6 +148,7 @@
 <div class="tabs">
   <button class="tab-btn active" data-tab="list" onclick="showTab('list')">Demandes</button>
   <button class="tab-btn" data-tab="confirmed" onclick="showTab('confirmed')">Confirmées</button>
+  <button class="tab-btn" data-tab="clients" onclick="showTab('clients')">Base clients</button>
   <button class="tab-btn" data-tab="settings" onclick="showTab('settings')">Paramètres</button>
 </div>
 
@@ -157,6 +158,7 @@
     <div class="card urgent" id="cardBoxAnswer" onclick="toggleCardFilter('answer')"><div class="label">Nouvelles demandes</div><div class="value" id="cardAnswer">—</div></div>
     <div class="card warn" id="cardBoxRelance" onclick="toggleCardFilter('relance')"><div class="label">À relancer</div><div class="value" id="cardRelance">—</div></div>
     <div class="card good" id="cardBoxConfirmed" onclick="toggleCardFilter('confirmed')"><div class="label">Confirmées</div><div class="value" id="cardConfirmed">—</div></div>
+    <div class="card" id="cardBoxArchived" onclick="toggleCardFilter('archived')"><div class="label">Archivées</div><div class="value" id="cardArchived">—</div></div>
   </div>
 
   <div class="toolbar">
@@ -166,7 +168,7 @@
       <option>Nouvelle demande</option>
       <option>En attente client</option>
       <option>Confirmé</option>
-      <option>Refusé</option>
+      <option>Archivée</option>
     </select>
     <select id="fEspace" onchange="applyFilters()">
       <option value="">Tous les espaces</option>
@@ -198,7 +200,7 @@
           <option>Nouvelle demande</option>
           <option>En attente client</option>
           <option>Confirmé</option>
-          <option>Refusé</option>
+          <option>Archivée</option>
         </select>
       </div>
       <div><p class="k">Lien Gmail (optionnel)</p><input type="text" id="addGmailThread" placeholder="https://mail.google.com/..."></div>
@@ -237,6 +239,19 @@
   </div>
 </div>
 
+<div id="view-clients" style="display:none;">
+  <div class="toolbar">
+    <input type="text" id="fClientSearch" placeholder="Rechercher un client ou une société" oninput="renderClientsTable()" />
+  </div>
+  <div class="panel">
+    <table>
+      <thead><tr><th style="width:22%">Contact</th><th>Email</th><th>Téléphone</th><th>Société</th><th style="width:110px;">Demandes</th></tr></thead>
+      <tbody id="clientsTbody"></tbody>
+    </table>
+  </div>
+  <p style="font-size:11.5px; color:#8a8a90; margin: 8px 0 20px;">Construite automatiquement à partir des demandes (une ligne par email unique). La société est celle renseignée en fiche financière si connue, sinon une estimation à partir du nom de domaine de l'email (à vérifier). Le téléphone est extrait du commentaire quand il y figure — pas toujours fiable.</p>
+</div>
+
 <div id="view-detail" style="display:none;">
   <button class="back-btn" onclick="showTab(originTab)">&larr; Retour</button>
 
@@ -253,7 +268,7 @@
         <option>Nouvelle demande</option>
         <option>En attente client</option>
         <option>Confirmé</option>
-        <option>Refusé</option>
+        <option>Archivée</option>
       </select>
     </div>
     <div class="detail-meta">
@@ -475,7 +490,7 @@ const DATA_DEFAULT = [
     gmailThread: "https://mail.google.com/mail/u/0/#all/19ec06d778571cf9",
     commentaire: "C'est pour mon anniversaire (30 ans), on aimerait une ambiance festive avec de la musique si possible.",
     timeline: [{ dir: "in", title: "Nouvelle demande reçue via le formulaire du site", meta: "13 juin — 16 personnes, anniversaire" }] },
-  { client: "Margo et Julien", email: "julien.delgrandi@gmail.com", espace: "Restaurant entier", date: "19/09/2026", dateDemande: "08/06/2026", pax: 90, statut: "Refusé",
+  { client: "Margo et Julien", email: "julien.delgrandi@gmail.com", espace: "Restaurant entier", date: "19/09/2026", dateDemande: "08/06/2026", pax: 90, statut: "Archivée",
     gmailThread: "https://mail.google.com/mail/u/0/#all/19ee995d94c9a737",
     commentaire: "Nous recherchions le restaurant entier comme option pour un mariage — finalement nous ne donnons pas suite, merci.",
     timeline: [
@@ -663,7 +678,8 @@ function resetDemoData() {
   }
 }
 
-const STATUT_CLASS = { "Nouvelle demande": "new", "En attente client": "waiting", "Confirmé": "confirmed", "Refusé": "cancelled" };
+const STATUT_CLASS = { "Nouvelle demande": "new", "En attente client": "waiting", "Confirmé": "confirmed", "Archivée": "cancelled" };
+const STATUT_OPTIONS = ["Nouvelle demande", "En attente client", "Confirmé", "Archivée"];
 
 const DEFAULT_TEMPLATES = {
   intro: "Hola {prenom},\n\nMerci beaucoup pour l'intérêt porté à Rosario pour votre événement, nous vous accueillerons avec plaisir !\n\nVoici ce que nous pouvons vous proposer pour {pax} personnes :\n",
@@ -731,10 +747,25 @@ function renderRows(rows) {
       <td>${r.dateDemande || '—'}</td>
       <td>${r.date}</td>
       <td>${r.pax}</td>
-      <td><span class="badge ${STATUT_CLASS[r.statut] || 'waiting'}">${r.statut}</span>${r.relance ? '<span class="relance-flag">&bull; à relancer</span>' : ''}</td>
+      <td>
+        <select class="badge-select ${STATUT_CLASS[r.statut] || 'waiting'}" onclick="event.stopPropagation()" onchange="updateStatutInline('${r.id}', this.value)">
+          ${STATUT_OPTIONS.map(s => `<option value="${s}" ${s === r.statut ? "selected" : ""}>${s}</option>`).join("")}
+        </select>${r.relance ? '<span class="relance-flag">&bull; à relancer</span>' : ''}
+      </td>
       <td><button class="hide-btn" title="Masquer cette demande de l'affichage (reste dans le Sheet)" onclick="hideRequest('${r.id}', event)">&times;</button></td>
     </tr>`;
   }).join("");
+}
+
+function updateStatutInline(id, newStatut) {
+  const r = DATA.find(d => d.id === id);
+  if (!r) return;
+  r.statut = newStatut;
+  if (newStatut === "Confirmé" && !r.finance) {
+    r.finance = { service: "Dîner", societe: "", caCuisineHT: 0, caAlcoolsHT: 0, statutPaiement: "En attente d'acompte", paiements: [] };
+  }
+  saveData();
+  applyFilters();
 }
 
 // --- Masquage local (affichage uniquement, ne touche jamais au Sheet) ------
@@ -761,7 +792,10 @@ function applyFilters() {
   const visible = DATA.filter(r => !HIDDEN_IDS.has(r.id));
   const rows = visible.filter(r =>
     (!client || r.client.toLowerCase().includes(client)) &&
-    (!statut || r.statut === statut) &&
+    // Sans filtre statut explicite, le tableau ne montre que les demandes actives : Confirmé et
+    // Archivée restent consultables via leur carte (ou en sélectionnant le statut) mais n'encombrent
+    // pas la vue par défaut, qui doit rester "ce qu'il reste à traiter".
+    (statut ? r.statut === statut : (r.statut !== "Confirmé" && r.statut !== "Archivée")) &&
     (!espace || r.espace === espace) &&
     (!relanceOnly || r.relance)
   );
@@ -772,9 +806,11 @@ function applyFilters() {
   document.getElementById("cardAnswer").textContent = visible.filter(r => r.statut === "Nouvelle demande").length;
   document.getElementById("cardRelance").textContent = visible.filter(r => r.relance).length;
   document.getElementById("cardConfirmed").textContent = visible.filter(r => r.statut === "Confirmé").length;
+  document.getElementById("cardArchived").textContent = visible.filter(r => r.statut === "Archivée").length;
 
   document.getElementById("cardBoxAnswer").classList.toggle("active", statut === "Nouvelle demande");
   document.getElementById("cardBoxConfirmed").classList.toggle("active", statut === "Confirmé");
+  document.getElementById("cardBoxArchived").classList.toggle("active", statut === "Archivée");
   document.getElementById("cardBoxRelance").classList.toggle("active", relanceOnly);
   document.getElementById("cardBoxTotal").classList.toggle("active", !statut && !relanceOnly && !client && !espace);
 }
@@ -792,6 +828,9 @@ function toggleCardFilter(type) {
   } else if (type === "confirmed") {
     relanceOnly = false;
     fStatut.value = fStatut.value === "Confirmé" ? "" : "Confirmé";
+  } else if (type === "archived") {
+    relanceOnly = false;
+    fStatut.value = fStatut.value === "Archivée" ? "" : "Archivée";
   } else if (type === "relance") {
     const turningOn = !relanceOnly;
     fStatut.value = "";
@@ -1112,6 +1151,61 @@ function renderConfirmedLists() {
   document.getElementById("confPastTbody").innerHTML = past.length ? past.map(rowHtml).join("") : '<tr><td colspan="7" style="padding:30px; text-align:center; color:#8a8a90;">Aucune privatisation confirmée passée.</td></tr>';
 }
 
+// --- Base clients ------------------------------------------------------
+const PERSONAL_EMAIL_DOMAINS = new Set([
+  "gmail.com", "hotmail.com", "hotmail.fr", "yahoo.com", "yahoo.fr", "outlook.com", "outlook.fr",
+  "icloud.com", "free.fr", "wanadoo.fr", "orange.fr", "laposte.net", "live.fr", "live.com",
+  "ymail.com", "protonmail.com", "sfr.fr", "bbox.fr", "aol.com", "gmx.com", "msn.com", "me.com"
+]);
+
+function guessSociete_(email) {
+  const domain = (email.split("@")[1] || "").toLowerCase();
+  if (!domain || PERSONAL_EMAIL_DOMAINS.has(domain)) return "";
+  const base = domain.split(".")[0];
+  return base.charAt(0).toUpperCase() + base.slice(1);
+}
+
+function guessPhone_(commentaire) {
+  if (!commentaire) return "";
+  const m = commentaire.match(/(?:\+33\s?|0)[1-9](?:[\s.-]?\d{2}){4}/);
+  return m ? m[0] : "";
+}
+
+function renderClientsTable() {
+  const search = (document.getElementById("fClientSearch").value || "").toLowerCase();
+  const byEmail = {};
+  DATA.forEach(r => {
+    if (!r.email) return;
+    const key = r.email.toLowerCase();
+    if (!byEmail[key]) {
+      byEmail[key] = {
+        client: r.client,
+        email: r.email,
+        societe: (r.finance && r.finance.societe) || guessSociete_(r.email),
+        phone: guessPhone_(r.commentaire),
+        count: 0
+      };
+    }
+    byEmail[key].count++;
+    // Une fiche financière avec société renseignée prime sur une estimation par domaine.
+    if (r.finance && r.finance.societe) byEmail[key].societe = r.finance.societe;
+    if (!byEmail[key].phone) byEmail[key].phone = guessPhone_(r.commentaire);
+  });
+
+  let clients = Object.values(byEmail).sort((a, b) => a.client.localeCompare(b.client));
+  if (search) clients = clients.filter(c => c.client.toLowerCase().includes(search) || (c.societe || "").toLowerCase().includes(search));
+
+  const tbody = document.getElementById("clientsTbody");
+  if (clients.length === 0) { tbody.innerHTML = '<tr><td colspan="5" style="padding:40px; text-align:center; color:#8a8a90;">Aucun client sur ce filtre.</td></tr>'; return; }
+  tbody.innerHTML = clients.map(c => `<tr>
+      <td><span class="client-name">${c.client}</span></td>
+      <td>${c.email}</td>
+      <td>${c.phone || '—'}</td>
+      <td>${c.societe || '—'}</td>
+      <td>${c.count}</td>
+    </tr>`).join("");
+}
+
 function fillPlaceholders(text) {
   if (!currentReq) return text;
   return text
@@ -1236,11 +1330,13 @@ function showSettingsSubtab(name) {
 function showTab(tab) {
   document.getElementById("view-list").style.display = tab === "list" ? "block" : "none";
   document.getElementById("view-confirmed").style.display = tab === "confirmed" ? "block" : "none";
+  document.getElementById("view-clients").style.display = tab === "clients" ? "block" : "none";
   document.getElementById("view-detail").style.display = tab === "detail" ? "block" : "none";
   document.getElementById("view-settings").style.display = tab === "settings" ? "block" : "none";
   document.querySelectorAll(".tab-btn").forEach(b => b.classList.toggle("active", b.dataset.tab === tab || (tab === "detail" && b.dataset.tab === originTab)));
   if (tab === "settings") { loadTemplatesIntoForm(); renderMenuForm(); }
   if (tab === "confirmed") renderConfirmedLists();
+  if (tab === "clients") renderClientsTable();
 }
 
 loadHiddenIds_();
