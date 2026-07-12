@@ -225,7 +225,7 @@
   <p class="section-title">À venir</p>
   <div class="panel">
     <table>
-      <thead><tr><th style="width:22%">Client</th><th>Date</th><th>Service</th><th>Espace</th><th>Pax</th><th>Total TTC</th><th>Paiement</th></tr></thead>
+      <thead><tr><th style="width:22%">Client</th><th>Date</th><th>Service</th><th>Type</th><th>Espace</th><th>Pax</th><th>Total TTC</th><th>Paiement</th></tr></thead>
       <tbody id="confUpcomingTbody"></tbody>
     </table>
   </div>
@@ -233,7 +233,7 @@
   <p class="section-title">Passées</p>
   <div class="panel">
     <table>
-      <thead><tr><th style="width:22%">Client</th><th>Date</th><th>Service</th><th>Espace</th><th>Pax</th><th>Total TTC</th><th>Paiement</th></tr></thead>
+      <thead><tr><th style="width:22%">Client</th><th>Date</th><th>Service</th><th>Type</th><th>Espace</th><th>Pax</th><th>Total TTC</th><th>Paiement</th></tr></thead>
       <tbody id="confPastTbody"></tbody>
     </table>
   </div>
@@ -295,6 +295,12 @@
           <select id="finService" onchange="onFinanceInput()">
             <option>Déjeuner</option>
             <option>Dîner</option>
+          </select>
+        </div>
+        <div><p class="k">Type de prestation</p>
+          <select id="finType" onchange="onFinanceInput()">
+            <option>Privatisation</option>
+            <option>Formule groupe</option>
           </select>
         </div>
         <div><p class="k">CA Cuisine HT</p><input type="text" id="finCuisineHT" oninput="onFinanceInput()"></div>
@@ -752,7 +758,7 @@ function renderRows(rows) {
           ${STATUT_OPTIONS.map(s => `<option value="${s}" ${s === r.statut ? "selected" : ""}>${s}</option>`).join("")}
         </select>${r.relance ? '<span class="relance-flag">&bull; à relancer</span>' : ''}
       </td>
-      <td><button class="hide-btn" title="Masquer cette demande de l'affichage (reste dans le Sheet)" onclick="hideRequest('${r.id}', event)">&times;</button></td>
+      <td><button class="hide-btn" title="Archiver cette demande" onclick="archiveRequest('${r.id}', event)">&times;</button></td>
     </tr>`;
   }).join("");
 }
@@ -762,34 +768,48 @@ function updateStatutInline(id, newStatut) {
   if (!r) return;
   r.statut = newStatut;
   if (newStatut === "Confirmé" && !r.finance) {
-    r.finance = { service: "Dîner", societe: "", caCuisineHT: 0, caAlcoolsHT: 0, statutPaiement: "En attente d'acompte", paiements: [] };
+    r.finance = { service: "Dîner", type: "Privatisation", societe: "", caCuisineHT: 0, caAlcoolsHT: 0, statutPaiement: "En attente d'acompte", paiements: [] };
   }
   saveData();
   applyFilters();
 }
 
-// --- Masquage local (affichage uniquement, ne touche jamais au Sheet) ------
-let HIDDEN_IDS = new Set();
-function loadHiddenIds_() {
-  try { HIDDEN_IDS = new Set(JSON.parse(localStorage.getItem('rosarioHiddenIds') || '[]')); }
-  catch (e) { HIDDEN_IDS = new Set(); }
-}
-function saveHiddenIds_() {
-  localStorage.setItem('rosarioHiddenIds', JSON.stringify(Array.from(HIDDEN_IDS)));
-}
-function hideRequest(id, ev) {
+function archiveRequest(id, ev) {
   if (ev) ev.stopPropagation();
-  if (!confirm("Masquer cette demande de la liste ? Elle restera enregistrée dans le Sheet, tu pourras la refaire apparaître en vidant le masquage local du navigateur.")) return;
-  HIDDEN_IDS.add(id);
-  saveHiddenIds_();
+  const r = DATA.find(d => d.id === id);
+  if (!r) return;
+  if (!confirm("Archiver la demande de \"" + r.client + "\" ? Elle passera en statut \"Archivée\" (toujours consultable via la carte Archivées, visible par Adrien aussi).")) return;
+  r.statut = "Archivée";
+  saveData();
   applyFilters();
 }
 
+// --- Relance automatique : "En attente client" depuis plus de 7 jours sans réponse de sa part. ---
+function timelineEntryDate_(t) {
+  if (t.ts) return new Date(Number(t.ts));
+  const m = String(t.meta || "").match(/^(\d{2})\/(\d{2})\/(\d{4})/);
+  if (m) return new Date(Number(m[3]), Number(m[2]) - 1, Number(m[1]));
+  return null;
+}
+function computeRelance_(r) {
+  if (r.statut !== "En attente client") return false;
+  if (!r.timeline || !r.timeline.length) return false;
+  const last = r.timeline[r.timeline.length - 1];
+  if (last.dir !== "out") return false; // le client a déjà répondu en dernier : ce n'est pas à nous de relancer.
+  const d = timelineEntryDate_(last);
+  if (!d) return false;
+  return (Date.now() - d.getTime()) / 86400000 > 7;
+}
+function refreshRelanceFlags_() {
+  DATA.forEach(r => { r.relance = computeRelance_(r); });
+}
+
 function applyFilters() {
+  refreshRelanceFlags_();
   const client = document.getElementById("fClient").value.toLowerCase();
   const statut = document.getElementById("fStatut").value;
   const espace = document.getElementById("fEspace").value;
-  const visible = DATA.filter(r => !HIDDEN_IDS.has(r.id));
+  const visible = DATA;
   const rows = visible.filter(r =>
     (!client || r.client.toLowerCase().includes(client)) &&
     // Sans filtre statut explicite, le tableau ne montre que les demandes actives : Confirmé et
@@ -894,7 +914,7 @@ function submitAddForm() {
     timeline: [{ dir: "in", title: "Demande ajoutée manuellement", meta: todayStr_() }]
   };
   if (req.statut === "Confirmé") {
-    req.finance = { service: "Dîner", societe: "", caCuisineHT: 0, caAlcoolsHT: 0, statutPaiement: "En attente d'acompte", paiements: [] };
+    req.finance = { service: "Dîner", type: "Privatisation", societe: "", caCuisineHT: 0, caAlcoolsHT: 0, statutPaiement: "En attente d'acompte", paiements: [] };
   }
   DATA.push(req);
   saveData();
@@ -943,6 +963,7 @@ function openDetail(idx, origin) {
     finSection.style.display = "block";
     document.getElementById("finSociete").value = r.finance.societe || "";
     document.getElementById("finService").value = r.finance.service;
+    document.getElementById("finType").value = r.finance.type || "Privatisation";
     document.getElementById("finCuisineHT").value = r.finance.caCuisineHT;
     document.getElementById("finAlcoolsHT").value = r.finance.caAlcoolsHT;
     document.getElementById("finStatutPaiement").value = r.finance.statutPaiement;
@@ -967,13 +988,14 @@ function onStatutChange() {
   document.getElementById("detailCardTop").className = "detail-card detail-card-top " + STATUT_CLASS[val];
 
   if (val === "Confirmé" && !currentReq.finance) {
-    currentReq.finance = { service: "Dîner", societe: "", caCuisineHT: 0, caAlcoolsHT: 0, statutPaiement: "En attente d'acompte", paiements: [] };
+    currentReq.finance = { service: "Dîner", type: "Privatisation", societe: "", caCuisineHT: 0, caAlcoolsHT: 0, statutPaiement: "En attente d'acompte", paiements: [] };
   }
   const finSection = document.getElementById("financeSection");
   if (currentReq.finance) {
     finSection.style.display = "block";
     document.getElementById("finSociete").value = currentReq.finance.societe || "";
     document.getElementById("finService").value = currentReq.finance.service;
+    document.getElementById("finType").value = currentReq.finance.type || "Privatisation";
     document.getElementById("finCuisineHT").value = currentReq.finance.caCuisineHT;
     document.getElementById("finAlcoolsHT").value = currentReq.finance.caAlcoolsHT;
     document.getElementById("finStatutPaiement").value = currentReq.finance.statutPaiement;
@@ -1022,6 +1044,7 @@ function onFinanceInput() {
   if (!currentReq || !currentReq.finance) return;
   currentReq.finance.societe = document.getElementById("finSociete").value;
   currentReq.finance.service = document.getElementById("finService").value;
+  currentReq.finance.type = document.getElementById("finType").value;
   currentReq.finance.caCuisineHT = toNumber(document.getElementById("finCuisineHT").value);
   currentReq.finance.caAlcoolsHT = toNumber(document.getElementById("finAlcoolsHT").value);
   currentReq.finance.statutPaiement = document.getElementById("finStatutPaiement").value;
@@ -1140,6 +1163,7 @@ function renderConfirmedLists() {
       <td><span class="client-name">${x.r.client}</span><div class="client-sub">${x.r.email}</div></td>
       <td>${x.r.date}</td>
       <td>${x.r.finance.service}</td>
+      <td>${x.r.finance.type || 'Privatisation'}</td>
       <td>${x.r.espace}</td>
       <td>${x.r.pax}</td>
       <td>${fmtEUR(t.totalTTC)}</td>
@@ -1147,8 +1171,8 @@ function renderConfirmedLists() {
     </tr>`;
   };
 
-  document.getElementById("confUpcomingTbody").innerHTML = upcoming.length ? upcoming.map(rowHtml).join("") : '<tr><td colspan="7" style="padding:30px; text-align:center; color:#8a8a90;">Aucune privatisation confirmée à venir.</td></tr>';
-  document.getElementById("confPastTbody").innerHTML = past.length ? past.map(rowHtml).join("") : '<tr><td colspan="7" style="padding:30px; text-align:center; color:#8a8a90;">Aucune privatisation confirmée passée.</td></tr>';
+  document.getElementById("confUpcomingTbody").innerHTML = upcoming.length ? upcoming.map(rowHtml).join("") : '<tr><td colspan="8" style="padding:30px; text-align:center; color:#8a8a90;">Aucune privatisation confirmée à venir.</td></tr>';
+  document.getElementById("confPastTbody").innerHTML = past.length ? past.map(rowHtml).join("") : '<tr><td colspan="8" style="padding:30px; text-align:center; color:#8a8a90;">Aucune privatisation confirmée passée.</td></tr>';
 }
 
 // --- Base clients ------------------------------------------------------
@@ -1339,7 +1363,6 @@ function showTab(tab) {
   if (tab === "clients") renderClientsTable();
 }
 
-loadHiddenIds_();
 loadData();
 </script>
 </body>
