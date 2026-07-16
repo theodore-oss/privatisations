@@ -661,12 +661,6 @@
         <p style="font-size:12.5px; color:var(--ink-2); margin:0 0 10px;" id="setSyncInfo">—</p>
         <button class="btn" onclick="resetDemoData()">Réinitialiser les données locales</button>
       </div>
-      <div class="panel">
-        <p class="panel-t">Historique — retrouver les emails manquants</p>
-        <p style="font-size:12.5px; color:var(--ink-2); margin:0 0 10px;">Cherche dans Gmail, par nom de client, le fil de discussion des privatisations historiques qui n'ont pas encore d'email associé — et rattache email, fil Gmail et échanges retrouvés à la fiche. Meilleur effort : à relire, un nom courant peut matcher le mauvais fil. N'écrase jamais un email déjà renseigné, donc sans risque à relancer.</p>
-        <button class="btn" id="backfillBtn" onclick="backfillHistoriqueEmails()">Retrouver les emails de l'historique</button>
-        <p style="font-size:12px; color:var(--ink-3); margin-top:10px; display:none" id="backfillResult"></p>
-      </div>
     </div>
   </div>
 </div>
@@ -965,39 +959,6 @@ function scanGmailInbox() {
 function saveData() {
   localStorage.setItem('rosarioData', JSON.stringify(DATA));
   if (SYNC_MODE) pushData_();
-}
-
-// Backfill : retrouve email + fil Gmail des demandes historiques qui n'en ont pas encore
-// (voir backfillHistoriqueEmails_ côté Code.gs). Best-effort, à relire — sans risque à relancer.
-function backfillHistoriqueEmails() {
-  if (!SYNC_MODE) { setSyncBanner_("Connecte d'abord SCRIPT_URL pour lancer le backfill.", 'error'); return; }
-  if (!confirm("Chercher dans Gmail l'email et le fil de discussion des demandes historiques qui n'en ont pas encore ? Ça peut prendre 10-30s, et c'est un best-effort à relire ensuite (un nom courant peut matcher le mauvais fil).")) return;
-  const btn = document.getElementById('backfillBtn');
-  const out = document.getElementById('backfillResult');
-  btn.disabled = true;
-  setSyncBanner_("Recherche des emails historiques en cours (peut prendre 10-30s)…", 'warn');
-  fetch(SCRIPT_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'text/plain' },
-    body: JSON.stringify({ action: 'backfill_historique_emails' })
-  })
-    .then(r => r.json())
-    .then(json => {
-      btn.disabled = false;
-      if (json.ok) {
-        setSyncBanner_(json.matched.length + " demande(s) enrichie(s), " + json.unmatched.length + " sans résultat, " + json.skipped + " déjà renseignée(s).", 'ok');
-        out.style.display = "block";
-        out.innerHTML = (json.matched.length ? "Enrichis : " + json.matched.map(m => esc(m.client) + " → " + esc(m.email)).join(", ") + "<br>" : "") +
-          (json.unmatched.length ? "Sans résultat (à compléter à la main) : " + json.unmatched.map(esc).join(", ") : "");
-        loadData();
-      } else {
-        setSyncBanner_("Erreur pendant le backfill : " + json.error, 'error');
-      }
-    })
-    .catch(err => {
-      btn.disabled = false;
-      setSyncBanner_("Erreur pendant le backfill (" + err.message + ").", 'error');
-    });
 }
 
 function resetDemoData() {
