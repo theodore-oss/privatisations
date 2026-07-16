@@ -661,6 +661,11 @@
         <p style="font-size:12.5px; color:var(--ink-2); margin:0 0 10px;" id="setSyncInfo">—</p>
         <button class="btn" onclick="resetDemoData()">Réinitialiser les données locales</button>
       </div>
+      <div class="panel">
+        <p class="panel-t">Historique — import ponctuel</p>
+        <p style="font-size:12.5px; color:var(--ink-2); margin:0 0 10px;">Rentre les 35 privatisations historiques (données fournies au départ, avec leur chiffrage et leurs paiements) dans le Sheet, une bonne fois pour toutes. Elles deviennent ensuite des demandes confirmées normales : éditables depuis la page comme directement dans le Sheet. Sans risque à relancer, les lignes déjà importées ne sont jamais dupliquées.</p>
+        <button class="btn" id="importHistoriqueBtn" onclick="importHistoriqueIntoSheet()">Importer l'historique dans le Sheet</button>
+      </div>
     </div>
   </div>
 </div>
@@ -843,7 +848,14 @@ const HISTORIQUE_SOCIETES = {
   "Caroline Charles": "Caroline Charles Communication (EURL Caroline Charles)"
 };
 
-const DATA_HISTORIQUE = HISTORIQUE_CONFIRMES.map(([client, date, service, pax, caCuisineHT, caAlcoolsHT, statutPaiement, paiements]) => ({
+// Ces 35 lignes sont les données fournies en dur au départ pour les privatisations déjà confirmées
+// avant la mise en place de l'outil. Elles ne sont PAS fusionnées automatiquement à l'affichage :
+// il faut les importer une bonne fois pour toutes dans le Sheet (Paramètres > Données > "Importer
+// l'historique dans le Sheet"), après quoi ce sont des demandes confirmées normales, éditables
+// depuis la page comme directement dans le Sheet. L'id stable ("hist_N") sert uniquement à
+// l'import idempotent (relancer ne duplique jamais les lignes déjà importées).
+const DATA_HISTORIQUE = HISTORIQUE_CONFIRMES.map(([client, date, service, pax, caCuisineHT, caAlcoolsHT, statutPaiement, paiements], i) => ({
+  id: "hist_" + i,
   client, email: HISTORIQUE_EMAILS[client] || "", espace: pax > 20 ? "Restaurant entier" : "Salon privatif", date, pax, statut: "Confirmé",
   timeline: [{ dir: "out", title: "Réservation confirmée", meta: date + " — " + pax + " pers., " + service }],
   finance: { service, societe: HISTORIQUE_SOCIETES[client] || "", caCuisineHT, caAlcoolsHT, statutPaiement, paiements }
@@ -873,7 +885,7 @@ function setSyncBanner_(text, tone) {
 }
 
 function loadData() {
-  const localFallback = () => ensureIds_(JSON.parse(localStorage.getItem('rosarioData') || 'null') || DATA_DEFAULT.concat(DATA_HISTORIQUE));
+  const localFallback = () => ensureIds_(JSON.parse(localStorage.getItem('rosarioData') || 'null') || DATA_DEFAULT.slice());
 
   if (!SYNC_MODE) {
     DATA = localFallback();
@@ -893,7 +905,7 @@ function loadData() {
         afterDataLoaded_();
       } else {
         // Sheet vide : on amorce avec les données de démo locales.
-        DATA = ensureIds_(DATA_DEFAULT.concat(DATA_HISTORIQUE));
+        DATA = ensureIds_(DATA_DEFAULT.slice());
         pushData_(() => setSyncBanner_("Connecté au cloud — données initiales envoyées.", 'ok'));
         afterDataLoaded_();
       }
@@ -902,6 +914,37 @@ function loadData() {
       DATA = localFallback();
       setSyncBanner_("Impossible de joindre le cloud (" + err.message + ") — mode local de secours.", 'error');
       afterDataLoaded_();
+    });
+}
+
+// Import ponctuel : rentre les 35 privatisations historiques (données fournies en dur, avec leur
+// chiffrage et leurs paiements) dans le Sheet — après quoi ce sont des demandes confirmées
+// normales, éditables depuis la page ou directement dans le Sheet, comme n'importe quelle autre.
+// Sans risque à relancer : idempotent par id, les lignes déjà importées ne sont jamais dupliquées.
+function importHistoriqueIntoSheet() {
+  if (!SYNC_MODE) { setSyncBanner_("Connecte d'abord SCRIPT_URL pour importer l'historique.", 'error'); return; }
+  if (!confirm("Importer les " + DATA_HISTORIQUE.length + " privatisations historiques dans le Sheet, une bonne fois pour toutes ? Elles deviendront des demandes confirmées normales, éditables depuis la page ou le Sheet. Sans risque à relancer : les lignes déjà importées ne seront pas dupliquées.")) return;
+  const btn = document.getElementById('importHistoriqueBtn');
+  btn.disabled = true;
+  setSyncBanner_("Import de l'historique en cours…", 'warn');
+  fetch(SCRIPT_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify({ action: 'push_historique', entries: DATA_HISTORIQUE })
+  })
+    .then(r => r.json())
+    .then(json => {
+      btn.disabled = false;
+      if (json.ok) {
+        setSyncBanner_(json.created + " événement(s) importé(s) dans le Sheet, " + json.skipped + " déjà présent(s).", 'ok');
+        loadData();
+      } else {
+        setSyncBanner_("Erreur pendant l'import : " + json.error, 'error');
+      }
+    })
+    .catch(err => {
+      btn.disabled = false;
+      setSyncBanner_("Erreur pendant l'import (" + err.message + ").", 'error');
     });
 }
 
