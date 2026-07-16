@@ -661,6 +661,12 @@
         <p style="font-size:12.5px; color:var(--ink-2); margin:0 0 10px;" id="setSyncInfo">—</p>
         <button class="btn" onclick="resetDemoData()">Réinitialiser les données locales</button>
       </div>
+      <div class="panel">
+        <p class="panel-t">Historique — retrouver les emails manquants</p>
+        <p style="font-size:12.5px; color:var(--ink-2); margin:0 0 10px;">Cherche dans Gmail, par nom de client, le fil de discussion des privatisations historiques qui n'ont pas encore d'email associé — et rattache email, fil Gmail et échanges retrouvés à la fiche. Meilleur effort : à relire, un nom courant peut matcher le mauvais fil. N'écrase jamais un email déjà renseigné, donc sans risque à relancer.</p>
+        <button class="btn" id="backfillBtn" onclick="backfillHistoriqueEmails()">Retrouver les emails de l'historique</button>
+        <p style="font-size:12px; color:var(--ink-3); margin-top:10px; display:none" id="backfillResult"></p>
+      </div>
     </div>
   </div>
 </div>
@@ -722,6 +728,10 @@
     </div>
     <div class="modal-body">
       <div class="modal-row">
+        <label>Nom du client</label>
+        <input type="text" id="clientEditNom" placeholder="Ex. Julien Benattar">
+      </div>
+      <div class="modal-row">
         <label>Nom de l'entreprise</label>
         <input type="text" id="clientEditSociete" placeholder="Ex. LVMH">
       </div>
@@ -729,7 +739,11 @@
         <label>Adresse email</label>
         <input type="email" id="clientEditEmail" placeholder="client@email.com">
       </div>
-      <p style="font-size:11.5px; color:var(--ink-3); margin:0;">Ces informations sont partagées avec la Base clients : les modifier ici les met aussi à jour pour toutes les demandes de ce client.</p>
+      <div class="modal-row">
+        <label>Téléphone</label>
+        <input type="text" id="clientEditTelephone" placeholder="06 12 34 56 78">
+      </div>
+      <p style="font-size:11.5px; color:var(--ink-3); margin:0;">Ces informations sont partagées avec la Base clients : les modifier ici les met à jour pour toutes les demandes de ce client, où qu'elles apparaissent dans l'outil.</p>
     </div>
     <div class="modal-foot">
       <button class="btn ghost" onclick="closeClientEdit_()">Annuler</button>
@@ -951,6 +965,39 @@ function scanGmailInbox() {
 function saveData() {
   localStorage.setItem('rosarioData', JSON.stringify(DATA));
   if (SYNC_MODE) pushData_();
+}
+
+// Backfill : retrouve email + fil Gmail des demandes historiques qui n'en ont pas encore
+// (voir backfillHistoriqueEmails_ côté Code.gs). Best-effort, à relire — sans risque à relancer.
+function backfillHistoriqueEmails() {
+  if (!SYNC_MODE) { setSyncBanner_("Connecte d'abord SCRIPT_URL pour lancer le backfill.", 'error'); return; }
+  if (!confirm("Chercher dans Gmail l'email et le fil de discussion des demandes historiques qui n'en ont pas encore ? Ça peut prendre 10-30s, et c'est un best-effort à relire ensuite (un nom courant peut matcher le mauvais fil).")) return;
+  const btn = document.getElementById('backfillBtn');
+  const out = document.getElementById('backfillResult');
+  btn.disabled = true;
+  setSyncBanner_("Recherche des emails historiques en cours (peut prendre 10-30s)…", 'warn');
+  fetch(SCRIPT_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify({ action: 'backfill_historique_emails' })
+  })
+    .then(r => r.json())
+    .then(json => {
+      btn.disabled = false;
+      if (json.ok) {
+        setSyncBanner_(json.matched.length + " demande(s) enrichie(s), " + json.unmatched.length + " sans résultat, " + json.skipped + " déjà renseignée(s).", 'ok');
+        out.style.display = "block";
+        out.innerHTML = (json.matched.length ? "Enrichis : " + json.matched.map(m => esc(m.client) + " → " + esc(m.email)).join(", ") + "<br>" : "") +
+          (json.unmatched.length ? "Sans résultat (à compléter à la main) : " + json.unmatched.map(esc).join(", ") : "");
+        loadData();
+      } else {
+        setSyncBanner_("Erreur pendant le backfill : " + json.error, 'error');
+      }
+    })
+    .catch(err => {
+      btn.disabled = false;
+      setSyncBanner_("Erreur pendant le backfill (" + err.message + ").", 'error');
+    });
 }
 
 function resetDemoData() {
@@ -1399,17 +1446,19 @@ function renderClientsTable() {
   DATA.forEach(r => {
     if (!r.email) return;
     const key = r.email.toLowerCase();
-    if (!byEmail[key]) byEmail[key] = { client: r.client, email: r.email, societe: (r.finance && r.finance.societe) || guessSociete_(r.email), phone: guessPhone_(r.commentaire), count: 0 };
+    if (!byEmail[key]) byEmail[key] = { client: r.client, email: r.email, societe: (r.finance && r.finance.societe) || guessSociete_(r.email), phone: r.telephone || guessPhone_(r.commentaire), count: 0 };
     byEmail[key].count++;
+    if (r.client) byEmail[key].client = r.client; // dernière valeur rencontrée = nom le plus à jour
     if (r.finance && r.finance.societe) byEmail[key].societe = r.finance.societe;
-    if (!byEmail[key].phone) byEmail[key].phone = guessPhone_(r.commentaire);
+    if (r.telephone) byEmail[key].phone = r.telephone;
+    else if (!byEmail[key].phone) byEmail[key].phone = guessPhone_(r.commentaire);
   });
   let clients = Object.values(byEmail).sort((a, b) => a.client.localeCompare(b.client));
   if (search) clients = clients.filter(c => c.client.toLowerCase().includes(search) || (c.societe || "").toLowerCase().includes(search));
   document.getElementById('clientsCount').textContent = clients.length + (clients.length > 1 ? " clients" : " client");
   const tbody = document.getElementById('clientsTbody');
   if (!clients.length) { tbody.innerHTML = '<tr><td colspan="5" style="padding:30px;text-align:center;color:var(--ink-3)">Aucun client sur ce filtre.</td></tr>'; return; }
-  tbody.innerHTML = clients.map(c => `<tr><td><div class="cl-name">${esc(c.client)}</div></td><td>${esc(c.email)}</td><td>${esc(c.phone || "—")}</td><td>${esc(c.societe || "—")}</td><td style="text-align:right">${c.count}</td></tr>`).join("");
+  tbody.innerHTML = clients.map(c => `<tr class="row" onclick="openClientEditFromBase_('${esc(c.email)}')"><td><div class="cl-name">${esc(c.client)}</div></td><td>${esc(c.email)}</td><td>${esc(c.phone || "—")}</td><td>${esc(c.societe || "—")}</td><td style="text-align:right">${c.count}</td></tr>`).join("");
 }
 
 /* =========================================================================
@@ -1705,32 +1754,59 @@ function onEspaceInline_(val) {
 }
 
 /* ---- Modal : informations client (relié à la Base clients) ---- */
+let clientEditTargetEmail_ = null;
+let clientEditFromFiche_ = false;
+
 function openClientEditModal_() {
   if (!currentReq) return;
+  clientEditFromFiche_ = true;
+  clientEditTargetEmail_ = currentReq.email || "";
+  document.getElementById('clientEditNom').value = currentReq.client || "";
   document.getElementById('clientEditSociete').value = (currentReq.finance && currentReq.finance.societe) || "";
   document.getElementById('clientEditEmail').value = currentReq.email || "";
+  document.getElementById('clientEditTelephone').value = currentReq.telephone || guessPhone_(currentReq.commentaire) || "";
   document.getElementById('clientEditBackdrop').classList.add('on');
-  setTimeout(() => document.getElementById('clientEditSociete').focus(), 50);
+  setTimeout(() => document.getElementById('clientEditNom').focus(), 50);
+}
+// Ouverture depuis la Base clients : pas de "currentReq" associé, on retrouve les infos
+// à partir de la dernière demande connue de ce client (même email).
+function openClientEditFromBase_(email) {
+  const rows = DATA.filter(r => (r.email || "").toLowerCase() === email.toLowerCase());
+  if (!rows.length) return;
+  const ref = rows[rows.length - 1];
+  clientEditFromFiche_ = false;
+  clientEditTargetEmail_ = email;
+  document.getElementById('clientEditNom').value = ref.client || "";
+  document.getElementById('clientEditSociete').value = (ref.finance && ref.finance.societe) || guessSociete_(email) || "";
+  document.getElementById('clientEditEmail').value = email;
+  document.getElementById('clientEditTelephone').value = ref.telephone || guessPhone_(ref.commentaire) || "";
+  document.getElementById('clientEditBackdrop').classList.add('on');
+  setTimeout(() => document.getElementById('clientEditNom').focus(), 50);
 }
 function closeClientEdit_() {
   document.getElementById('clientEditBackdrop').classList.remove('on');
 }
 function submitClientEdit_() {
-  if (!currentReq) return;
+  const newNom = document.getElementById('clientEditNom').value.trim();
   const newSociete = document.getElementById('clientEditSociete').value.trim();
   const newEmail = document.getElementById('clientEditEmail').value.trim();
-  const oldEmail = (currentReq.email || "").toLowerCase();
+  const newTelephone = document.getElementById('clientEditTelephone').value.trim();
+  const oldEmail = (clientEditTargetEmail_ || "").toLowerCase();
   // Toutes les demandes/événements du même client (même email d'origine) sont mis à jour ensemble,
-  // pour rester cohérent avec la Base clients qui est calculée à partir de ces mêmes données.
+  // pour rester cohérent avec la Base clients qui est calculée à partir de ces mêmes données —
+  // que la modale ait été ouverte depuis une fiche ou directement depuis la Base clients.
   DATA.forEach(r => {
-    const isSame = r === currentReq || (oldEmail && (r.email || "").toLowerCase() === oldEmail);
+    const isSame = (clientEditFromFiche_ && r === currentReq) || (oldEmail && (r.email || "").toLowerCase() === oldEmail);
     if (!isSame) return;
+    if (newNom) r.client = newNom;
     r.email = newEmail;
+    r.telephone = newTelephone;
     if (r.finance) r.finance.societe = newSociete;
   });
   saveData();
   closeClientEdit_();
-  openDetail(DATA.indexOf(currentReq), backTarget);
+  if (currentView === "clients") renderClientsTable();
+  if (clientEditFromFiche_ && currentReq) openDetail(DATA.indexOf(currentReq), backTarget);
 }
 
 function renderDetActions_(r) {
