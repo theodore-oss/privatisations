@@ -2,464 +2,739 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Privatisations - Rosario</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="icon" type="image/png" href="favicon.png">
 <style>
-  :root { color-scheme: light; }
+  :root {
+    color-scheme: light;
+    --bordeaux: #B54A32;
+    --bordeaux-dark: #8C3823;
+    --bordeaux-100: #F7E7E1;
+    --bordeaux-200: #F0D5C9;
+    --bordeaux-300: #C97C5F;
+    --bg: #FAF7F2;
+    --surface: #ffffff;
+    --surface-2: #FBF9F5;
+    --border: #ECE6DB;
+    --border-strong: #DCD4C4;
+    --ink: #2A2622;
+    --ink-2: #756F66;
+    --ink-3: #A39C90;
+    --green: #2e9d6e; --green-d: #14603c; --green-bg: #e3f3e9;
+    --amber: #e0a13a; --amber-d: #8a5a12; --amber-bg: #fdf7ec;
+    --red: #d24b4b; --red-d: #a32d2d; --red-bg: #fbe2e2;
+    --blue: #378add; --blue-d: #185fa5; --blue-bg: #e6f1fb;
+  }
   * { box-sizing: border-box; }
-  body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #f7f7f8; color: #1a1a1a; padding: 24px; }
-  h1 { font-size: 18px; font-weight: 600; margin: 0 0 2px 0; }
-  .subtitle { font-size: 13px; color: #6b6b70; margin-bottom: 20px; }
-  .mock-banner { background: #eef2ff; border: 1px solid #c7d2fe; color: #3730a3; font-size: 12.5px; padding: 8px 14px; border-radius: 8px; margin-bottom: 18px; }
-  .tabs { display: flex; gap: 24px; border-bottom: 1px solid #e5e5e8; margin-bottom: 20px; }
-  .tab-btn { background: transparent; border: none; padding: 8px 2px; font-size: 14px; font-weight: 500; color: #8a8a90; cursor: pointer; border-bottom: 2px solid transparent; }
-  .tab-btn.active { color: #1a1a1a; border-bottom-color: #4f46e5; }
-  .toolbar { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
-  select, input[type=text], button, textarea { font-size: 13px; padding: 7px 12px; border-radius: 6px; border: 1px solid #d9d9dc; background: white; cursor: pointer; color: #1a1a1a; font-family: inherit; }
-  input[type=text] { cursor: text; min-width: 200px; }
-  textarea { cursor: text; width: 100%; resize: vertical; line-height: 1.5; }
-  button.primary { background: #4f46e5; color: white; border-color: #4f46e5; }
-  button.ghost { background: transparent; border-color: transparent; color: #6b6b70; }
-  .cards { display: flex; gap: 12px; margin-bottom: 18px; flex-wrap: wrap; }
-  .card { background: white; border: 1px solid #e5e5e8; border-radius: 10px; padding: 12px 16px; min-width: 140px; cursor: pointer; transition: border-color .15s, box-shadow .15s; }
-  .card:hover { border-color: #c7c7cf; }
-  .card.active { border-color: #4f46e5; box-shadow: 0 0 0 1px #4f46e5 inset; }
-  .card .label { font-size: 11px; color: #8a8a90; text-transform: uppercase; letter-spacing: 0.04em; }
-  .card .value { font-size: 22px; font-weight: 650; margin-top: 4px; }
-  .card.urgent .value { color: #b91c1c; }
-  .card.warn .value { color: #b45309; }
-  .card.good .value { color: #0b804b; }
-  .panel { background: white; border: 1px solid #e5e5e8; border-radius: 10px; overflow: hidden; margin-bottom: 16px; }
-  table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  thead th { text-align: left; padding: 10px 14px; background: #fafafa; color: #6b6b70; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.03em; border-bottom: 1px solid #e5e5e8; }
-  tbody td { padding: 10px 14px; border-bottom: 1px solid #f0f0f1; vertical-align: middle; }
-  tbody tr.req-row { cursor: pointer; }
-  tbody tr.req-row:hover { background: #fafafa; }
-  .client-name { font-weight: 600; } .client-sub { font-size: 11.5px; color: #8a8a90; }
-  .badge { display: inline-block; font-size: 11px; padding: 3px 9px; border-radius: 999px; font-weight: 600; white-space: nowrap; }
-  .badge.new { background: #dbeafe; color: #1e40af; }
-  .badge.waiting { background: #f3f4f6; color: #4b5563; }
-  .badge.answer { background: #fee2e2; color: #b91c1c; }
-  .badge.confirmed { background: #dcfce7; color: #166534; }
-  .badge.cancelled { background: #f3f4f6; color: #9ca3af; }
-  .badge-select { font-size: 12px; font-weight: 700; padding: 6px 10px; border-radius: 8px; cursor: pointer; }
-  .badge-select.new { background: #dbeafe; color: #1e40af; border-color: #bfdbfe; }
-  .badge-select.waiting { background: #f3f4f6; color: #4b5563; border-color: #e5e7eb; }
-  .badge-select.answer { background: #fee2e2; color: #b91c1c; border-color: #fecaca; }
-  .badge-select.confirmed { background: #dcfce7; color: #166534; border-color: #bbf7d0; }
-  .badge-select.cancelled { background: #f3f4f6; color: #9ca3af; border-color: #e5e7eb; }
-  .relance-flag { color: #b45309; font-size: 11px; font-weight: 600; margin-left: 6px; }
-  .hide-btn { width: 20px; height: 20px; border-radius: 50%; border: none; background: #fee2e2; color: #b91c1c; font-size: 13px; line-height: 1; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; padding: 0; }
-  .hide-btn:hover { background: #fecaca; }
-  .back-btn { display: inline-flex; align-items: center; gap: 6px; margin-bottom: 16px; }
-  .detail-card { background: white; border: 1px solid #e5e5e8; border-radius: 12px; padding: 16px 20px; margin-bottom: 20px; }
-  .avatar { width: 40px; height: 40px; border-radius: 50%; background: #eef2ff; color: #4338ca; display: flex; align-items: center; justify-content: center; font-weight: 650; font-size: 14px; }
-  .detail-meta { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 16px; border-top: 1px solid #f0f0f1; padding-top: 14px; }
-  .detail-meta .k { font-size: 11px; color: #8a8a90; margin: 0; }
-  .detail-meta .v { font-size: 13px; margin: 2px 0 0; }
-  .section-title { font-size: 13px; font-weight: 600; margin: 0 0 8px; }
-  .timeline { background: white; border: 1px solid #e5e5e8; border-radius: 12px; padding: 4px 20px; margin-bottom: 20px; }
-  .timeline-item { padding: 12px 0; border-bottom: 1px solid #f0f0f1; display: flex; gap: 10px; }
-  .timeline-item:last-child { border-bottom: none; }
-  .dir-icon { font-size: 15px; margin-top: 1px; width: 16px; text-align: center; }
-  .dir-out { color: #4f46e5; } .dir-in { color: #b45309; }
-  .timeline-item p { margin: 0; font-size: 13px; }
-  .timeline-item .meta { font-size: 12px; color: #8a8a90; margin-top: 2px; }
-  .compose-card { background: white; border: 1px solid #e5e5e8; border-radius: 12px; padding: 16px 20px; }
-  .compose-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; align-items: center; }
-  .option-btn { font-size: 12.5px; }
-  .option-btn.active { border-color: #4f46e5; color: #4f46e5; }
-  .mode-btn.active { background: #4f46e5; color: white; border-color: #4f46e5; }
-  .relance-active-note { font-size: 11.5px; color: #b45309; font-weight: 600; }
-  .compose-actions { display: flex; gap: 10px; margin-top: 10px; }
-  .template-card { background: white; border: 1px solid #e5e5e8; border-radius: 12px; padding: 16px 20px; margin-bottom: 14px; }
-  .template-card .name { font-size: 13.5px; font-weight: 600; margin: 0 0 8px; }
-  .settings-toolbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
-  .settings-toolbar p { font-size: 13px; color: #6b6b70; margin: 0; }
-  .subtabs { display: flex; gap: 6px; background: #eef0f2; padding: 4px; border-radius: 8px; }
-  .subtab-btn { background: transparent; border: none; padding: 6px 14px; font-size: 12.5px; font-weight: 600; color: #6b6b70; cursor: pointer; border-radius: 6px; }
-  .subtab-btn.active { background: white; color: #1a1a1a; box-shadow: 0 1px 2px rgba(16,16,20,0.08); }
-  .price-row { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
-  .price-row label { font-size: 12px; color: #6b6b70; }
-  .price-row input { width: 100px; }
-  .save-note { font-size: 12px; color: #0b804b; margin-left: 10px; display: none; }
-  .finance-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
-  .finance-grid.readout { border-top: 1px solid #f0f0f1; padding-top: 14px; margin-top: 4px; }
-  .finance-grid .k { font-size: 11px; color: #8a8a90; margin: 0 0 4px; }
-  .finance-grid .v { font-size: 13px; margin: 0; }
-  .finance-grid select, .finance-grid input { width: 100%; }
-  table input[type=text], table select { width: 100%; padding: 5px 8px; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg); color: var(--ink);
+    font-size: 14px; line-height: 1.5; font-weight: 400;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3, h4 { font-weight: 500; margin: 0; }
+  button { font-family: inherit; }
+  a { color: var(--bordeaux); }
 
-  .brand-header { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; }
-  .brand-logo { height: 44px; width: auto; display: block; }
-  .brand-sub { font-size: 12.5px; color: #8a8a90; letter-spacing: 0.03em; border-left: 1px solid #e5e5e8; padding-left: 14px; }
+  /* ---- Topbar + nav ---- */
+  .topbar { background: var(--surface); border-bottom: 0.5px solid var(--border); position: sticky; top: 0; z-index: 20; }
+  .topbar-in { max-width: 1180px; margin: 0 auto; padding: 0 22px; display: flex; align-items: center; gap: 16px; height: 66px; flex-wrap: nowrap; }
+  .brand { display: flex; align-items: center; gap: 9px; font-family: 'Fraunces', serif; font-weight: 600; font-size: 18px; color: var(--bordeaux-dark); white-space: nowrap; }
+  .brand-mark { height: 40px; width: auto; display: block; flex-shrink: 0; }
+  .nav { display: flex; gap: 2px; flex-shrink: 0; }
+  .nav button { background: none; border: none; font-size: 13.5px; color: var(--ink-2); padding: 8px 12px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 6px; white-space: nowrap; flex-shrink: 0; }
+  .nav button:hover { background: var(--surface-2); color: var(--ink); }
+  .nav button.on { background: var(--bordeaux-100); color: var(--bordeaux-dark); font-weight: 500; }
+  .nav button .navb { font-size: 10px; background: var(--red-bg); color: var(--red-d); border-radius: 99px; padding: 0 6px; min-width: 16px; text-align: center; }
+  .top-actions { margin-left: auto; display: flex; flex-direction: column; align-items: center; gap: 3px; flex-shrink: 0; }
+  .top-actions .link-btn { background: none; border: none; font-size: 11.5px; color: var(--ink-3); padding: 0; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; }
+  .top-actions .link-btn:hover { color: var(--bordeaux); }
 
-  .panel, .detail-card, .timeline, .compose-card, .template-card { box-shadow: 0 1px 3px rgba(16,16,20,0.05); }
-  .card { box-shadow: 0 1px 3px rgba(16,16,20,0.05); }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 22px; }
+  .view { display: none; }
+  .view.on { display: block; }
 
-  .section-title { text-transform: uppercase; letter-spacing: 0.05em; font-size: 11.5px; color: #6b6b70; margin-top: 26px; display: flex; align-items: center; gap: 6px; }
-  .section-title:first-of-type { margin-top: 0; }
-  .section-title svg { flex-shrink: 0; color: #4f46e5; }
+  /* ---- Sync banner ---- */
+  #syncBanner { font-size: 11.5px; padding: 7px 14px; border: 0.5px solid var(--border); border-radius: 8px; margin-bottom: 16px; background: var(--surface-2); color: var(--ink-2); }
 
-  .detail-card-top { border-left: 4px solid #d9d9dc; }
-  .detail-card-top.new { border-left-color: #3b82f6; }
-  .detail-card-top.waiting { border-left-color: #9ca3af; }
-  .detail-card-top.answer { border-left-color: #ef4444; }
-  .detail-card-top.confirmed { border-left-color: #22c55e; }
-  .detail-card-top.cancelled { border-left-color: #c7c7cf; }
+  /* ---- Buttons ---- */
+  .btn { font-size: 13px; padding: 8px 14px; border-radius: 8px; border: 0.5px solid var(--border-strong); background: var(--surface); color: var(--ink); cursor: pointer; display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; transition: background .12s, border-color .12s; }
+  .btn:hover { background: var(--surface-2); }
+  .btn.primary { background: var(--bordeaux); color: #fff; border-color: var(--bordeaux); }
+  .btn.primary:hover { background: var(--bordeaux-dark); }
+  .btn.sm { font-size: 12px; padding: 6px 12px; }
+  .btn.ghost { border-color: transparent; background: transparent; color: var(--ink-2); }
+  .btn.ghost:hover { background: var(--surface-2); }
+  .btn:disabled { opacity: .5; cursor: default; }
 
-  .detail-meta .k { display: flex; align-items: center; gap: 5px; color: #8a8a90; }
-  .detail-meta .k svg { color: #b5b5bb; }
-  .detail-meta .v { font-weight: 650; font-size: 14px; }
-  .pax-value { color: #4f46e5; font-size: 17px !important; font-weight: 800 !important; }
+  /* ---- KPI cards (Historique) ---- */
+  .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 11px; margin-bottom: 22px; }
+  .kpi { background: var(--surface); border: 0.5px solid var(--border); border-radius: 12px; padding: 14px 16px; }
+  .kpi .lbl { font-size: 11px; color: var(--ink-3); margin: 0; text-transform: uppercase; letter-spacing: .04em; }
+  .kpi .val { font-size: 23px; font-weight: 600; margin: 6px 0 0; }
+  .kpi .sub { font-size: 11.5px; margin: 4px 0 0; color: var(--ink-2); }
 
-  .fin-headline { font-size: 22px !important; font-weight: 800 !important; color: #1a1a1a; }
-  .fin-headline-wrap { background: #f7f7fb; border-radius: 8px; padding: 10px 14px !important; }
+  .sec-title { font-size: 12px; font-weight: 500; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-3); margin: 0 0 11px; display: flex; align-items: center; gap: 7px; }
+  .sec-title .ic { color: var(--bordeaux); display: inline-flex; }
+  .sec-title .count { margin-left: auto; text-transform: none; letter-spacing: 0; font-size: 12px; color: var(--ink-3); font-weight: 400; }
 
-  .balance-progress { height: 8px; border-radius: 999px; background: rgba(0,0,0,0.08); margin-top: 10px; overflow: hidden; }
-  .balance-progress-fill { height: 100%; border-radius: 999px; background: currentColor; transition: width .2s; }
+  .upcoming-block { background: var(--surface); border: 0.5px solid var(--border); border-radius: 16px; padding: 20px; }
+  .section-divider { display: flex; align-items: center; gap: 12px; margin: 34px 0 30px; color: var(--ink-3); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; }
+  .section-divider::before, .section-divider::after { content: ""; flex: 1; height: 1px; background: var(--border-strong); }
+  .suivi-block { background: var(--surface-2); border: 0.5px solid var(--border); border-radius: 16px; padding: 20px 20px 8px; }
+  .suivi-block .tbl-wrap, .suivi-block .toolbar input { background: var(--surface); }
 
-  .dir-badge { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0; margin-top: 1px; }
-  .dir-badge.dir-out { background: #eef2ff; color: #4f46e5; }
-  .dir-badge.dir-in { background: #fef3c7; color: #b45309; }
+  /* ---- Event rows (Prochains événements) ---- */
+  .ev { display: flex; align-items: center; gap: 14px; background: var(--surface); border: 0.5px solid var(--border); border-radius: 12px; padding: 12px 16px; margin-bottom: 8px; cursor: pointer; transition: border-color .12s; }
+  .ev:hover { border-color: var(--bordeaux-300); }
+  .dblock { text-align: center; min-width: 54px; background: var(--bordeaux-100); border-radius: 9px; padding: 6px 4px; }
+  .dblock .m { font-size: 10px; color: var(--bordeaux); text-transform: uppercase; letter-spacing: .05em; margin: 0; }
+  .dblock .d { font-size: 21px; font-weight: 600; color: var(--bordeaux-dark); margin: 0; line-height: 1; font-family: 'Inter', sans-serif; }
+  .dblock .w { font-size: 10px; color: var(--bordeaux-300); margin: 1px 0 0; }
+  .dblock.sm { min-width: 38px; padding: 2px 3px; border-radius: 7px; }
+  .dblock.sm .m, .dblock.sm .w { font-size: 7.5px; }
+  .dblock.sm .d { font-size: 13px; }
+  .sort-carets { display: inline-flex; flex-direction: column; margin-left: 5px; vertical-align: middle; gap: 1px; }
+  .care { cursor: pointer; font-size: 9px; line-height: .7; color: var(--ink-3); }
+  .care:hover { color: var(--ink); }
+  .care.active { color: var(--bordeaux); }
+  th.sortable-th { white-space: nowrap; }
+  .ev-main { flex: 1; min-width: 0; }
+  .ev-name { font-size: 14.5px; font-weight: 500; margin: 0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .ev-sub { font-size: 12px; color: var(--ink-2); margin: 4px 0 0; display: flex; gap: 12px; flex-wrap: wrap; }
+  .ev-sub span { display: inline-flex; align-items: center; gap: 4px; }
+  .ev-prog { width: 130px; flex-shrink: 0; }
+  .ev-prog .pt { font-size: 11px; color: var(--ink-3); margin: 0 0 4px; display: flex; justify-content: space-between; }
+  .bar { height: 6px; background: #efede8; border-radius: 99px; overflow: hidden; }
+  .bar > i { display: block; height: 100%; border-radius: 99px; }
+  .ev-amt { font-size: 14px; font-weight: 600; margin: 0; min-width: 66px; text-align: right; font-family: 'Inter', sans-serif; }
+  .empty-box { background: var(--surface); border: 0.5px dashed var(--border-strong); border-radius: 12px; padding: 26px; text-align: center; color: var(--ink-3); font-size: 13px; }
 
-  .settings-subheading { font-size: 13px; font-weight: 700; color: #4f46e5; margin: 0 0 12px; padding-bottom: 8px; border-bottom: 1px solid #e5e5e8; }
-  .settings-subheading.second { margin-top: 30px; }
+  /* ---- Pills / tags ---- */
+  .pill { font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 99px; white-space: nowrap; display: inline-block; }
+  .pill.new { background: var(--blue-bg); color: var(--blue-d); }
+  .pill.answer { background: var(--red-bg); color: var(--red-d); }
+  .pill.waiting { background: #f1efe8; color: #5f5e5a; }
+  .pill.confirmed { background: var(--green-bg); color: var(--green-d); }
+  .pill.cancelled { background: #f1efe8; color: var(--ink-3); }
+  .tag { font-size: 10.5px; font-weight: 500; padding: 3px 9px; border-radius: 99px; }
+  .tag.red { background: var(--red-bg); color: var(--red-d); }
+  .tag.amber { background: #faedd4; color: var(--amber-d); }
+  .tag.green { background: var(--green-bg); color: var(--green-d); }
 
-  .finance-balance { margin: 14px 0 20px; padding: 14px 18px; border-radius: 10px; font-size: 17px; font-weight: 700; }
-  .finance-balance.paid { background: #dcfce7; color: #166534; }
-  .finance-balance.partial { background: #fef3c7; color: #92400e; }
-  .finance-balance.unpaid { background: #fee2e2; color: #b91c1c; }
+  /* ---- Suivi des demandes : chips + toolbar + tableau ---- */
+  .kpi-row { display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
+  .kchip { display: flex; align-items: center; gap: 8px; background: var(--surface); border: 0.5px solid var(--border-strong); border-radius: 999px; padding: 7px 14px 7px 8px; font-size: 13px; color: var(--ink-2); cursor: pointer; }
+  .kchip:hover { border-color: var(--ink-3); }
+  .kchip .n { font-family: 'Inter', sans-serif; font-weight: 700; font-size: 13px; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--surface-2); color: var(--ink); }
+  .kchip.new .n { background: var(--blue-bg); color: var(--blue-d); }
+  .kchip.answer .n { background: var(--red-bg); color: var(--red-d); }
+  .kchip.waiting .n { background: #f1efe8; color: #5f5e5a; }
+  .kchip.relance .n { background: var(--amber-bg); color: var(--amber-d); }
+  .kchip.on { border-color: var(--bordeaux); color: var(--bordeaux-dark); background: var(--bordeaux-100); }
 
-  .timeline-item.clickable { cursor: pointer; margin: 0 -20px; padding: 12px 20px; }
-  .timeline-item.clickable:hover { background: #fafafa; }
-  .timeline-item .open-link { font-size: 11.5px; color: #4f46e5; white-space: nowrap; margin-left: auto; align-self: center; }
-  .scan-tag { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; color: #0b804b; background: #dcfce7; padding: 1px 6px; border-radius: 999px; vertical-align: middle; }
+  .toolbar { display: flex; gap: 10px; align-items: center; margin-bottom: 14px; flex-wrap: wrap; }
+  .toolbar input, .toolbar select { font-family: inherit; font-size: 13px; padding: 8px 12px; border-radius: 8px; border: 0.5px solid var(--border-strong); background: var(--surface); color: var(--ink); }
+  .toolbar input { flex: 1; max-width: 260px; }
+  .toolbar .spacer { flex: 1; }
+
+  .footer-links { display: flex; gap: 18px; margin-top: 12px; font-size: 12.5px; }
+  .footer-links a { color: var(--ink-2); text-decoration: none; cursor: pointer; }
+  .footer-links a:hover { color: var(--bordeaux); }
+
+  .tbl-wrap { background: var(--surface); border: 0.5px solid var(--border); border-radius: 12px; overflow: hidden; }
+  table.pipe { width: 100%; border-collapse: collapse; }
+  table.pipe.fixed-cols { table-layout: fixed; }
+  table.pipe.fixed-cols td { overflow: hidden; }
+  table.pipe.fixed-cols .cl-name, table.pipe.fixed-cols .cl-sub { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  table.pipe th { font-size: 10.5px; text-transform: uppercase; letter-spacing: .04em; color: var(--ink-3); text-align: left; padding: 11px 14px; font-weight: 500; border-bottom: 0.5px solid var(--border); background: var(--surface-2); white-space: nowrap; }
+  table.pipe td { padding: 8px 14px; font-size: 13px; border-bottom: 0.5px solid #f2f1ed; vertical-align: middle; }
+  table.pipe tr:last-child td { border-bottom: none; }
+  table.pipe tbody tr:hover td, table.pipe tr.row:hover td { background: var(--surface-2); cursor: pointer; }
+  .cl-name { font-weight: 500; }
+  .cl-sub { font-size: 11px; color: var(--ink-3); margin-top: 2px; }
+  .pax-cell { font-weight: 700; font-size: 15px; }
+  .dt { font-weight: 500; } .dt-sub { font-size: 11px; color: var(--ink-3); }
+  .amt-cell { font-weight: 600; text-align: right; white-space: nowrap; font-family: 'Inter', sans-serif; }
+  .archive-btn { width: 26px; height: 26px; border-radius: 50%; border: none; background: var(--red-bg); color: var(--red-d); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; }
+  .archive-btn:hover { background: var(--red); color: #fff; }
+
+  /* ---- Alerte de conflit ---- */
+  .alert { display: flex; align-items: center; gap: 13px; border: 0.5px solid var(--border); border-left: 3px solid var(--ink-3); border-radius: 0 10px 10px 0; padding: 12px 16px; margin-bottom: 16px; background: var(--surface); }
+  .alert.hot { background: #fdf4f4; border-color: #f0d5d5; border-left-color: var(--red); }
+  .alert.warn { background: var(--amber-bg); border-color: #f0e0c0; border-left-color: var(--amber); }
+  .alert .ai { width: 32px; height: 32px; border-radius: 9px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .alert.hot .ai { background: #fbe2e2; color: var(--red-d); }
+  .alert.warn .ai { background: #faedd4; color: var(--amber-d); }
+  .alert .at { flex: 1; min-width: 0; }
+  .alert .at p { margin: 0; }
+  .alert .a1 { font-size: 13.5px; font-weight: 600; }
+  .alert .a2 { font-size: 12px; color: var(--ink-2); margin-top: 2px; }
+
+  /* ---- Detail sheet (fiche événement) ---- */
+  .back-btn { background: none; border: none; color: var(--ink-2); font-size: 13px; cursor: pointer; padding: 0; margin-bottom: 14px; display: inline-flex; align-items: center; gap: 6px; }
+  .back-btn:hover { color: var(--bordeaux); }
+  .hero { border-radius: 14px; padding: 18px 22px; color: #fff; margin-bottom: 16px; background: var(--bordeaux); }
+  .hero.stage-waiting { background: #6b665d; }
+  .hero.stage-new { background: #2e6690; }
+  .hero.stage-answer { background: #9a3226; }
+  .hero.stage-cancelled { background: #746f66; }
+  .hero-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+  .hero h2 { font-family: 'Fraunces', serif; font-weight: 600; font-size: 21px; }
+  .hero .hsub { font-size: 13px; color: rgba(255,255,255,.82); margin: 6px 0 0; }
+  .hero-right { text-align: right; }
+  .hpill { background: rgba(255,255,255,.18); font-size: 12px; font-weight: 500; padding: 5px 13px; border-radius: 99px; white-space: nowrap; display: inline-block; }
+  .hero-jx { font-size: 12px; color: rgba(255,255,255,.85); margin: 7px 0 0; }
+  .hero-stat { display: flex; gap: 28px; margin-top: 16px; padding-top: 14px; border-top: 0.5px solid rgba(255,255,255,.22); flex-wrap: wrap; }
+  .hero-stat > div p:first-child { font-size: 10.5px; color: rgba(255,255,255,.7); margin: 0; text-transform: uppercase; letter-spacing: .04em; }
+  .hero-stat > div p:last-child { font-size: 15px; font-weight: 600; margin: 3px 0 0; font-family: 'Inter', sans-serif; }
+
+  /* ---- Hero clair (demandes en cours) ---- */
+  .hero.light { background: var(--surface); border: 0.5px solid var(--border); color: var(--ink); }
+  .hero-light-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: nowrap; }
+  .hero-light-top h2 { font-family: 'Fraunces', serif; font-weight: 600; font-size: 21px; color: var(--ink); cursor: pointer; margin: 0; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .hero-light-top h2:hover { text-decoration: underline; text-decoration-style: dotted; text-decoration-color: var(--ink-3); }
+  .hero-light-sub { font-size: 13px; color: var(--ink-2); margin: 6px 0 0; cursor: pointer; }
+  .hero-light-sub:hover { text-decoration: underline; text-decoration-style: dotted; }
+  .quote { cursor: pointer; }
+  .status-select { font-family: inherit; font-size: 12px; font-weight: 600; padding: 6px 10px; border-radius: 99px; border: 1px solid; cursor: pointer; width: auto; flex-shrink: 0; }
+  .status-select.new { border-color: #cfe0f2; color: var(--blue-d); background: var(--blue-bg); }
+  .status-select.answer { border-color: #f0d5d5; color: var(--red-d); background: var(--red-bg); }
+  .status-select.waiting { border-color: #e2ded4; color: #5f5e5a; background: #f1efe8; }
+  .status-select.confirmed { border-color: #cbe8d7; color: var(--green-d); background: var(--green-bg); }
+  .status-select.cancelled { border-color: var(--border-strong); color: var(--ink-3); background: #f1efe8; }
+
+  .quad-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 18px 0 0; }
+  .quad-box { background: var(--surface-2); border-radius: 10px; padding: 14px; }
+  .quad-box.ok { background: var(--green-bg); }
+  .quad-box.warn { background: var(--amber-bg); }
+  .quad-box.editable { cursor: pointer; }
+  .quad-box .qic { color: var(--bordeaux); display: inline-flex; margin-bottom: 8px; }
+  .quad-box.ok .qic { color: var(--green-d); }
+  .quad-box.warn .qic { color: var(--amber-d); }
+  .quad-box .qv { font-weight: 600; font-size: 14.5px; margin: 0; }
+  .quad-box .qs { font-size: 11px; color: var(--ink-3); margin: 3px 0 0; }
+  .quad-box.ok .qs { color: var(--green-d); }
+  .quad-box.warn .qs { color: var(--amber-d); }
+  .quad-box input { font-size: 13px; padding: 6px 8px; }
+  @media (max-width: 720px) { .quad-row { grid-template-columns: repeat(2, 1fr); } }
+
+  .tabs { display: flex; gap: 3px; margin-bottom: 16px; border-bottom: 0.5px solid var(--border); overflow-x: auto; }
+  .tab { font-size: 13.5px; padding: 9px 15px; cursor: pointer; color: var(--ink-2); border: none; background: none; border-bottom: 2px solid transparent; margin-bottom: -0.5px; display: flex; align-items: center; gap: 7px; white-space: nowrap; }
+  .tab:hover { color: var(--ink); }
+  .tab.on { color: var(--bordeaux); border-bottom-color: var(--bordeaux); font-weight: 500; }
+  .tab .tb { font-size: 10px; border-radius: 99px; padding: 0 6px; min-width: 16px; text-align: center; background: var(--red-bg); color: var(--red-d); }
+  .tabpane { display: none; }
+  .tabpane.on { display: block; }
+
+  .panel { background: var(--surface); border: 0.5px solid var(--border); border-radius: 12px; padding: 16px 18px; margin-bottom: 12px; }
+  .panel-t { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-3); margin: 0 0 12px; }
+  .quote { font-style: italic; font-size: 13px; color: var(--ink-2); background: var(--surface-2); border-radius: 9px; padding: 11px 14px; line-height: 1.55; margin: 0 0 12px; }
+
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .field { margin-bottom: 12px; }
+  .field .k { font-size: 11px; color: var(--ink-3); margin: 0 0 5px; text-transform: uppercase; letter-spacing: .03em; }
+  .field .v { font-size: 14px; margin: 0; }
+  input, select, textarea { font-family: inherit; font-size: 13px; padding: 8px 11px; border: 0.5px solid var(--border-strong); border-radius: 8px; background: var(--surface); color: var(--ink); width: 100%; }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--bordeaux-300); }
+  textarea { resize: vertical; line-height: 1.6; }
+  label.k { font-size: 11px; color: var(--ink-3); display: block; margin: 0 0 5px; text-transform: uppercase; letter-spacing: .03em; }
+
+  .info-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+  .itile { background: var(--surface-2); border-radius: 10px; padding: 12px 14px; }
+  .itile.center { text-align: center; }
+  .itile .k { font-size: 11px; color: var(--ink-3); margin: 0; }
+  .itile .v { font-size: 15px; font-weight: 600; margin: 5px 0 0; }
+  .itile .s { font-size: 11px; color: var(--ink-3); margin: 3px 0 0; }
+  .itile.ok { background: var(--green-bg); } .itile.ok .k, .itile.ok .s { color: var(--green-d); } .itile.ok .v { color: var(--green-d); }
+  .itile.ko { background: var(--red-bg); } .itile.ko .k, .itile.ko .s { color: var(--red-d); } .itile.ko .v { color: var(--red-d); }
+  .itile.warn { background: var(--amber-bg); } .itile.warn .k, .itile.warn .s { color: var(--amber-d); } .itile.warn .v { color: var(--amber-d); }
+  .itile.clickable { cursor: pointer; }
+
+  /* ---- Finances ---- */
+  .fin-head { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 8px; }
+  .fin-big { font-size: 26px; font-weight: 600; margin: 0; font-family: 'Inter', sans-serif; }
+  .fin-note { font-size: 12px; color: var(--ink-3); margin: 3px 0 0; }
+  .fin-status { font-size: 13px; font-weight: 500; }
+  .gauge { height: 9px; background: #efede8; border-radius: 99px; overflow: hidden; margin: 12px 0; }
+  .gauge > i { display: block; height: 100%; border-radius: 99px; transition: width .25s; }
+  .fin-tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; }
+  .fin-ic-input { display: flex; align-items: flex-end; gap: 10px; }
+  .fin-ic { font-size: 20px; line-height: 1; padding-bottom: 8px; }
+  .pay-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 0.5px solid #f2f1ed; }
+  .pay-row:last-child { border: none; }
+  .pay-ic { width: 28px; height: 28px; border-radius: 8px; background: var(--bordeaux-100); color: var(--bordeaux); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; flex-shrink: 0; }
+
+  /* ---- Tasks ---- */
+  .task { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 0.5px solid #f2f1ed; }
+  .task:last-child { border: none; }
+  .cbox { width: 20px; height: 20px; border-radius: 6px; border: 1.5px solid #cfccc4; flex-shrink: 0; cursor: pointer; display: flex; align-items: center; justify-content: center; background: var(--surface); }
+  .cbox.done { background: var(--bordeaux); border-color: var(--bordeaux); }
+  .task .tt { flex: 1; min-width: 0; }
+  .task .tt p { margin: 0; }
+  .task .t1 { font-size: 13.5px; }
+  .task.done .t1 { color: var(--ink-3); text-decoration: line-through; }
+  .task .t2 { font-size: 11px; color: var(--ink-3); margin-top: 2px; }
+  .due { font-size: 11px; font-weight: 500; padding: 3px 9px; border-radius: 99px; white-space: nowrap; }
+  .task-resp { width: 110px; flex-shrink: 0; font-size: 12px; padding: 6px 9px; }
+  .add-line { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--bordeaux); margin-top: 10px; cursor: pointer; background: none; border: none; padding: 0; }
+  .add-line:hover { color: var(--bordeaux-dark); }
+
+  /* ---- Timeline ---- */
+  .tl-row { display: flex; gap: 14px; padding: 10px 0; }
+  .tl-dot { width: 26px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; }
+  .tl-dot .d { width: 11px; height: 11px; border-radius: 50%; margin-top: 4px; }
+  .tl-dot .d.out { background: var(--bordeaux); } .tl-dot .d.in { background: var(--ink-3); }
+  .tl-dot .line { flex: 1; width: 1.5px; background: var(--border); margin-top: 4px; }
+  .tl-body { flex: 1; padding-bottom: 4px; }
+  .tl-body .t1 { font-size: 13px; font-weight: 500; margin: 0; }
+  .tl-body .t2 { font-size: 11.5px; color: var(--ink-3); margin: 2px 0 0; }
+  .tl-dir { font-size: 10px; font-weight: 500; padding: 1px 7px; border-radius: 99px; margin-left: 6px; }
+  .tl-dir.out { background: var(--bordeaux-100); color: var(--bordeaux); }
+  .tl-dir.in { background: #f1efe8; color: var(--ink-2); }
+
+  /* ---- Compose / proposal editor ---- */
+  .compose-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start; }
+  .blk { border: 0.5px solid var(--border-strong); border-radius: 10px; padding: 11px 13px; margin-bottom: 8px; cursor: pointer; background: var(--surface); }
+  .blk.on { border-color: var(--bordeaux); background: #fdf9f9; }
+  .blk-h { display: flex; align-items: center; gap: 10px; }
+  .blk-tog { width: 18px; height: 18px; border-radius: 5px; border: 1.5px solid #cfccc4; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+  .blk.on .blk-tog { background: var(--bordeaux); border-color: var(--bordeaux); }
+  .blk-n { font-size: 13px; font-weight: 500; margin: 0; flex: 1; }
+  .blk-p { font-size: 11.5px; color: var(--bordeaux); font-weight: 500; }
+  .preview { background: var(--surface); border: 0.5px solid var(--border); border-radius: 12px; overflow: hidden; }
+  .pv-bar { background: var(--surface-2); border-bottom: 0.5px solid var(--border); padding: 9px 14px; font-size: 11.5px; color: var(--ink-3); display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+  .pv-body { width: 100%; border: none; padding: 15px 17px; font-size: 12.5px; line-height: 1.7; color: #3a3733; resize: vertical; min-height: 260px; font-family: inherit; }
+  .pv-body:focus { outline: none; }
+  .pv-actions { display: flex; gap: 8px; padding: 12px 15px; border-top: 0.5px solid var(--border); flex-wrap: wrap; }
+  .vartip { font-size: 11px; color: var(--ink-3); margin: 12px 0 0; padding: 9px 12px; background: var(--surface-2); border-radius: 8px; line-height: 1.6; }
+  .hl { background: var(--bordeaux-100); color: var(--bordeaux); border-radius: 3px; padding: 0 4px; }
+  .compose-ctx { font-size: 12px; color: var(--ink-2); margin: 0 0 12px; }
+  .sig-row { display: flex; align-items: center; gap: 8px; margin-top: 10px; font-size: 12.5px; color: var(--ink-2); }
+  .sig-row select { width: auto; }
+  .save-note { font-size: 12px; color: var(--green-d); margin-left: 8px; display: none; }
+
+  /* ---- Stats (historique) ---- */
+  .chart-wrap { background: var(--surface); border: 0.5px solid var(--border); border-radius: 12px; padding: 16px 18px; margin-bottom: 16px; }
+  .bars { display: flex; align-items: flex-end; gap: 5px; height: 90px; margin-top: 12px; }
+  .bar-col { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 4px; height: 100%; }
+  .bar-col .bval { font-size: 10px; font-weight: 600; color: var(--ink-2); white-space: nowrap; }
+  .bar-col .bval.hi { color: var(--bordeaux-dark); }
+  .bar-col .bcol { width: 100%; max-width: 30px; background: var(--bordeaux-200); border-radius: 4px 4px 0 0; }
+  .bar-col .bcol.hi { background: var(--bordeaux); }
+  .bar-col .blab { font-size: 9.5px; color: var(--ink-3); }
+
+  /* ---- Settings ---- */
+  .settings-sub { display: flex; gap: 3px; margin-bottom: 16px; border-bottom: 0.5px solid var(--border); }
+  .tpl-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: 11px; padding: 14px 16px; margin-bottom: 12px; }
+  .tpl-card .name { font-size: 13px; font-weight: 500; margin: 0 0 9px; }
+
+  /* ---- Modal (Nouvelle demande) ---- */
+  .modal-backdrop { position: fixed; inset: 0; background: rgba(42,38,34,.45); display: none; align-items: center; justify-content: center; z-index: 100; padding: 20px; }
+  .modal-backdrop.on { display: flex; }
+  .modal-card { background: var(--surface); border-radius: 18px; width: 100%; max-width: 460px; max-height: 90vh; overflow-y: auto; box-shadow: 0 24px 70px rgba(42,38,34,.28); }
+  .modal-head { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px 16px; border-bottom: 0.5px solid var(--border); }
+  .modal-head h3 { font-family: 'Fraunces', serif; font-weight: 600; font-size: 18px; color: var(--bordeaux-dark); margin: 0; }
+  .modal-close { width: 30px; height: 30px; border-radius: 50%; border: none; background: var(--surface-2); color: var(--ink-2); cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .modal-close:hover { background: var(--bordeaux-100); color: var(--bordeaux-dark); }
+  .modal-body { padding: 20px 24px 6px; }
+  .modal-row { margin-bottom: 15px; }
+  .modal-row label { font-size: 11px; color: var(--ink-3); text-transform: uppercase; letter-spacing: .03em; display: block; margin: 0 0 6px; }
+  .modal-row label .req { color: var(--bordeaux); margin-left: 2px; }
+  .modal-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .modal-err { font-size: 12px; color: var(--red-d); background: var(--red-bg); border-radius: 8px; padding: 8px 12px; margin: 0 0 14px; display: none; }
+  .modal-foot { display: flex; justify-content: flex-end; gap: 10px; padding: 12px 24px 22px; }
+
+  @media (max-width: 720px) {
+    .kpis { grid-template-columns: repeat(2, 1fr); }
+    .compose-grid, .grid2 { grid-template-columns: 1fr; }
+    .fin-tiles { grid-template-columns: 1fr; }
+    .nav button span.lbl { display: none; }
+    .ev-prog { display: none; }
+  }
 </style>
 </head>
 <body>
-
-<div class="brand-header">
-  <img src="logo.png" alt="Rosario" class="brand-logo">
-  <div class="brand-sub">Suivi des demandes de privatisation</div>
+<div class="topbar">
+  <div class="topbar-in">
+    <img src="logo.png" alt="Rosario" class="brand-mark">
+    <nav class="nav">
+      <button id="nav-dashboard" class="on" onclick="showView('dashboard')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg><span class="lbl">Tableau de bord</span><span class="navb" id="navDashBadge" style="display:none">0</span></button>
+      <button id="nav-confirmed" onclick="showView('confirmed')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4 12 14.01l-3-3"/></svg><span class="lbl">Confirmées</span></button>
+      <button id="nav-tasks" onclick="showView('tasks')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="6" height="6" rx="1"/><path d="M11 6h9"/><rect x="3" y="14" width="6" height="6" rx="1"/><path d="M11 15h9"/></svg><span class="lbl">Tâches</span><span class="navb" id="navTasksBadge" style="display:none">0</span></button>
+      <button id="nav-clients" onclick="showView('clients')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span class="lbl">Base clients</span></button>
+      <button id="nav-settings" onclick="showView('settings')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span class="lbl">Paramètres</span></button>
+    </nav>
+    <div class="top-actions">
+      <button class="btn sm primary" onclick="openNewRequest()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg> Nouvelle demande</button>
+      <button class="link-btn" id="scanGmailBtn" onclick="scanGmailInbox()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.5 0 4.8 1 6.5 2.6"/><path d="M21 3v6h-6"/></svg>Scanner mes emails</button>
+    </div>
+  </div>
 </div>
-<div class="mock-banner" id="syncBanner">Chargement…</div>
 
-<div class="tabs">
-  <button class="tab-btn active" data-tab="list" onclick="showTab('list')">Demandes</button>
-  <button class="tab-btn" data-tab="confirmed" onclick="showTab('confirmed')">Confirmées</button>
-  <button class="tab-btn" data-tab="clients" onclick="showTab('clients')">Base clients</button>
-  <button class="tab-btn" data-tab="settings" onclick="showTab('settings')">Paramètres</button>
-</div>
+<div class="wrap">
+  <div id="syncBanner"></div>
 
-<div id="view-list">
-  <div class="cards">
-    <div class="card" id="cardBoxTotal" onclick="toggleCardFilter('total')"><div class="label">Demandes</div><div class="value" id="cardTotal">—</div></div>
-    <div class="card urgent" id="cardBoxAnswer" onclick="toggleCardFilter('answer')"><div class="label">Nouvelles demandes</div><div class="value" id="cardAnswer">—</div></div>
-    <div class="card warn" id="cardBoxRelance" onclick="toggleCardFilter('relance')"><div class="label">À relancer</div><div class="value" id="cardRelance">—</div></div>
-    <div class="card good" id="cardBoxConfirmed" onclick="toggleCardFilter('confirmed')"><div class="label">Confirmées</div><div class="value" id="cardConfirmed">—</div></div>
-    <div class="card" id="cardBoxArchived" onclick="toggleCardFilter('archived')"><div class="label">Archivées</div><div class="value" id="cardArchived">—</div></div>
+  <!-- ============ DASHBOARD (fusion : à venir + suivi) ============ -->
+  <div class="view on" id="view-dashboard">
+    <div class="upcoming-block">
+      <p class="sec-title"><span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span> Événements à venir <span class="count" id="upcomingCount"></span></p>
+      <div id="dashUpcoming"></div>
+    </div>
+
+    <div class="section-divider"><span>Suivi</span></div>
+
+    <div class="suivi-block">
+      <p class="sec-title"><span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></span> Suivi des demandes <span class="count" id="suiviCount"></span></p>
+      <div class="kpi-row" id="suiviChips"></div>
+      <div class="toolbar">
+        <input type="text" id="suiviSearch" placeholder="Rechercher un client" oninput="onSuiviSearch(this.value)">
+        <span class="spacer"></span>
+      </div>
+      <div class="tbl-wrap">
+        <table class="pipe">
+          <thead><tr>
+            <th class="sortable-th" style="width:64px">Évènement<span class="sort-carets"><span class="care" id="care-suivi-event-up" onclick="suiviSetSort_('event',1)">⌃</span><span class="care" id="care-suivi-event-down" onclick="suiviSetSort_('event',-1)">⌄</span></span></th>
+            <th>Client</th>
+            <th class="sortable-th">Pax<span class="sort-carets"><span class="care" id="care-suivi-pax-up" onclick="suiviSetSort_('pax',1)">⌃</span><span class="care" id="care-suivi-pax-down" onclick="suiviSetSort_('pax',-1)">⌄</span></span></th>
+            <th>Espace</th>
+            <th class="sortable-th">Demande<span class="sort-carets"><span class="care" id="care-suivi-demande-up" onclick="suiviSetSort_('demande',1)">⌃</span><span class="care" id="care-suivi-demande-down" onclick="suiviSetSort_('demande',-1)">⌄</span></span></th>
+            <th>Statut</th><th></th>
+          </tr></thead>
+          <tbody id="suiviBody"></tbody>
+        </table>
+      </div>
+      <div class="footer-links" id="suiviFooterLinks"></div>
+    </div>
   </div>
 
-  <div class="toolbar">
-    <input type="text" id="fClient" placeholder="Rechercher un client" oninput="applyFilters()" />
-    <select id="fStatut" onchange="applyFilters()">
-      <option value="">Tous les statuts</option>
-      <option>Nouvelle demande</option>
-      <option>En attente client</option>
-      <option>Confirmé</option>
-      <option>Archivée</option>
-    </select>
-    <select id="fEspace" onchange="applyFilters()">
-      <option value="">Tous les espaces</option>
-      <option>Salon privatif</option>
-      <option>Restaurant entier</option>
-      <option>Terrasse</option>
-    </select>
-    <button class="ghost" onclick="scanGmailInbox()" style="margin-left:auto;" id="scanGmailBtn">↻ Scanner mes emails</button>
-    <button class="ghost" onclick="toggleAddForm()" id="addFormToggleBtn">+ Ajouter une demande</button>
+  <!-- ============ TÂCHES (toutes les confirmées, triées par urgence) ============ -->
+  <div class="view" id="view-tasks">
+    <div class="upcoming-block" id="tasksFinanceBlock" style="margin-bottom:0;">
+      <p class="sec-title"><span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span> Soldes à régler <span class="count" id="tasksFinanceCount"></span></p>
+      <div class="tbl-wrap">
+        <table class="pipe">
+          <thead><tr><th>Client</th><th>Événement</th><th style="text-align:right">Total TTC</th><th style="text-align:right">Encaissé</th><th style="text-align:right">Solde restant</th><th style="width:90px"></th></tr></thead>
+          <tbody id="tasksFinanceBody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="section-divider">Tâches</div>
+    <p class="sec-title"><span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="6" height="6" rx="1"/><path d="M11 6h9"/><rect x="3" y="14" width="6" height="6" rx="1"/><path d="M11 15h9"/></svg></span> Tâches à faire <span class="count" id="tasksTabCount"></span></p>
+    <div class="tbl-wrap">
+      <table class="pipe">
+        <thead><tr><th style="width:34px"></th><th>Tâche</th><th>Événement</th><th style="width:150px">Échéance</th><th style="width:130px">Responsable</th><th style="width:90px"></th></tr></thead>
+        <tbody id="tasksTabBody"></tbody>
+      </table>
+    </div>
+    <p style="font-size:11.5px; color:var(--ink-3); margin-top:10px;">Regroupe les tâches de toutes les privatisations confirmées, triées de la plus urgente à la moins urgente. Les tâches cochées sont masquées ici (toujours visibles dans la fiche de l'événement).</p>
   </div>
 
-  <div class="detail-card" id="addFormPanel" style="display:none;">
-    <p class="name" style="font-weight:600; font-size:13.5px; margin:0 0 12px;">Nouvelle demande</p>
-    <div class="finance-grid">
-      <div><p class="k">Client *</p><input type="text" id="addClient"></div>
-      <div><p class="k">Email</p><input type="text" id="addEmail"></div>
-      <div><p class="k">Espace</p>
-        <select id="addEspace">
+  <!-- ============ BASE CLIENTS ============ -->
+  <div class="view" id="view-clients">
+    <p class="sec-title"><span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span> Base clients <span class="count" id="clientsCount"></span></p>
+    <div class="toolbar">
+      <input type="text" id="fClientSearch" placeholder="Rechercher un client ou une société" oninput="renderClientsTable()">
+      <span class="spacer"></span>
+    </div>
+    <div class="tbl-wrap">
+      <table class="pipe">
+        <thead><tr><th>Contact</th><th>Email</th><th>Téléphone</th><th>Société</th><th style="text-align:right">Demandes</th></tr></thead>
+        <tbody id="clientsTbody"></tbody>
+      </table>
+    </div>
+    <p style="font-size:11.5px; color:var(--ink-3); margin-top:10px;">Société et téléphone sont déduits automatiquement quand c'est possible (nom de domaine de l'email, numéro repéré dans les échanges) — à corriger au cas par cas.</p>
+  </div>
+
+  <!-- ============ DETAIL (fiche événement) ============ -->
+  <div class="view" id="view-detail">
+    <button class="back-btn" onclick="showView(backTarget)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg> Retour</button>
+    <div class="hero" id="detHero"></div>
+
+    <div class="alert" id="detConflict" style="display:none;"></div>
+
+    <div class="action-bar" id="detActions" style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px;"></div>
+
+    <div class="tabs">
+      <button class="tab" data-pane="finance" onclick="showPane('finance')">Finances</button>
+      <button class="tab" data-pane="tasks" onclick="showPane('tasks')">Tâches <span class="tb" id="taskBadge" style="display:none">0</span></button>
+      <button class="tab on" data-pane="timeline" onclick="showPane('timeline')">Historique</button>
+      <button class="tab" data-pane="compose" id="tabCompose" onclick="showPane('compose')">Répondre</button>
+    </div>
+
+    <!-- pane: finance -->
+    <div class="tabpane" id="pane-finance">
+      <div class="panel">
+        <p class="panel-t">Chiffrage</p>
+        <div class="grid2">
+          <div><label class="k">Service</label><select id="finService" onchange="onFinanceInput()"><option>Déjeuner</option><option>Dîner</option></select></div>
+          <div><label class="k">Société / raison sociale</label><input id="finSociete" oninput="onFinanceInput()" placeholder="ex. Acme Corp"></div>
+        </div>
+        <div class="grid2" style="margin-top:14px">
+          <div class="fin-ic-input">
+            <span class="fin-ic">🍽</span>
+            <div style="flex:1"><label class="k">CA Cuisine HT (TVA 10 %)</label><input id="finCuisineHT" oninput="onFinanceInput()"></div>
+          </div>
+          <div class="fin-ic-input">
+            <span class="fin-ic">🍷</span>
+            <div style="flex:1"><label class="k">CA Alcools HT (TVA 20 %)</label><input id="finAlcoolsHT" oninput="onFinanceInput()"></div>
+          </div>
+        </div>
+        <div class="info-tiles" style="margin-top:14px">
+          <div class="itile center"><p class="k">TVA cuisine</p><p class="v" id="finTvaCuisine">—</p></div>
+          <div class="itile center"><p class="k">TVA alcools</p><p class="v" id="finTvaAlcools">—</p></div>
+          <div class="itile center"><p class="k">Total HT</p><p class="v" id="finTotalHT">—</p></div>
+          <div class="itile center"><p class="k">Total TTC</p><p class="v" id="finTotalTTC">—</p></div>
+        </div>
+      </div>
+      <div class="panel">
+        <p class="panel-t">Encaissements</p>
+        <div class="fin-head">
+          <div><p class="fin-big" id="finBig">—</p><p class="fin-note" id="finNote"></p></div>
+          <p class="fin-status" id="finStatus"></p>
+        </div>
+        <div class="gauge"><i id="finGauge" style="width:0%"></i></div>
+        <div id="finPayments"></div>
+        <button class="add-line" onclick="addPaymentLine()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg> Enregistrer un paiement</button>
+        <div class="fin-tiles" style="margin-top:16px">
+          <div class="itile center"><p class="k">Acompte attendu (50 %)</p><p class="v" id="finDeposit">—</p></div>
+          <div class="itile center ok"><p class="k">Encaissé</p><p class="v" id="finPaid">—</p></div>
+          <div class="itile center"><p class="k">Solde restant</p><p class="v" id="finRest">—</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- pane: tasks -->
+    <div class="tabpane" id="pane-tasks">
+      <div class="panel">
+        <p class="panel-t">Tâches de préparation</p>
+        <div id="taskList"></div>
+        <button class="add-line" onclick="addTask()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg> Ajouter une tâche</button>
+      </div>
+      <p style="font-size:11.5px; color:var(--ink-3); margin:0 0 8px;">Les tâches sont générées automatiquement à la confirmation, selon le modèle défini dans Paramètres. Tu peux les cocher, en ajouter ou en retirer.</p>
+    </div>
+
+    <!-- pane: timeline -->
+    <div class="tabpane on" id="pane-timeline">
+      <div class="panel">
+        <p class="panel-t">Historique des échanges</p>
+        <div id="detTimeline"></div>
+        <a id="detGmailLink" class="btn sm" style="display:none; margin-top:10px;" target="_blank">Ouvrir le fil Gmail ↗</a>
+      </div>
+    </div>
+
+    <!-- pane: compose -->
+    <div class="tabpane" id="pane-compose">
+      <p class="compose-ctx" id="composeCtx"></p>
+      <div class="compose-grid" id="composeGrid">
+        <div id="composeLeftCol">
+          <p class="panel-t">Blocs de la proposition</p>
+          <div id="composeBlocks"></div>
+          <p class="vartip">Variables auto : <span class="hl">{prenom}</span> <span class="hl">{date}</span> <span class="hl">{pax}</span> — remplacées avec les infos de la demande. Modèles éditables dans Paramètres.</p>
+        </div>
+        <div>
+          <p class="panel-t">Aperçu du message</p>
+          <div class="preview">
+            <div class="pv-bar"><span id="pvTo">À : —</span><span id="pvSubj"></span></div>
+            <textarea class="pv-body" id="composeBody"></textarea>
+            <div class="pv-actions">
+              <button class="btn primary sm" onclick="openMailto()">Ouvrir dans Gmail ↗</button>
+              <button class="btn sm" onclick="copyCompose()">Copier</button>
+              <button class="btn sm" onclick="logSent_()">✓ Marquer envoyé</button>
+              <span class="save-note" id="copyNote">Copié.</span>
+            </div>
+          </div>
+          <div class="sig-row">Signature :
+            <select id="composeSignature" onchange="rebuildComposeBody()"><option value="theodore">Théodore</option><option value="adrien">Adrien</option></select>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ CONFIRMÉES (à venir + passées) ============ -->
+  <div class="view" id="view-confirmed">
+    <div class="kpis" id="histKpis"></div>
+    <div class="chart-wrap">
+      <p class="panel-t">Chiffre d'affaires des privatisations par mois (HT, événements passés)</p>
+      <div class="bars" id="histChart"></div>
+    </div>
+    <p class="sec-title"><span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span> À venir</p>
+    <div class="tbl-wrap" style="margin-bottom:26px">
+      <table class="pipe fixed-cols">
+        <thead><tr>
+          <th class="sortable-th" style="width:60px">Date<span class="sort-carets"><span class="care" id="care-confup-event-up" onclick="confSetSort_('event',1)">⌃</span><span class="care" id="care-confup-event-down" onclick="confSetSort_('event',-1)">⌄</span></span></th>
+          <th style="width:20%">Client</th>
+          <th class="sortable-th" style="width:50px">Pax<span class="sort-carets"><span class="care" id="care-confup-pax-up" onclick="confSetSort_('pax',1)">⌃</span><span class="care" id="care-confup-pax-down" onclick="confSetSort_('pax',-1)">⌄</span></span></th>
+          <th style="width:15%">Espace</th>
+          <th style="width:14%">Type</th><th style="width:12%; text-align:right">Total HT</th><th style="width:20%">Paiement</th>
+        </tr></thead>
+        <tbody id="confUpcomingBody"></tbody>
+      </table>
+    </div>
+    <p class="sec-title"><span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v5h5"/><path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"/><path d="M12 7v5l4 2"/></svg></span> Passées</p>
+    <div class="tbl-wrap">
+      <table class="pipe fixed-cols">
+        <thead><tr>
+          <th class="sortable-th" style="width:60px">Date<span class="sort-carets"><span class="care" id="care-confpast-event-up" onclick="confSetSort_('event',1)">⌃</span><span class="care" id="care-confpast-event-down" onclick="confSetSort_('event',-1)">⌄</span></span></th>
+          <th style="width:20%">Client</th>
+          <th class="sortable-th" style="width:50px">Pax<span class="sort-carets"><span class="care" id="care-confpast-pax-up" onclick="confSetSort_('pax',1)">⌃</span><span class="care" id="care-confpast-pax-down" onclick="confSetSort_('pax',-1)">⌄</span></span></th>
+          <th style="width:15%">Espace</th>
+          <th style="width:14%">Type</th><th style="width:12%; text-align:right">Total HT</th><th style="width:20%">Paiement</th>
+        </tr></thead>
+        <tbody id="histBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ============ SETTINGS ============ -->
+  <div class="view" id="view-settings">
+    <div class="settings-sub">
+      <button class="tab on" data-sub="templates" onclick="showSettingsSub('templates')">Modèles de réponse</button>
+      <button class="tab" data-sub="tasks" onclick="showSettingsSub('tasks')">Modèle de tâches</button>
+      <button class="tab" data-sub="options" onclick="showSettingsSub('options')">Espaces & formules</button>
+      <button class="tab" data-sub="menu" onclick="showSettingsSub('menu')">Menu</button>
+      <button class="tab" data-sub="data" onclick="showSettingsSub('data')">Données</button>
+    </div>
+
+    <div id="set-templates">
+      <p style="font-size:12.5px; color:var(--ink-2); margin:0 0 14px;">Ces blocs composent les réponses. <span class="hl">{prenom}</span>, <span class="hl">{date}</span>, <span class="hl">{pax}</span> sont remplacés automatiquement.
+        <button class="btn sm primary" style="float:right" onclick="saveTemplates()">Enregistrer</button><span class="save-note" id="tplSaveNote">Enregistré.</span></p>
+      <div class="tpl-card"><p class="name">Introduction</p><textarea id="tplIntro" rows="4"></textarea></div>
+      <div class="tpl-card"><p class="name">Réponse au client (après sa réponse)</p><textarea id="tplReply" rows="3"></textarea></div>
+      <div class="tpl-card"><p class="name">Relance (sans réponse du client)</p><textarea id="tplRelance" rows="5"></textarea></div>
+      <div class="tpl-card"><p class="name">Clôture</p><textarea id="tplCloture" rows="3"></textarea></div>
+      <div class="grid2">
+        <div class="tpl-card"><p class="name">Signature — Théodore</p><textarea id="tplSigTheodore" rows="5"></textarea></div>
+        <div class="tpl-card"><p class="name">Signature — Adrien</p><textarea id="tplSigAdrien" rows="5"></textarea></div>
+      </div>
+    </div>
+
+    <div id="set-tasks" style="display:none">
+      <p style="font-size:12.5px; color:var(--ink-2); margin:0 0 14px;">Tâches créées automatiquement quand une demande passe en <b>Confirmée</b>. L'échéance est calculée en jours avant l'événement (J-x).
+        <button class="btn sm primary" style="float:right" onclick="saveTaskTemplate()">Enregistrer</button><span class="save-note" id="taskSaveNote">Enregistré.</span></p>
+      <div class="tbl-wrap">
+        <table class="pipe">
+          <thead><tr><th>Tâche</th><th style="width:120px">Échéance</th><th style="width:120px">Responsable</th><th style="width:90px">Bloquant</th><th style="width:60px"></th></tr></thead>
+          <tbody id="taskTplBody"></tbody>
+        </table>
+      </div>
+      <button class="add-line" onclick="addTaskTplRow()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg> Ajouter une tâche au modèle</button>
+    </div>
+
+    <div id="set-options" style="display:none">
+      <p style="font-size:12.5px; color:var(--ink-2); margin:0 0 14px;">Descriptions des espaces et formules proposés dans les propositions commerciales.
+        <button class="btn sm primary" style="float:right" onclick="saveTemplates()">Enregistrer</button></p>
+      <div class="tpl-card"><p class="name">Salon privatif (20 pers)</p><textarea id="tplSalon" rows="4"></textarea></div>
+      <div class="tpl-card"><p class="name">Étage (45 pers)</p><textarea id="tplEtage" rows="4"></textarea></div>
+      <div class="tpl-card"><p class="name">Établissement entier (100 pers)</p><textarea id="tplEtablissement" rows="4"></textarea></div>
+      <div class="tpl-card"><p class="name">Formule groupe (45 €/pers)</p><textarea id="tplGroupe" rows="3"></textarea></div>
+    </div>
+
+    <div id="set-menu" style="display:none">
+      <p style="font-size:12.5px; color:var(--ink-2); margin:0 0 14px;">Coche les plats à inclure dans le calcul « Quantités à préparer » de chaque fiche confirmée. Prix et totaux ci-dessous sont indicatifs, calculés pour le nombre de personnes de référence.
+        <button class="btn sm primary" style="float:right" onclick="saveMenu_()">Enregistrer</button><span class="save-note" id="menuSaveNote">Enregistré.</span></p>
+      <div class="panel" style="margin-bottom:16px;">
+        <div class="fin-tiles" style="grid-template-columns:repeat(4,1fr)">
+          <div class="itile center"><p class="k">Total tapas / personne</p><p class="v" id="menuSumPerPerson">—</p></div>
+          <div class="itile center"><p class="k">Prix indicatif / personne</p><p class="v" id="menuSumPricePerPerson">—</p></div>
+          <div class="itile center"><p class="k">Pax de référence</p><input type="text" id="menuRefPax" value="20" oninput="onMenuRefPaxChange()" style="text-align:center; font-weight:600; background:var(--surface);"></div>
+          <div class="itile center ok"><p class="k">Prix indicatif total</p><p class="v" id="menuSumPriceTotal">—</p></div>
+        </div>
+      </div>
+      <div class="tbl-wrap">
+        <table class="pipe">
+          <thead><tr><th style="width:50px">Actif</th><th>Plat</th><th style="width:110px">Prix unitaire</th><th style="width:120px">Qté / personne</th><th style="width:100px">Qté totale</th><th style="width:110px">Prix total</th></tr></thead>
+          <tbody id="menuTbody"></tbody>
+        </table>
+      </div>
+      <button class="add-line" onclick="addMenuRow_()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg> Ajouter un plat</button>
+    </div>
+
+    <div id="set-data" style="display:none">
+      <div class="panel">
+        <p class="panel-t">Synchronisation</p>
+        <p style="font-size:12.5px; color:var(--ink-2); margin:0 0 10px;" id="setSyncInfo">—</p>
+        <button class="btn" onclick="resetDemoData()">Réinitialiser les données locales</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MODAL : Nouvelle demande ============ -->
+<div class="modal-backdrop" id="newReqBackdrop" onclick="if(event.target===this) closeNewRequest()">
+  <div class="modal-card">
+    <div class="modal-head">
+      <h3>Nouvelle demande</h3>
+      <button class="modal-close" onclick="closeNewRequest()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <p class="modal-err" id="newReqErr">Le nom du client est obligatoire.</p>
+      <div class="modal-row">
+        <label>Nom du client <span class="req">*</span></label>
+        <input type="text" id="newReqClient" placeholder="Ex. Julien Benattar">
+      </div>
+      <div class="modal-row">
+        <label>Email</label>
+        <input type="email" id="newReqEmail" placeholder="client@email.com">
+      </div>
+      <div class="modal-grid2">
+        <div class="modal-row">
+          <label>Date souhaitée</label>
+          <input type="text" id="newReqDate" placeholder="jj/mm/aaaa">
+        </div>
+        <div class="modal-row">
+          <label>Nombre de personnes</label>
+          <input type="number" id="newReqPax" placeholder="Ex. 20" min="0">
+        </div>
+      </div>
+      <div class="modal-row">
+        <label>Espace souhaité</label>
+        <select id="newReqEspace">
           <option>Salon privatif</option>
+          <option>Étage</option>
           <option>Restaurant entier</option>
           <option>Terrasse</option>
         </select>
       </div>
-      <div><p class="k">Pax</p><input type="text" id="addPax"></div>
-      <div><p class="k">Date de l'évènement (jj/mm/aaaa) *</p><input type="text" id="addDate" placeholder="jj/mm/aaaa"></div>
-      <div><p class="k">Date de demande (jj/mm/aaaa)</p><input type="text" id="addDateDemande" placeholder="jj/mm/aaaa"></div>
-      <div><p class="k">Statut</p>
-        <select id="addStatut">
-          <option>Nouvelle demande</option>
-          <option>En attente client</option>
-          <option>Confirmé</option>
-          <option>Archivée</option>
-        </select>
+      <div class="modal-row">
+        <label>Commentaire</label>
+        <textarea id="newReqComment" rows="3" placeholder="Contexte de la demande (optionnel)"></textarea>
       </div>
-      <div><p class="k">Lien Gmail (optionnel)</p><input type="text" id="addGmailThread" placeholder="https://mail.google.com/..."></div>
     </div>
-    <div style="margin-top:12px;"><p class="k">Commentaire</p><textarea id="addCommentaire" rows="2" style="width:100%;"></textarea></div>
-    <div class="compose-actions">
-      <button class="primary" onclick="submitAddForm()">Ajouter</button>
-      <button class="ghost" onclick="toggleAddForm()">Annuler</button>
-      <span class="save-note" id="addFormError" style="display:none; color:#b91c1c;"></span>
+    <div class="modal-foot">
+      <button class="btn ghost" onclick="closeNewRequest()">Annuler</button>
+      <button class="btn primary" onclick="submitNewRequest_()">Créer la demande</button>
     </div>
-  </div>
-
-  <div class="panel">
-    <table>
-      <thead><tr><th style="width:22%">Client</th><th>Espace</th><th>Date de demande</th><th>Date de l'évènement</th><th>Pax</th><th>Statut</th><th style="width:32px;"></th></tr></thead>
-      <tbody id="reqTbody"></tbody>
-    </table>
   </div>
 </div>
 
-<div id="view-confirmed" style="display:none;">
-  <p class="section-title">À venir</p>
-  <div class="panel">
-    <table>
-      <thead><tr><th style="width:22%">Client</th><th>Date</th><th>Service</th><th>Type</th><th>Espace</th><th>Pax</th><th>Total TTC</th><th>Paiement</th></tr></thead>
-      <tbody id="confUpcomingTbody"></tbody>
-    </table>
-  </div>
-
-  <p class="section-title">Passées</p>
-  <div class="panel">
-    <table>
-      <thead><tr><th style="width:22%">Client</th><th>Date</th><th>Service</th><th>Type</th><th>Espace</th><th>Pax</th><th>Total TTC</th><th>Paiement</th></tr></thead>
-      <tbody id="confPastTbody"></tbody>
-    </table>
-  </div>
-</div>
-
-<div id="view-clients" style="display:none;">
-  <div class="toolbar">
-    <input type="text" id="fClientSearch" placeholder="Rechercher un client ou une société" oninput="renderClientsTable()" />
-  </div>
-  <div class="panel">
-    <table>
-      <thead><tr><th style="width:22%">Contact</th><th>Email</th><th>Téléphone</th><th>Société</th><th style="width:110px;">Demandes</th></tr></thead>
-      <tbody id="clientsTbody"></tbody>
-    </table>
-  </div>
-  <p style="font-size:11.5px; color:#8a8a90; margin: 8px 0 20px;">Construite automatiquement à partir des demandes (une ligne par email unique). La société est celle renseignée en fiche financière si connue, sinon une estimation à partir du nom de domaine de l'email (à vérifier). Le téléphone est extrait du commentaire quand il y figure — pas toujours fiable.</p>
-</div>
-
-<div id="view-detail" style="display:none;">
-  <button class="back-btn" onclick="showTab(originTab)">&larr; Retour</button>
-
-  <div class="detail-card detail-card-top" id="detailCardTop">
-    <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
-      <div style="display:flex; align-items:center; gap:12px;">
-        <div class="avatar" id="detailAvatar">PD</div>
-        <div>
-          <p style="font-weight:700; font-size:16px; margin:0;" id="detailName">Pauline Duval</p>
-          <p style="font-size:12.5px; color:#8a8a90; margin:2px 0 0;" id="detailEmail">paulineanne.duval@gmail.com</p>
-        </div>
+<!-- ============ MODAL : Informations client ============ -->
+<div class="modal-backdrop" id="clientEditBackdrop" onclick="if(event.target===this) closeClientEdit_()">
+  <div class="modal-card" style="max-width:400px">
+    <div class="modal-head">
+      <h3>Informations client</h3>
+      <button class="modal-close" onclick="closeClientEdit_()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-row">
+        <label>Nom de l'entreprise</label>
+        <input type="text" id="clientEditSociete" placeholder="Ex. LVMH">
       </div>
-      <select id="detailStatutSelect" class="badge-select waiting" onchange="onStatutChange()">
-        <option>Nouvelle demande</option>
-        <option>En attente client</option>
-        <option>Confirmé</option>
-        <option>Archivée</option>
-      </select>
-    </div>
-    <div class="detail-meta">
-      <div><p class="k"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> Espace</p><p class="v" id="detailEspace">Restaurant entier</p></div>
-      <div><p class="k"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Date souhaitée</p><p class="v" id="detailDate">03/10/2026</p></div>
-      <div><p class="k"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> Pax</p><p class="v pax-value" id="detailPax">65</p></div>
-    </div>
-  </div>
-
-  <div id="commentSection" style="display:none;">
-    <p class="section-title"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V21z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v4z"/></svg> Commentaire du client (formulaire)</p>
-    <div class="detail-card" style="font-style: italic; color: #3a3a3e; line-height: 1.6;">« <span id="detailComment"></span> »</div>
-  </div>
-
-  <p class="section-title"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> Historique des échanges</p>
-  <div class="timeline" id="detailTimeline"></div>
-
-  <div id="financeSection" style="display:none;">
-    <p class="section-title"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 7a6 6 0 1 0 0 10"/><line x1="4" y1="10" x2="14" y2="10"/><line x1="4" y1="14" x2="12" y2="14"/></svg> Suivi financier</p>
-    <div class="detail-card">
-      <div class="finance-grid">
-        <div><p class="k">Société / raison sociale</p><input type="text" id="finSociete" oninput="onFinanceInput()" placeholder="ex. Acme Corp"></div>
-        <div><p class="k">Service</p>
-          <select id="finService" onchange="onFinanceInput()">
-            <option>Déjeuner</option>
-            <option>Dîner</option>
-          </select>
-        </div>
-        <div><p class="k">Type de prestation</p>
-          <select id="finType" onchange="onFinanceInput()">
-            <option>Privatisation</option>
-            <option>Formule groupe</option>
-          </select>
-        </div>
-        <div><p class="k">CA Cuisine HT</p><input type="text" id="finCuisineHT" oninput="onFinanceInput()"></div>
-        <div><p class="k">CA Alcools HT</p><input type="text" id="finAlcoolsHT" oninput="onFinanceInput()"></div>
-        <div><p class="k">Statut paiement</p>
-          <select id="finStatutPaiement" onchange="onFinanceInput()">
-            <option>En attente d'acompte</option>
-            <option>Acompte versé</option>
-            <option>Paiement effectué</option>
-          </select>
-        </div>
+      <div class="modal-row">
+        <label>Adresse email</label>
+        <input type="email" id="clientEditEmail" placeholder="client@email.com">
       </div>
-      <div class="finance-grid readout">
-        <div><p class="k">TVA cuisine (10%)</p><p class="v" id="finTvaCuisine">—</p></div>
-        <div><p class="k">TVA alcools (20%)</p><p class="v" id="finTvaAlcools">—</p></div>
-        <div><p class="k">Total HT</p><p class="v" id="finTotalHT">—</p></div>
-        <div class="fin-headline-wrap"><p class="k">Total TTC</p><p class="v fin-headline" id="finTotalTTC">—</p></div>
-      </div>
+      <p style="font-size:11.5px; color:var(--ink-3); margin:0;">Ces informations sont partagées avec la Base clients : les modifier ici les met aussi à jour pour toutes les demandes de ce client.</p>
     </div>
-
-    <p class="section-title"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg> Paiements reçus</p>
-    <div class="panel">
-      <table>
-        <thead><tr><th>Canal</th><th>Montant</th><th style="width:80px;"></th></tr></thead>
-        <tbody id="finPaymentsTbody"></tbody>
-      </table>
+    <div class="modal-foot">
+      <button class="btn ghost" onclick="closeClientEdit_()">Annuler</button>
+      <button class="btn primary" onclick="submitClientEdit_()">Enregistrer</button>
     </div>
-    <button class="ghost" onclick="addPaymentLine()" style="margin-bottom:20px;">+ Ajouter un paiement</button>
-
-    <div class="finance-balance" id="finBalanceBanner">
-      <span id="finBalanceText">—</span>
-      <div class="balance-progress"><div class="balance-progress-fill" id="finBalanceProgress" style="width:0%;"></div></div>
-    </div>
-
-    <div id="dishesSection">
-      <p class="section-title"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h0a2 2 0 0 0 2-2V2"/><path d="M5 9v13"/><path d="M17 2v7a2 2 0 0 1-2 2h0"/><path d="M19 2v20"/></svg> Quantités à préparer (selon pax)</p>
-      <div class="panel">
-        <table>
-          <thead><tr><th>Plat</th><th style="width:120px;">Qté totale</th></tr></thead>
-          <tbody id="finDishesTbody"></tbody>
-        </table>
-      </div>
-      <p style="font-size:11.5px; color:#8a8a90; margin: 8px 0 20px;">Basé sur le menu configuré dans Paramètres.</p>
-    </div>
-  </div>
-
-  <div id="composeSection">
-  <p class="section-title"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 6-10 7L2 6"/></svg> Rédiger une réponse</p>
-  <div class="compose-card">
-    <div class="compose-row" id="composeModeRow" style="display:none;">
-      <span style="font-size:12.5px; color:#6b6b70;">Type de message :</span>
-      <button type="button" class="option-btn mode-btn" id="modeBtnInitial" onclick="setRelanceMode(false)">Message initial</button>
-      <button type="button" class="option-btn mode-btn" id="modeBtnRelance" onclick="setRelanceMode(true)">Relance</button>
-      <span class="relance-active-note" id="relanceActiveNote" style="display:none;">Aucune réponse du client depuis le dernier message — relance pré-remplie.</span>
-    </div>
-    <div class="compose-row">
-      <span style="font-size:12.5px; color:#6b6b70;">Options à proposer (plusieurs possibles) :</span>
-      <button type="button" class="option-btn" data-key="salon" onclick="toggleOption('salon', this)">Salon privatif — 20 pax</button>
-      <button type="button" class="option-btn" data-key="etage" onclick="toggleOption('etage', this)">Étage — 45 pax</button>
-      <button type="button" class="option-btn" data-key="etablissement" onclick="toggleOption('etablissement', this)">Établissement entier — 100 pax</button>
-      <button type="button" class="option-btn" data-key="groupe" onclick="toggleOption('groupe', this)">Formule groupe — 45€/pers</button>
-    </div>
-    <div class="compose-row">
-      <span style="font-size:12.5px; color:#6b6b70;">Signature :</span>
-      <select id="composeSignature" onchange="rebuildComposeBody()">
-        <option value="theodore">Théodore</option>
-        <option value="adrien">Adrien</option>
-      </select>
-      <button class="ghost" onclick="resetCompose()">Recommencer</button>
-    </div>
-    <textarea id="composeBody" rows="14"></textarea>
-    <div class="compose-actions">
-      <button class="primary" onclick="openMailto()">Ouvrir dans Gmail ↗</button>
-      <button onclick="copyCompose()">Copier le texte</button>
-      <span class="save-note" id="copyNote">Copié.</span>
-    </div>
-  </div>
-  </div>
-</div>
-
-<div id="view-settings" style="display:none;">
-  <div class="settings-toolbar">
-    <div class="subtabs">
-      <button class="subtab-btn active" data-subtab="reponse" onclick="showSettingsSubtab('reponse')">Réponse</button>
-      <button class="subtab-btn" data-subtab="menu" onclick="showSettingsSubtab('menu')">Menu</button>
-    </div>
-    <span><button class="primary" onclick="saveTemplates()">Enregistrer</button><span class="save-note" id="saveNote">Enregistré.</span></span>
-  </div>
-
-  <div id="settings-reponse">
-    <p style="font-size:12.5px; color:#6b6b70; margin: -6px 0 16px;">Ces blocs servent à composer les réponses dans l'onglet Demandes. {prenom}, {date}, {pax} sont remplacés automatiquement.</p>
-
-    <div class="template-card">
-      <p class="name">Introduction</p>
-      <textarea id="tplIntro" rows="4"></textarea>
-    </div>
-
-    <div class="template-card">
-      <p class="name">Message de relance (sans réponse du client)</p>
-      <textarea id="tplRelance" rows="5"></textarea>
-    </div>
-
-    <div class="template-card">
-      <p class="name">Option — Salon privatif (jusqu'à 20 pax)</p>
-      <textarea id="tplSalon" rows="6"></textarea>
-    </div>
-
-    <div class="template-card">
-      <p class="name">Option — Étage (jusqu'à 45 pax)</p>
-      <textarea id="tplEtage" rows="6"></textarea>
-    </div>
-
-    <div class="template-card">
-      <p class="name">Option — Établissement entier (jusqu'à 100 pax)</p>
-      <textarea id="tplEtablissement" rows="7"></textarea>
-    </div>
-
-    <div class="template-card">
-      <p class="name">Option — Formule groupe (45€/pers, un service)</p>
-      <textarea id="tplGroupe" rows="6"></textarea>
-    </div>
-
-    <div class="template-card">
-      <p class="name">Clôture</p>
-      <textarea id="tplCloture" rows="3"></textarea>
-    </div>
-
-    <div class="template-card">
-      <p class="name">Signature — Théodore</p>
-      <textarea id="tplSigTheodore" rows="4"></textarea>
-    </div>
-
-    <div class="template-card">
-      <p class="name">Signature — Adrien</p>
-      <textarea id="tplSigAdrien" rows="4"></textarea>
-    </div>
-  </div>
-
-  <div id="settings-menu" style="display:none;">
-    <p style="font-size:12.5px; color:#6b6b70; margin: -6px 0 16px;">Coche les plats à inclure dans le calcul « Quantités à préparer » de chaque fiche confirmée. Prix et totaux ci-dessous sont indicatifs, calculés pour le nombre de personnes de référence.</p>
-
-    <div class="finance-grid" style="margin-bottom:18px;">
-      <div><p class="k">Total tapas / personne</p><p class="v" id="menuSumPerPerson" style="font-weight:650; font-size:16px;">—</p></div>
-      <div><p class="k">Prix indicatif / personne</p><p class="v" id="menuSumPricePerPerson" style="font-weight:650; font-size:16px;">—</p></div>
-      <div><p class="k">Pax de référence</p><input type="text" id="menuRefPax" value="20" oninput="onMenuRefPaxChange()"></div>
-      <div><p class="k">Prix indicatif total</p><p class="v" id="menuSumPriceTotal" style="font-weight:650; font-size:16px;">—</p></div>
-    </div>
-
-    <div class="panel">
-      <table>
-        <thead><tr><th style="width:60px;">Actif</th><th>Plat</th><th style="width:110px;">Prix unitaire</th><th style="width:120px;">Qté / personne</th><th style="width:100px;">Qté totale</th><th style="width:110px;">Prix total</th></tr></thead>
-        <tbody id="menuTbody"></tbody>
-      </table>
-    </div>
-
-    <p style="margin-top:30px; padding-top:16px; border-top:1px solid #e5e5e8;">
-      <button class="ghost" onclick="resetDemoData()">Réinitialiser les données de démo</button>
-      <span style="font-size:11.5px; color:#8a8a90; margin-left:6px;">Efface tes modifications locales (statuts, paiements) et recharge les données par défaut.</span>
-    </p>
   </div>
 </div>
 
@@ -569,6 +844,12 @@ const DATA_HISTORIQUE = HISTORIQUE_CONFIRMES.map(([client, date, service, pax, c
 let DATA = [];
 let SYNC_MODE = !!SCRIPT_URL;
 
+function esc(v) {
+  return String(v == null ? "" : v)
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+}
+
 function ensureIds_(arr) {
   arr.forEach((d, i) => { if (!d.id) d.id = 'local_' + i + '_' + Date.now(); });
   return arr;
@@ -578,9 +859,9 @@ function setSyncBanner_(text, tone) {
   const el = document.getElementById('syncBanner');
   if (!el) return;
   el.textContent = text;
-  el.style.background = tone === 'error' ? '#fee2e2' : (tone === 'ok' ? '#dcfce7' : '#eef2ff');
-  el.style.borderColor = tone === 'error' ? '#fecaca' : (tone === 'ok' ? '#bbf7d0' : '#c7d2fe');
-  el.style.color = tone === 'error' ? '#b91c1c' : (tone === 'ok' ? '#166534' : '#3730a3');
+  el.style.background = tone === 'error' ? '#fceaea' : (tone === 'ok' ? '#e3f3e9' : '#faf9f7');
+  el.style.borderColor = tone === 'error' ? '#f2cccc' : (tone === 'ok' ? '#cbe8d7' : '#e8e6e1');
+  el.style.color = tone === 'error' ? '#a32d2d' : (tone === 'ok' ? '#14603c' : '#6b6862');
 }
 
 function loadData() {
@@ -617,8 +898,8 @@ function loadData() {
 }
 
 function afterDataLoaded_() {
-  applyFilters();
-  if (originTab === 'confirmed') renderConfirmedLists();
+  refreshStatuses_();
+  renderCurrentView_();
 }
 
 function pushData_(onDone) {
@@ -627,7 +908,7 @@ function pushData_(onDone) {
   fetch(SCRIPT_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'text/plain' }, // évite le preflight CORS, Apps Script ne le gère pas
-    body: JSON.stringify({ data: DATA, config: { templates: TEMPLATES, menu: MENU } })
+    body: JSON.stringify({ data: DATA, config: { templates: TEMPLATES, menu: MENU, taskTpl: TASK_TEMPLATE } })
   })
     .then(r => r.json())
     .then(json => {
@@ -680,12 +961,15 @@ function resetDemoData() {
     localStorage.removeItem('rosarioData');
     localStorage.removeItem('rosarioMenu');
     localStorage.removeItem('rosarioTemplates');
+    localStorage.removeItem('rosarioTaskTpl');
     location.reload();
   }
 }
 
-const STATUT_CLASS = { "Nouvelle demande": "new", "En attente client": "waiting", "Confirmé": "confirmed", "Archivée": "cancelled" };
-const STATUT_OPTIONS = ["Nouvelle demande", "En attente client", "Confirmé", "Archivée"];
+const STAGE_CLASS = { "Nouvelle demande": "new", "À répondre": "answer", "En attente client": "waiting", "Confirmé": "confirmed", "Archivée": "cancelled" };
+const STAGE_LABEL = { "Confirmé": "Confirmée", "Archivée": "Archivée" };
+function stageLabel_(s) { return STAGE_LABEL[s] || s; }
+const DEPOSIT_RATE = 0.5;
 
 const DEFAULT_TEMPLATES = {
   intro: "Hola {prenom},\n\nMerci beaucoup pour l'intérêt porté à Rosario pour votre événement, nous vous accueillerons avec plaisir !\n\nVoici ce que nous pouvons vous proposer pour {pax} personnes :\n",
@@ -698,7 +982,6 @@ const DEFAULT_TEMPLATES = {
   sigTheodore: "Théodore\n\nThéodore Ballu\n06 62 70 99 38\nRosario – 96 rue de Richelieu, Paris 02",
   sigAdrien: "Adrien\n\nAdrien DELRUE\nCo-fondateur\n06 86 75 65 66\nRosario – 96 rue de Richelieu, Paris 02"
 };
-
 let TEMPLATES = Object.assign({}, DEFAULT_TEMPLATES, JSON.parse(localStorage.getItem('rosarioTemplates') || 'null') || {});
 
 const MENU_DEFAULT = [
@@ -722,15 +1005,13 @@ function applyCloudConfig_(config) {
   if (!config) return;
   if (config.templates) { TEMPLATES = Object.assign({}, DEFAULT_TEMPLATES, config.templates); localStorage.setItem('rosarioTemplates', JSON.stringify(TEMPLATES)); }
   if (config.menu) { MENU = config.menu; localStorage.setItem('rosarioMenu', JSON.stringify(MENU)); }
+  if (config.taskTpl) { TASK_TEMPLATE = config.taskTpl; localStorage.setItem('rosarioTaskTpl', JSON.stringify(TASK_TEMPLATE)); }
 }
 
 let currentReq = null;
 let selectedOptions = [];
-let relanceMode = false;
-let relanceOnly = false;
-let originTab = 'list';
+let composeMode = "proposition";
 const PAYMENT_CHANNELS = ['Qonto', 'BNP', 'Lien Sunday', 'CB'];
-
 const OPTION_ORDER = ['salon', 'etage', 'etablissement', 'groupe'];
 const OPTION_TITLES = {
   salon: "Privatisation du salon",
@@ -739,188 +1020,570 @@ const OPTION_TITLES = {
   groupe: "Formule groupe"
 };
 
-function initials(name) { return name.split(" ").filter(Boolean).slice(0, 2).map(w => w[0]).join("").toUpperCase(); }
-function firstName(name) { return name.split(" ")[0].replace(/[(].*$/, '').trim(); }
+/* ---- Dates ---- */
+function parseDate(str) {
+  if (!str || typeof str !== "string") return null;
+  const m = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (!m) return null;
+  const d = new Date(Number(m[3]), Number(m[2]) - 1, Number(m[1]));
+  return isNaN(d.getTime()) ? null : d;
+}
+function todayStr_() { const d = new Date(), p = n => String(n).padStart(2, "0"); return p(d.getDate()) + "/" + p(d.getMonth() + 1) + "/" + d.getFullYear(); }
+function isPastDate(str) { const d = parseDate(str); if (!d) return false; const t = new Date(); t.setHours(0, 0, 0, 0); return d < t; }
+function daysUntil_(str) { const d = parseDate(str); if (!d) return null; return Math.round((d.getTime() - new Date().setHours(0, 0, 0, 0)) / 86400000); }
+function daysSince_(d) { return Math.floor((Date.now() - d.getTime()) / 86400000); }
+const JOURS_COURT_ = ["dim.", "lun.", "mar.", "mer.", "jeu.", "ven.", "sam."];
+const JOURS_LONG_ = ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
+const MOIS_COURT_ = ["janv", "févr", "mars", "avr", "mai", "juin", "juil", "août", "sept", "oct", "nov", "déc"];
+const MOIS_LONG_ = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"];
+function fmtDateLong_(str) { const d = parseDate(str); if (!d) return str || "date à définir"; return JOURS_LONG_[d.getDay()] + " " + d.getDate() + " " + MOIS_LONG_[d.getMonth()] + " " + d.getFullYear(); }
+function fmtShort_(str) { const d = parseDate(str); return d ? d.getDate() + " " + MOIS_COURT_[d.getMonth()] : str; }
+function fmtShortFR_(str) { const d = parseDate(str); return d ? d.getDate() + " " + MOIS_COURT_[d.getMonth()] + ". " + d.getFullYear() : (str || "—"); }
+function fmtLongFR_(str) {
+  const d = parseDate(str);
+  if (!d) return str || "—";
+  const day = d.getDate();
+  return (day === 1 ? "1er" : day) + " " + MOIS_LONG_[d.getMonth()] + " " + d.getFullYear();
+}
+function relativeDay_(str) {
+  const d = parseDate(str);
+  if (!d) return "récemment";
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const diff = Math.round((today.getTime() - d.getTime()) / 86400000);
+  if (diff === 0) return "aujourd'hui";
+  if (diff === 1) return "hier";
+  if (diff > 1 && diff < 7) return "il y a " + diff + " jours";
+  if (diff < 0) return "le " + fmtLongFR_(str);
+  return "le " + fmtLongFR_(str);
+}
+const MOIS_FR_ = { janvier:0,"février":1,fevrier:1,mars:2,avril:3,mai:4,juin:5,juillet:6,"août":7,aout:7,septembre:8,octobre:9,novembre:10,"décembre":11,decembre:11 };
+function timelineEntryDate_(t) {
+  if (t.ts) return new Date(Number(t.ts));
+  const meta = String(t.meta || "");
+  let m = meta.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if (m) return new Date(Number(m[3]), Number(m[2]) - 1, Number(m[1]));
+  m = meta.match(/(\d{1,2})(?:er)?\s+([a-zéûôè]+)(?:\s+(\d{4}))?/i);
+  if (m && MOIS_FR_[m[2].toLowerCase()] !== undefined)
+    return new Date(m[3] ? Number(m[3]) : new Date().getFullYear(), MOIS_FR_[m[2].toLowerCase()], Number(m[1]));
+  return null;
+}
 
-function renderRows(rows) {
-  const tbody = document.getElementById("reqTbody");
-  if (rows.length === 0) { tbody.innerHTML = '<tr><td colspan="7" style="padding:40px; text-align:center; color:#8a8a90;">Aucune demande sur ce filtre.</td></tr>'; return; }
-  tbody.innerHTML = rows.map(r => {
+/* ---- Nombres / finance ---- */
+function toNumber(v) { return typeof v === "number" ? v : (parseFloat(String(v).trim().replace(",", ".")) || 0); }
+function fmtEUR(n) { return (Math.round((n || 0) * 100) / 100).toLocaleString("fr-FR", { minimumFractionDigits: 0, maximumFractionDigits: 0 }) + " €"; }
+function fmtEUR2(n) { return (Math.round((n || 0) * 100) / 100).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €"; }
+function fmtEURCompact_(n) {
+  n = n || 0;
+  if (n >= 1000) return (Math.round(n / 100) / 10).toLocaleString("fr-FR", { minimumFractionDigits: 0, maximumFractionDigits: 1 }) + "k€";
+  return Math.round(n) + "€";
+}
+function financeTotals(f) {
+  if (!f) return { tvaCuisine: 0, tvaAlcools: 0, totalHT: 0, totalTTC: 0 };
+  const tvaCuisine = f.caCuisineHT * 0.10, tvaAlcools = f.caAlcoolsHT * 0.20;
+  const totalHT = f.caCuisineHT + f.caAlcoolsHT;
+  return { tvaCuisine, tvaAlcools, totalHT, totalTTC: totalHT + tvaCuisine + tvaAlcools };
+}
+function paidAmount_(f) { return (f && f.paiements || []).reduce((s, p) => s + toNumber(p.montant), 0); }
+function firstName(full) { return String(full || "").trim().split(/\s+/)[0] || full; }
+
+/* ---- Statut = miroir du dernier échange ---- */
+function computeAutoStatut_(r) {
+  const tl = r.timeline || [];
+  if (!tl.some(t => t.dir === "out")) return "Nouvelle demande";
+  return tl[tl.length - 1].dir === "in" ? "À répondre" : "En attente client";
+}
+function computeRelance_(r) {
+  if (r.statut !== "En attente client" || !r.timeline || !r.timeline.length) return false;
+  const last = r.timeline[r.timeline.length - 1];
+  if (last.dir !== "out") return false;
+  const d = timelineEntryDate_(last);
+  return d ? (Date.now() - d.getTime()) / 86400000 > 7 : false;
+}
+function computeAutoArchive_(r) {
+  if (r.statut === "Confirmé" || r.statut === "Archivée" || !r.date) return false;
+  const d = parseDate(r.date);
+  return d && !isNaN(d.getTime()) && (Date.now() - d.getTime()) / 86400000 > 14;
+}
+function refreshStatuses_() {
+  let changed = false;
+  DATA.forEach(r => {
+    if (r.statut !== "Confirmé" && r.statut !== "Archivée") {
+      const a = computeAutoStatut_(r);
+      if (r.statut !== a) { r.statut = a; changed = true; }
+    }
+    if (computeAutoArchive_(r)) { r.statut = "Archivée"; changed = true; }
+    r.relance = computeRelance_(r);
+  });
+  if (changed) saveData();
+}
+
+/* ---- Tâches auto ---- */
+const TASK_TEMPLATE_DEFAULT = [
+  { label: "Encaisser l'acompte (50 %)", offset: 10, blocking: true, responsable: "Théodore" },
+  { label: "Valider le menu définitif avec la cuisine", offset: 5, blocking: false, responsable: "Cuisine" },
+  { label: "Confirmer le nombre de couverts", offset: 3, blocking: false, responsable: "Adrien" },
+  { label: "Préparer le plan de salle", offset: 1, blocking: false, responsable: "Salle" },
+  { label: "Envoyer la facture finale", offset: -1, blocking: false, responsable: "Théodore" }
+];
+let TASK_TEMPLATE = JSON.parse(localStorage.getItem('rosarioTaskTpl') || 'null') || TASK_TEMPLATE_DEFAULT;
+
+function ensureTasks_(r) {
+  if (r.statut !== "Confirmé") return;
+  if (r.tasks && r.tasks.length) return;
+  r.tasks = TASK_TEMPLATE.map((t, i) => ({ id: "t" + i + "_" + Date.now(), label: t.label, offset: t.offset, blocking: t.blocking, responsable: t.responsable || "", done: false }));
+}
+function taskDueDate_(r, offset) { const d = parseDate(r.date); if (!d) return null; const due = new Date(d.getTime()); due.setDate(due.getDate() - offset); return due; }
+function taskDueLabel_(r, t) {
+  const due = taskDueDate_(r, t.offset);
+  if (!due) return { txt: "—", cls: "" };
+  const days = Math.round((due.getTime() - new Date().setHours(0, 0, 0, 0)) / 86400000);
+  const jx = t.offset === 0 ? "Jour J" : (t.offset > 0 ? "J-" + t.offset : "J+" + (-t.offset));
+  const base = jx + " · " + due.getDate() + " " + MOIS_COURT_[due.getMonth()];
+  if (t.done) return { txt: base, cls: "waiting" };
+  if (days < 0) return { txt: "En retard · " + base, cls: "answer" };
+  if (days <= 2) return { txt: base, cls: "amber" };
+  return { txt: base, cls: "waiting" };
+}
+function openTaskCount_(r) { return (r.tasks || []).filter(t => !t.done).length; }
+
+/* ---- Section financière de l'onglet Tâches : soldes restants à régler ---- */
+function renderTasksFinanceSection_() {
+  const confirmed = DATA.filter(r => r.statut === "Confirmé" && r.finance);
+  const items = confirmed.map(r => {
+    const tot = financeTotals(r.finance);
+    const paid = paidAmount_(r.finance);
+    const solde = tot.totalTTC - paid;
+    return { r, tot, paid, solde };
+  }).filter(x => x.solde > 0.5);
+  items.sort((a, b) => {
+    const da = parseDate(a.r.date), db = parseDate(b.r.date);
+    const ta = da ? da.getTime() : Infinity, tb = db ? db.getTime() : Infinity;
+    return ta - tb;
+  });
+  const countEl = document.getElementById('tasksFinanceCount');
+  if (countEl) countEl.textContent = items.length + (items.length > 1 ? " clients" : " client");
+  const body = document.getElementById('tasksFinanceBody');
+  if (!body) return;
+  if (!items.length) { body.innerHTML = '<tr><td colspan="6" style="padding:30px;text-align:center;color:var(--ink-3)">Aucun solde en attente — tout est réglé.</td></tr>'; return; }
+  body.innerHTML = items.map(({ r, tot, paid, solde }) => {
     const idx = DATA.indexOf(r);
-    return `<tr class="req-row" onclick="openDetail(${idx})">
-      <td><span class="client-name">${r.client}</span><div class="client-sub">${r.email}</div></td>
-      <td>${r.espace}</td>
-      <td>${r.dateDemande || '—'}</td>
-      <td>${r.date}</td>
-      <td>${r.pax}</td>
-      <td>
-        <select class="badge-select ${STATUT_CLASS[r.statut] || 'waiting'}" onclick="event.stopPropagation()" onchange="updateStatutInline('${r.id}', this.value)">
-          ${STATUT_OPTIONS.map(s => `<option value="${s}" ${s === r.statut ? "selected" : ""}>${s}</option>`).join("")}
-        </select>${r.relance ? '<span class="relance-flag">&bull; à relancer</span>' : ''}
-      </td>
-      <td><button class="hide-btn" title="Archiver cette demande" onclick="archiveRequest('${r.id}', event)">&times;</button></td>
+    const d = parseDate(r.date);
+    return `<tr class="row">
+      <td><div class="cl-name">${esc(r.client)}</div></td>
+      <td>${d ? d.getDate() + " " + MOIS_COURT_[d.getMonth()] + " " + d.getFullYear() : "—"}</td>
+      <td style="text-align:right">${fmtEUR(tot.totalTTC)}</td>
+      <td style="text-align:right">${fmtEUR(paid)}</td>
+      <td style="text-align:right"><b style="color:var(--red-d)">${fmtEUR(solde)}</b></td>
+      <td><button class="btn sm ghost" onclick="openDetail(${idx}, 'tasks'); setTimeout(function(){ showPane('finance'); }, 0);">Voir la fiche</button></td>
     </tr>`;
   }).join("");
 }
 
-function updateStatutInline(id, newStatut) {
-  const r = DATA.find(d => d.id === id);
-  if (!r) return;
-  r.statut = newStatut;
-  if (newStatut === "Confirmé" && !r.finance) {
-    r.finance = { service: "Dîner", type: "Privatisation", societe: "", caCuisineHT: 0, caAlcoolsHT: 0, statutPaiement: "En attente d'acompte", paiements: [] };
-  }
+/* ---- Onglet Tâches (toutes les confirmées, triées par urgence) ---- */
+function renderTasksTab_() {
+  renderTasksFinanceSection_();
+  const confirmed = DATA.filter(r => r.statut === "Confirmé");
+  let anyCreated = false;
+  confirmed.forEach(r => { const before = !!(r.tasks && r.tasks.length); ensureTasks_(r); if (!before && r.tasks && r.tasks.length) anyCreated = true; });
+  if (anyCreated) saveData();
+  const items = [];
+  confirmed.forEach(r => {
+    (r.tasks || []).forEach(t => { if (!t.done) items.push({ r, t, due: taskDueDate_(r, t.offset) }); });
+  });
+  items.sort((a, b) => {
+    const da = a.due ? a.due.getTime() : Infinity, db = b.due ? b.due.getTime() : Infinity;
+    return da - db;
+  });
+  document.getElementById('tasksTabCount').textContent = items.length + (items.length > 1 ? " tâches ouvertes" : " tâche ouverte");
+  const body = document.getElementById('tasksTabBody');
+  if (!items.length) { body.innerHTML = '<tr><td colspan="6" style="padding:30px;text-align:center;color:var(--ink-3)">Aucune tâche ouverte — tout est à jour.</td></tr>'; return; }
+  body.innerHTML = items.map(({ r, t }) => {
+    const idx = DATA.indexOf(r);
+    const due = taskDueLabel_(r, t);
+    return `<tr class="row">
+      <td><div class="cbox" onclick="globalToggleTask_(${idx}, '${t.id}')" style="cursor:pointer;"></div></td>
+      <td><p style="margin:0">${esc(t.label)}</p>${t.blocking ? '<span class="tag red" style="margin-top:4px;display:inline-block">Bloquant</span>' : ''}</td>
+      <td><span class="cl-name" style="cursor:pointer" onclick="openDetail(${idx}, 'tasks')">${esc(r.client)}</span></td>
+      <td><span class="pill ${due.cls === 'amber' ? 'answer' : due.cls}" style="${due.cls === 'amber' ? 'background:#faedd4;color:var(--amber-d)' : ''}">${due.txt}</span></td>
+      <td>${esc(t.responsable || "—")}</td>
+      <td><button class="btn sm ghost" onclick="openDetail(${idx}, 'tasks'); setTimeout(function(){ showPane('tasks'); }, 0);">Voir la fiche</button></td>
+    </tr>`;
+  }).join("");
+}
+function globalToggleTask_(idx, taskId) {
+  const r = DATA[idx]; if (!r) return;
+  const t = (r.tasks || []).find(x => x.id === taskId);
+  if (!t) return;
+  t.done = true;
   saveData();
-  applyFilters();
+  renderTasksTab_();
+  updateNavBadges_();
 }
 
-function archiveRequest(id, ev) {
-  if (ev) ev.stopPropagation();
-  const r = DATA.find(d => d.id === id);
-  if (!r) return;
-  if (!confirm("Archiver la demande de \"" + r.client + "\" ? Elle passera en statut \"Archivée\" (toujours consultable via la carte Archivées, visible par Adrien aussi).")) return;
-  r.statut = "Archivée";
-  saveData();
-  applyFilters();
+/* =========================================================================
+   NAVIGATION
+   ========================================================================= */
+let currentView = 'dashboard';
+let backTarget = 'dashboard';
+
+function showView(v) {
+  currentView = v;
+  document.querySelectorAll('.view').forEach(el => el.classList.remove('on'));
+  document.getElementById('view-' + v).classList.add('on');
+  document.querySelectorAll('.nav button').forEach(b => b.classList.remove('on'));
+  const nav = document.getElementById('nav-' + v);
+  if (nav) nav.classList.add('on');
+  else if (v === 'detail') { const n = document.getElementById('nav-' + backTarget); if (n) n.classList.add('on'); }
+  renderCurrentView_();
+  window.scrollTo(0, 0);
 }
 
-// --- Relance automatique : "En attente client" depuis plus de 7 jours sans réponse de sa part. ---
-function timelineEntryDate_(t) {
-  if (t.ts) return new Date(Number(t.ts));
-  const m = String(t.meta || "").match(/^(\d{2})\/(\d{2})\/(\d{4})/);
-  if (m) return new Date(Number(m[3]), Number(m[2]) - 1, Number(m[1]));
-  return null;
-}
-function computeRelance_(r) {
-  if (r.statut !== "En attente client") return false;
-  if (!r.timeline || !r.timeline.length) return false;
-  const last = r.timeline[r.timeline.length - 1];
-  if (last.dir !== "out") return false; // le client a déjà répondu en dernier : ce n'est pas à nous de relancer.
-  const d = timelineEntryDate_(last);
-  if (!d) return false;
-  return (Date.now() - d.getTime()) / 86400000 > 7;
-}
-function refreshRelanceFlags_() {
-  DATA.forEach(r => { r.relance = computeRelance_(r); });
+function renderCurrentView_() {
+  updateNavBadges_();
+  if (currentView === 'dashboard') renderDashboard();
+  else if (currentView === 'clients') renderClientsTable();
+  else if (currentView === 'confirmed') renderConfirmedTab_();
+  else if (currentView === 'tasks') renderTasksTab_();
+  else if (currentView === 'settings') loadSettingsForms();
 }
 
-function applyFilters() {
-  refreshRelanceFlags_();
-  const client = document.getElementById("fClient").value.toLowerCase();
-  const statut = document.getElementById("fStatut").value;
-  const espace = document.getElementById("fEspace").value;
-  const visible = DATA;
-  const rows = visible.filter(r =>
-    (!client || r.client.toLowerCase().includes(client)) &&
-    // Sans filtre statut explicite, le tableau ne montre que les demandes actives : Confirmé et
-    // Archivée restent consultables via leur carte (ou en sélectionnant le statut) mais n'encombrent
-    // pas la vue par défaut, qui doit rester "ce qu'il reste à traiter".
-    (statut ? r.statut === statut : (r.statut !== "Confirmé" && r.statut !== "Archivée")) &&
-    (!espace || r.espace === espace) &&
-    (!relanceOnly || r.relance)
-  );
-  renderRows(rows);
+function updateNavBadges_() {
+  const todo = DATA.filter(r => r.statut === "Nouvelle demande" || r.statut === "À répondre").length;
+  const b = document.getElementById('navDashBadge');
+  b.textContent = todo; b.style.display = todo ? 'inline-block' : 'none';
 
-  // Les cartouches reflètent toujours les totaux globaux (hors demandes masquées), pas le filtre en cours.
-  document.getElementById("cardTotal").textContent = visible.length;
-  document.getElementById("cardAnswer").textContent = visible.filter(r => r.statut === "Nouvelle demande").length;
-  document.getElementById("cardRelance").textContent = visible.filter(r => r.relance).length;
-  document.getElementById("cardConfirmed").textContent = visible.filter(r => r.statut === "Confirmé").length;
-  document.getElementById("cardArchived").textContent = visible.filter(r => r.statut === "Archivée").length;
-
-  document.getElementById("cardBoxAnswer").classList.toggle("active", statut === "Nouvelle demande");
-  document.getElementById("cardBoxConfirmed").classList.toggle("active", statut === "Confirmé");
-  document.getElementById("cardBoxArchived").classList.toggle("active", statut === "Archivée");
-  document.getElementById("cardBoxRelance").classList.toggle("active", relanceOnly);
-  document.getElementById("cardBoxTotal").classList.toggle("active", !statut && !relanceOnly && !client && !espace);
+  const openTasks = DATA.filter(r => r.statut === "Confirmé").reduce((s, r) => s + openTaskCount_(r), 0);
+  const tb = document.getElementById('navTasksBadge');
+  tb.textContent = openTasks; tb.style.display = openTasks ? 'inline-block' : 'none';
 }
 
-function toggleCardFilter(type) {
-  const fStatut = document.getElementById("fStatut");
-  if (type === "total") {
-    fStatut.value = "";
-    relanceOnly = false;
-    document.getElementById("fClient").value = "";
-    document.getElementById("fEspace").value = "";
-  } else if (type === "answer") {
-    relanceOnly = false;
-    fStatut.value = fStatut.value === "Nouvelle demande" ? "" : "Nouvelle demande";
-  } else if (type === "confirmed") {
-    relanceOnly = false;
-    fStatut.value = fStatut.value === "Confirmé" ? "" : "Confirmé";
-  } else if (type === "archived") {
-    relanceOnly = false;
-    fStatut.value = fStatut.value === "Archivée" ? "" : "Archivée";
-  } else if (type === "relance") {
-    const turningOn = !relanceOnly;
-    fStatut.value = "";
-    relanceOnly = turningOn;
+/* =========================================================================
+   DASHBOARD — Prochains événements (haut) + Suivi des demandes (bas)
+   ========================================================================= */
+function renderDashboard() {
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const confirmed = DATA.filter(r => r.statut === "Confirmé");
+  const upcoming = confirmed.filter(r => { const d = parseDate(r.date); return d && d >= today; }).sort((a, b) => parseDate(a.date) - parseDate(b.date));
+
+  document.getElementById('upcomingCount').textContent = upcoming.length + (upcoming.length > 1 ? " privatisations confirmées" : " privatisation confirmée");
+  const box = document.getElementById('dashUpcoming');
+  if (!upcoming.length) {
+    box.innerHTML = '<div class="empty-box">Aucune privatisation confirmée à venir. Les demandes en cours sont dans le suivi ci-dessous.</div>';
+  } else {
+    box.innerHTML = upcoming.slice(0, 6).map(r => eventRow_(r)).join("");
+    if (upcoming.length > 6) box.innerHTML += `<p style="font-size:12px;color:var(--ink-3);margin:6px 2px 0;">+ ${upcoming.length - 6} autre${upcoming.length - 6 > 1 ? "s" : ""} à venir</p>`;
   }
-  applyFilters();
+  renderSuivi_();
 }
 
-function todayStr_() {
-  const d = new Date();
-  const pad = n => String(n).padStart(2, "0");
-  return pad(d.getDate()) + "/" + pad(d.getMonth() + 1) + "/" + d.getFullYear();
+function eventRow_(r) {
+  const d = parseDate(r.date), idx = DATA.indexOf(r);
+  const t = financeTotals(r.finance).totalTTC, paid = paidAmount_(r.finance);
+  const pct = t > 0 ? Math.min(100, Math.round(paid / t * 100)) : 0;
+  const barColor = pct >= 100 ? "var(--green)" : (pct > 0 ? "var(--amber)" : "var(--red)");
+  const dju = daysUntil_(r.date);
+  let flag = "";
+  if (t > 0.01 && paid < t * DEPOSIT_RATE - 0.01 && dju !== null && dju <= 10) flag = '<span class="tag red">Acompte en retard</span>';
+  else if (openTaskCount_(r) > 0 && dju !== null && dju <= 7) flag = '<span class="tag amber">' + openTaskCount_(r) + ' tâche' + (openTaskCount_(r) > 1 ? 's' : '') + '</span>';
+  const sub = [toNumber(r.pax) > 0 ? "👥 " + r.pax + " pers" : null, r.finance && r.finance.service ? "🍽 " + r.finance.service.toLowerCase() : null, r.espace, (r.finance && r.finance.type) || "Privatisation"].filter(Boolean);
+  return `<div class="ev" onclick="openDetail(${idx}, 'dashboard')">
+    <div class="dblock"><p class="m">${d ? MOIS_COURT_[d.getMonth()] : "—"}</p><p class="d">${d ? d.getDate() : "?"}</p><p class="w">${d ? JOURS_COURT_[d.getDay()] : ""}</p></div>
+    <div class="ev-main"><p class="ev-name">${esc(r.client)} ${flag}</p><p class="ev-sub">${sub.map(s => "<span>" + esc(s) + "</span>").join("")}</p></div>
+    <div class="ev-prog"><p class="pt"><span>Encaissé</span><span>${pct} %</span></p><div class="bar"><i style="width:${Math.max(2, pct)}%;background:${barColor}"></i></div></div>
+    <p class="ev-amt">${t > 0.01 ? fmtEUR(t) : "—"}</p>
+  </div>`;
 }
 
-function isValidDateStr_(str) {
-  if (!/^\d{2}\/\d{2}\/\d{4}$/.test(str)) return false;
-  const [d, m, y] = str.split("/").map(Number);
-  const date = new Date(y, m - 1, d);
-  return date.getDate() === d && date.getMonth() === m - 1 && date.getFullYear() === y;
+/* ---- Suivi des demandes (tableau simple, hors confirmées) ---- */
+let suiviFilter = null; // null | 'new' | 'answer' | 'waiting' | 'relance' | 'archived'
+let suiviSearch = "";
+let suiviSort = { key: "event", dir: 1 };
+function sortableVal_(r, key) {
+  if (key === "pax") return toNumber(r.pax);
+  if (key === "demande") { const d = parseDate(r.dateDemande); return d ? d.getTime() : 0; }
+  const d = parseDate(r.date); return d ? d.getTime() : 0; // "event"
 }
-
-function toggleAddForm() {
-  const panel = document.getElementById("addFormPanel");
-  const opening = panel.style.display === "none";
-  panel.style.display = opening ? "block" : "none";
-  if (opening) {
-    document.getElementById("addClient").value = "";
-    document.getElementById("addEmail").value = "";
-    document.getElementById("addEspace").value = "Salon privatif";
-    document.getElementById("addPax").value = "";
-    document.getElementById("addDate").value = "";
-    document.getElementById("addDateDemande").value = todayStr_();
-    document.getElementById("addStatut").value = "Nouvelle demande";
-    document.getElementById("addGmailThread").value = "";
-    document.getElementById("addCommentaire").value = "";
-    document.getElementById("addFormError").style.display = "none";
-  }
+function suiviSetSort_(key, dir) { suiviSort = { key, dir }; renderSuivi_(); }
+function updateSortCarets_(prefix, state, keys) {
+  keys.forEach(k => {
+    const up = document.getElementById('care-' + prefix + '-' + k + '-up');
+    const down = document.getElementById('care-' + prefix + '-' + k + '-down');
+    if (up) up.classList.toggle('active', state.key === k && state.dir === 1);
+    if (down) down.classList.toggle('active', state.key === k && state.dir === -1);
+  });
 }
+function dateBlockHtml_(str) {
+  const d = parseDate(str);
+  return `<div class="dblock sm"><p class="m">${d ? MOIS_COURT_[d.getMonth()] : "—"}</p><p class="d">${d ? d.getDate() : "?"}</p><p class="w">${d ? JOURS_COURT_[d.getDay()] : ""}</p></div>`;
+}
+const SUIVI_KEY_LABEL = { new: "Nouvelle demande", answer: "À répondre", waiting: "En attente client", archived: "Archivée" };
 
-function submitAddForm() {
-  const client = document.getElementById("addClient").value.trim();
-  const date = document.getElementById("addDate").value.trim();
-  const errEl = document.getElementById("addFormError");
-  if (!client || !isValidDateStr_(date)) {
-    errEl.textContent = "Le nom du client et une date d'évènement valide (jj/mm/aaaa) sont obligatoires.";
-    errEl.style.display = "inline";
-    return;
-  }
-  const dateDemande = document.getElementById("addDateDemande").value.trim();
-  const req = {
-    id: 'local_' + DATA.length + '_' + Date.now(),
-    client: client,
-    email: document.getElementById("addEmail").value.trim(),
-    espace: document.getElementById("addEspace").value,
-    date: date,
-    dateDemande: isValidDateStr_(dateDemande) ? dateDemande : todayStr_(),
-    pax: toNumber(document.getElementById("addPax").value),
-    statut: document.getElementById("addStatut").value,
-    commentaire: document.getElementById("addCommentaire").value.trim(),
-    gmailThread: document.getElementById("addGmailThread").value.trim(),
-    timeline: [{ dir: "in", title: "Demande ajoutée manuellement", meta: todayStr_() }]
+function renderSuivi_() {
+  const all = DATA.filter(r => r.statut !== "Confirmé");
+  const counts = {
+    new: all.filter(r => r.statut === "Nouvelle demande").length,
+    answer: all.filter(r => r.statut === "À répondre").length,
+    waiting: all.filter(r => r.statut === "En attente client").length,
+    relance: all.filter(r => r.relance).length,
+    archived: all.filter(r => r.statut === "Archivée").length
   };
-  if (req.statut === "Confirmé") {
-    req.finance = { service: "Dîner", type: "Privatisation", societe: "", caCuisineHT: 0, caAlcoolsHT: 0, statutPaiement: "En attente d'acompte", paiements: [] };
+  const chipDefs = [["new", "Nouvelles"], ["answer", "À répondre"], ["waiting", "En attente client"], ["relance", "À relancer"]];
+  document.getElementById('suiviChips').innerHTML = chipDefs.map(([k, lbl]) =>
+    `<span class="kchip ${k} ${suiviFilter === k ? 'on' : ''}" onclick="toggleSuiviFilter('${k}')"><span class="n">${counts[k]}</span>${lbl}</span>`
+  ).join("");
+
+  let rows = all.filter(r => {
+    if (suiviFilter === "archived") return r.statut === "Archivée";
+    if (suiviFilter === "relance") return r.relance && r.statut !== "Archivée";
+    if (suiviFilter) return r.statut === SUIVI_KEY_LABEL[suiviFilter];
+    return r.statut !== "Archivée";
+  });
+  if (suiviSearch) { const q = suiviSearch.toLowerCase(); rows = rows.filter(r => (r.client || "").toLowerCase().includes(q) || (r.email || "").toLowerCase().includes(q)); }
+  rows.sort((a, b) => (sortableVal_(a, suiviSort.key) - sortableVal_(b, suiviSort.key)) * suiviSort.dir);
+  updateSortCarets_('suivi', suiviSort, ['pax', 'demande', 'event']);
+
+  document.getElementById('suiviCount').textContent = rows.length + (rows.length > 1 ? " demandes" : " demande");
+  const body = document.getElementById('suiviBody');
+  body.innerHTML = rows.length ? rows.map(r => suiviRow_(r)).join("") : '<tr><td colspan="7" style="padding:30px;text-align:center;color:var(--ink-3)">Aucune demande sur ce filtre.</td></tr>';
+
+  document.getElementById('suiviFooterLinks').innerHTML =
+    `<a onclick="toggleSuiviFilter('archived')">${suiviFilter === 'archived' ? 'Retour au suivi actif' : 'Voir les archivées (' + counts.archived + ')'}</a>`;
+}
+function toggleSuiviFilter(k) { suiviFilter = (suiviFilter === k) ? null : k; renderSuivi_(); }
+function onSuiviSearch(v) {
+  suiviSearch = v; renderSuivi_();
+  const el = document.getElementById('suiviSearch');
+  if (el) { el.focus(); el.setSelectionRange(v.length, v.length); }
+}
+function suiviRow_(r) {
+  const idx = DATA.indexOf(r);
+  return `<tr class="row" onclick="openDetail(${idx}, 'dashboard')">
+    <td>${dateBlockHtml_(r.date)}</td>
+    <td><div class="cl-name">${esc(r.client)}</div>${r.email ? '<div class="cl-sub">' + esc(r.email) + '</div>' : ''}</td>
+    <td class="pax-cell">${toNumber(r.pax) > 0 ? r.pax : "—"}</td>
+    <td>${esc(r.espace || "—")}</td>
+    <td>${esc(fmtShortFR_(r.dateDemande))}</td>
+    <td><span class="pill ${STAGE_CLASS[r.statut]}">${stageLabel_(r.statut)}</span>${r.relance ? '<span class="tag amber" style="margin-left:6px">à relancer</span>' : ''}</td>
+    <td><button class="archive-btn" onclick="event.stopPropagation(); archiveFromSuivi_(${idx})" title="Archiver"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button></td>
+  </tr>`;
+}
+function archiveFromSuivi_(idx) {
+  const r = DATA[idx]; if (!r) return;
+  if (!confirm('Archiver la demande de "' + r.client + '" ?')) return;
+  r.statut = "Archivée"; saveData(); renderDashboard();
+}
+
+/* =========================================================================
+   BASE CLIENTS
+   ========================================================================= */
+const PERSONAL_EMAIL_DOMAINS = new Set([
+  "gmail.com", "hotmail.com", "hotmail.fr", "yahoo.com", "yahoo.fr", "outlook.com", "outlook.fr",
+  "icloud.com", "free.fr", "wanadoo.fr", "orange.fr", "laposte.net", "live.fr", "live.com",
+  "ymail.com", "protonmail.com", "sfr.fr", "bbox.fr", "aol.com", "gmx.com", "msn.com", "me.com"
+]);
+function guessSociete_(email) {
+  const domain = (email.split("@")[1] || "").toLowerCase();
+  if (!domain || PERSONAL_EMAIL_DOMAINS.has(domain)) return "";
+  const base = domain.split(".")[0];
+  return base.charAt(0).toUpperCase() + base.slice(1);
+}
+function guessPhone_(commentaire) {
+  if (!commentaire) return "";
+  const m = commentaire.match(/(?:\+33\s?|0)[1-9](?:[\s.-]?\d{2}){4}/);
+  return m ? m[0] : "";
+}
+function renderClientsTable() {
+  const searchEl = document.getElementById('fClientSearch');
+  const search = (searchEl ? searchEl.value : "").toLowerCase();
+  const byEmail = {};
+  DATA.forEach(r => {
+    if (!r.email) return;
+    const key = r.email.toLowerCase();
+    if (!byEmail[key]) byEmail[key] = { client: r.client, email: r.email, societe: (r.finance && r.finance.societe) || guessSociete_(r.email), phone: guessPhone_(r.commentaire), count: 0 };
+    byEmail[key].count++;
+    if (r.finance && r.finance.societe) byEmail[key].societe = r.finance.societe;
+    if (!byEmail[key].phone) byEmail[key].phone = guessPhone_(r.commentaire);
+  });
+  let clients = Object.values(byEmail).sort((a, b) => a.client.localeCompare(b.client));
+  if (search) clients = clients.filter(c => c.client.toLowerCase().includes(search) || (c.societe || "").toLowerCase().includes(search));
+  document.getElementById('clientsCount').textContent = clients.length + (clients.length > 1 ? " clients" : " client");
+  const tbody = document.getElementById('clientsTbody');
+  if (!clients.length) { tbody.innerHTML = '<tr><td colspan="5" style="padding:30px;text-align:center;color:var(--ink-3)">Aucun client sur ce filtre.</td></tr>'; return; }
+  tbody.innerHTML = clients.map(c => `<tr><td><div class="cl-name">${esc(c.client)}</div></td><td>${esc(c.email)}</td><td>${esc(c.phone || "—")}</td><td>${esc(c.societe || "—")}</td><td style="text-align:right">${c.count}</td></tr>`).join("");
+}
+
+/* =========================================================================
+   HISTORIQUE
+   ========================================================================= */
+function kpi_(lbl, val, sub) { return `<div class="kpi"><p class="lbl">${lbl}</p><p class="val">${val}</p><p class="sub">${sub}</p></div>`; }
+
+function confRow_(r, origin) {
+  const idx = DATA.indexOf(r), tot = financeTotals(r.finance), t = tot.totalTTC, paid = paidAmount_(r.finance);
+  const status = paid >= t - 0.01 ? '<span class="pill confirmed">Soldé</span>' : (paid > 0 ? '<span class="pill waiting">Partiel</span>' : '<span class="pill answer">Impayé</span>');
+  return `<tr class="row" onclick="openDetail(${idx}, '${origin}')">
+    <td>${dateBlockHtml_(r.date)}</td>
+    <td><div class="cl-name">${esc(r.client)}</div><div class="cl-sub">${esc(r.finance.service || "")}</div></td>
+    <td class="pax-cell">${toNumber(r.pax) > 0 ? r.pax : "—"}</td>
+    <td>${esc(r.espace || "—")}</td>
+    <td><span class="tag" style="background:var(--bordeaux-100);color:var(--bordeaux-dark)">${esc((r.finance && r.finance.type) || "Privatisation")}</span></td>
+    <td class="amt-cell">${fmtEUR(tot.totalHT)}</td>
+    <td>${status} <span style="font-size:11px;color:var(--ink-3);margin-left:4px">${fmtEUR(paid)}</span></td>
+  </tr>`;
+}
+
+let confSort = { key: "event", dir: 1 };
+function confSetSort_(key, dir) { confSort = { key, dir }; renderConfirmedTab_(); }
+function renderConfirmedTab_() {
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const confirmed = DATA.filter(r => r.statut === "Confirmé" && r.finance);
+  const past = confirmed.filter(r => isPastDate(r.date));
+  const upcoming = confirmed.filter(r => { const d = parseDate(r.date); return d && d >= today; });
+  const sortCmp = (a, b) => (sortableVal_(a, confSort.key) - sortableVal_(b, confSort.key)) * confSort.dir;
+  past.sort(sortCmp); upcoming.sort(sortCmp);
+  updateSortCarets_('confup', confSort, ['pax', 'event']);
+  updateSortCarets_('confpast', confSort, ['pax', 'event']);
+  const caReal = past.reduce((s, r) => s + financeTotals(r.finance).totalHT, 0);
+  const panier = past.length ? caReal / past.length : 0;
+  const enAttente = confirmed.reduce((s, r) => s + Math.max(0, financeTotals(r.finance).totalTTC - paidAmount_(r.finance)), 0);
+
+  document.getElementById('histKpis').innerHTML =
+    kpi_("CA réalisé (HT)", fmtEUR(caReal), past.length + " événements passés") +
+    kpi_("Panier moyen (HT)", fmtEUR(panier), "par privatisation") +
+    kpi_("Événements confirmés", confirmed.length, "au total") +
+    kpi_("Encaissements en attente", fmtEUR(enAttente), "acomptes + soldes dus");
+
+  const byMonth = {};
+  past.forEach(r => { const d = parseDate(r.date); if (!d) return; const k = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0"); byMonth[k] = (byMonth[k] || 0) + financeTotals(r.finance).totalHT; });
+  const keys = Object.keys(byMonth).sort().slice(-8);
+  const max = Math.max(1, ...keys.map(k => byMonth[k]));
+  document.getElementById('histChart').innerHTML = keys.map((k, i) => {
+    const isHi = i === keys.length - 1;
+    const h = Math.round(byMonth[k] / max * 100);
+    const [y, m] = k.split("-");
+    return `<div class="bar-col"><span class="bval ${isHi ? 'hi' : ''}">${fmtEURCompact_(byMonth[k])}</span><div class="bcol ${isHi ? 'hi' : ''}" style="height:${Math.max(4, h)}%" title="${fmtEUR(byMonth[k])}"></div><span class="blab">${MOIS_COURT_[Number(m) - 1]}</span></div>`;
+  }).join("") || '<span style="font-size:12px;color:var(--ink-3)">Pas encore de données.</span>';
+
+  document.getElementById('confUpcomingBody').innerHTML = upcoming.map(r => confRow_(r, 'confirmed')).join("") || '<tr><td colspan="7" style="padding:30px;text-align:center;color:var(--ink-3)">Aucune privatisation confirmée à venir.</td></tr>';
+  document.getElementById('histBody').innerHTML = past.map(r => confRow_(r, 'confirmed')).join("") || '<tr><td colspan="7" style="padding:30px;text-align:center;color:var(--ink-3)">Aucun événement passé.</td></tr>';
+}
+
+/* =========================================================================
+   FICHE DÉTAIL — reprise à l'identique de la maquette "nouveau fichier"
+   ========================================================================= */
+let currentPane = null;
+
+function capitalize_(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : s; }
+
+const ALL_STATUTS_ = ["Nouvelle demande", "À répondre", "En attente client", "Confirmé", "Archivée"];
+const STATUT_SELECT_CLASS_ = { "Nouvelle demande": "new", "À répondre": "answer", "En attente client": "waiting", "Confirmé": "confirmed", "Archivée": "cancelled" };
+
+// Une seule présentation (claire, sans bandeau coloré) pour toutes les fiches — seul le contenu
+// des 4 boîtes en dessous change selon que la demande est en cours ou confirmée.
+function renderHero_(r) {
+  const hero = document.getElementById('detHero');
+  hero.className = "hero light";
+  const isPending = r.statut !== "Confirmé" && r.statut !== "Archivée";
+
+  const statusOptions = ALL_STATUTS_.map(s => `<option value="${s}" ${s === r.statut ? "selected" : ""}>${s}</option>`).join("");
+
+  let subLine, subClick, subTitle;
+  if (isPending) {
+    subLine = "Demande reçue " + relativeDay_(r.dateDemande);
+    if (r.email) subLine += " · " + esc(r.email);
+    subClick = "startInlineEditEmail_()";
+    subTitle = "Cliquer pour modifier l'email";
+  } else {
+    const parts = [];
+    if (r.finance && r.finance.societe) parts.push(esc(r.finance.societe));
+    if (r.email) parts.push(esc(r.email));
+    subLine = parts.length ? parts.join(" · ") : "Aucune information client — cliquer pour compléter";
+    subClick = "openClientEditModal_()";
+    subTitle = "Cliquer pour modifier les informations client";
   }
-  DATA.push(req);
+
+  hero.innerHTML = `
+    <div class="hero-light-top">
+      <h2 onclick="startInlineEditName_()">${esc(r.client)}</h2>
+      <select class="status-select ${STATUT_SELECT_CLASS_[r.statut] || 'waiting'}" onchange="onStatutSelectChange_(this.value)">${statusOptions}</select>
+    </div>
+    <p class="hero-light-sub" onclick="${subClick}" title="${subTitle}">${subLine}</p>
+    <div class="quad-row">${isPending ? quadRowPending_(r) : quadRowConfirmed_(r)}</div>
+    <p class="quote" id="detQuote" style="display:none; margin:16px 0 0;" onclick="startInlineEditQuote_()" title="Cliquer pour modifier"></p>`;
+}
+
+function conflictBoxHtml_(r) {
+  const av = availability_(r);
+  let avClass = "ok", avVal = "Date libre", avSub = "aucun conflit", avClick = "";
+  if (av.state === "double") { avClass = "warn"; avVal = "Double confirmation"; avSub = esc(av.other.client) + " · confirmée aussi"; avClick = ' onclick="openAvailConflict()" style="cursor:pointer"'; }
+  else if (av.state === "busy") { avClass = "warn"; avVal = "Date prise"; avSub = esc(av.other.client) + " · confirmée"; avClick = ' onclick="openAvailConflict()" style="cursor:pointer"'; }
+  else if (av.state === "pending") { avClass = "warn"; avVal = "Demande concurrente"; avSub = esc(av.other.client); avClick = ' onclick="openAvailConflict()" style="cursor:pointer"'; }
+  else if (av.state === "none") { avVal = "—"; avSub = "date à préciser"; avClass = ""; }
+  return `<div class="quad-box ${avClass}"${avClick}><span class="qic">${TILE_ICONS_.calendarCheck}</span><p class="qv">${avVal}</p><p class="qs">${avSub}</p></div>`;
+}
+
+function quadRowPending_(r) {
+  const d = parseDate(r.date);
+  const dateVal = d ? capitalize_(JOURS_COURT_[d.getDay()]) + " " + d.getDate() + " " + MOIS_COURT_[d.getMonth()] : (r.date || "—");
+  return `
+    <div class="quad-box editable" onclick="startQuadEdit_(this,'date')"><span class="qic">${TILE_ICONS_.calendar}</span><p class="qv">${esc(dateVal)}</p><p class="qs">date souhaitée</p></div>
+    <div class="quad-box editable" onclick="startQuadEdit_(this,'pax')"><span class="qic">${TILE_ICONS_.people}</span><p class="qv">${toNumber(r.pax) > 0 ? r.pax + " personnes" : "?"}</p><p class="qs">pax annoncé</p></div>
+    <div class="quad-box editable" onclick="startQuadEdit_(this,'espace')"><span class="qic">${TILE_ICONS_.door}</span><p class="qv">${esc(r.espace || "—")}</p><p class="qs">espace souhaité</p></div>
+    ${conflictBoxHtml_(r)}`;
+}
+
+function quadRowConfirmed_(r) {
+  const f = r.finance || {};
+  const totHT = financeTotals(f).totalHT;
+  const d = parseDate(r.date);
+  const dateVal = d ? capitalize_(JOURS_COURT_[d.getDay()]) + " " + d.getDate() + " " + MOIS_COURT_[d.getMonth()] : (r.date || "—");
+  const espaceOptions = ["Salon privatif", "Étage", "Restaurant entier", "Terrasse"].map(o => `<option ${o === (r.espace || "Salon privatif") ? "selected" : ""}>${o}</option>`).join("");
+  return `
+    <div class="quad-box editable" onclick="startQuadEdit_(this,'date')"><span class="qic">${TILE_ICONS_.calendar}</span><p class="qv">${esc(dateVal)}</p><p class="qs">date de l'événement</p></div>
+    <div class="quad-box editable" onclick="startQuadEdit_(this,'pax')"><span class="qic">${TILE_ICONS_.people}</span><p class="qv">${toNumber(r.pax) > 0 ? r.pax + " personnes" : "?"}</p><p class="qs">personnes attendues</p></div>
+    <div class="quad-box"><span class="qic">${TILE_ICONS_.prestation}</span>
+      <select id="detTypeSelect" onchange="onTypeInline_(this.value)" style="font-size:13px; padding:5px 0 0; margin:2px 0 0; border:none; background:transparent; font-weight:600; cursor:pointer;">
+        <option ${(f.type || "Privatisation") === "Privatisation" ? "selected" : ""}>Privatisation</option>
+        <option ${f.type === "Formule groupe" ? "selected" : ""}>Formule groupe</option>
+      </select>
+      <select onchange="onEspaceInline_(this.value)" style="font-size:12px; padding:2px 0 0; margin:0; border:none; background:transparent; color:var(--ink-2); cursor:pointer;">${espaceOptions}</select>
+    </div>
+    <div class="quad-box editable" onclick="showPane('finance')"><span class="qic">${TILE_ICONS_.money}</span><p class="qv">${totHT > 0.01 ? fmtEUR(totHT) : "à chiffrer"}</p><p class="qs">Budget HT</p></div>`;
+}
+
+function startInlineEditName_() {
+  if (!currentReq) return;
+  const h2 = document.querySelector('.hero-light-top h2');
+  if (!h2 || h2.querySelector('input')) return;
+  const current = currentReq.client;
+  h2.innerHTML = `<input value="${esc(current)}" onclick="event.stopPropagation()" onkeydown="if(event.key==='Enter') this.blur();" onblur="commitInlineName_(this.value)">`;
+  const inp = h2.querySelector('input'); inp.focus(); inp.select();
+}
+function commitInlineName_(val) {
+  if (!currentReq) return;
+  const v = val.trim();
+  if (v) currentReq.client = v;
   saveData();
-  toggleAddForm();
-  applyFilters();
-  openDetail(DATA.length - 1, "list");
+  openDetail(DATA.indexOf(currentReq), backTarget);
+}
+function onStatutSelectChange_(val) {
+  if (!currentReq) return;
+  setStatut_(val);
+}
+const QUAD_FIELD_LABEL_ = { date: "date souhaitée", pax: "pax annoncé", espace: "espace souhaité" };
+function startQuadEdit_(boxEl, field) {
+  if (boxEl.querySelector('input')) return;
+  const current = field === "pax" ? toNumber(currentReq.pax) : (currentReq[field] || "");
+  const type = field === "pax" ? "number" : "text";
+  const placeholder = field === "date" ? "jj/mm/aaaa" : "";
+  boxEl.innerHTML = `<span class="qic">${TILE_ICONS_[field === "date" ? "calendar" : field === "pax" ? "people" : "door"]}</span><input type="${type}" value="${esc(current)}" placeholder="${placeholder}" onclick="event.stopPropagation()" onkeydown="if(event.key==='Enter') this.blur();" onblur="commitQuadEdit_('${field}', this.value)"><p class="qs">${QUAD_FIELD_LABEL_[field]}</p>`;
+  const inp = boxEl.querySelector('input'); inp.focus(); inp.select();
+}
+function commitQuadEdit_(field, val) {
+  if (!currentReq) return;
+  if (field === "pax") currentReq.pax = toNumber(val);
+  else currentReq[field] = val.trim();
+  saveData();
+  openDetail(DATA.indexOf(currentReq), backTarget);
 }
 
 function openDetail(idx, origin) {
@@ -928,442 +1591,537 @@ function openDetail(idx, origin) {
   if (!r) return;
   if (!r.timeline) r.timeline = [];
   currentReq = r;
-  originTab = origin || "list";
-  document.getElementById("detailAvatar").textContent = initials(r.client);
-  document.getElementById("detailName").textContent = r.client;
-  document.getElementById("detailEmail").textContent = r.email;
-  document.getElementById("detailEspace").textContent = r.espace;
-  document.getElementById("detailDate").textContent = r.date;
-  document.getElementById("detailPax").textContent = r.pax;
-  const statutClass = STATUT_CLASS[r.statut] || "waiting";
-  const statutSelect = document.getElementById("detailStatutSelect");
-  statutSelect.value = r.statut;
-  statutSelect.className = "badge-select " + statutClass;
-  document.getElementById("detailCardTop").className = "detail-card detail-card-top " + statutClass;
+  backTarget = origin || backTarget || "dashboard";
+  ensureTasks_(r);
 
-  const commentSection = document.getElementById("commentSection");
-  if (r.commentaire) {
-    commentSection.style.display = "block";
-    document.getElementById("detailComment").textContent = r.commentaire;
-  } else {
-    commentSection.style.display = "none";
-  }
+  renderHero_(r);
 
-  const hasLink = !!r.gmailThread;
-  document.getElementById("detailTimeline").innerHTML = r.timeline.map(t => `
-    <div class="timeline-item${hasLink ? ' clickable' : ''}" ${hasLink ? `onclick="window.open('${r.gmailThread}', '_blank')" title="Ouvrir l'échange dans Gmail"` : ''}>
-      <span class="dir-badge dir-${t.dir}">${t.dir === "out" ? "↦" : "↤"}</span>
-      <div><p>${t.title}${t.source && t.source.indexOf('scan') === 0 ? ' <span class="scan-tag" title="Trouvé automatiquement par le scan Gmail">auto</span>' : ''}</p><p class="meta">${t.meta}</p></div>
-      ${hasLink ? '<span class="open-link">Ouvrir ↗</span>' : ''}
-    </div>`).join("");
+  const isClosed = r.statut === "Confirmé" || r.statut === "Archivée";
+  document.getElementById('tabCompose').style.display = isClosed ? "none" : "flex";
+  const finTab = document.querySelector('.tab[data-pane="finance"]');
+  const taskTab = document.querySelector('.tab[data-pane="tasks"]');
+  if (finTab) finTab.style.display = r.statut === "Confirmé" ? "flex" : "none";
+  if (taskTab) taskTab.style.display = r.statut === "Confirmé" ? "flex" : "none";
+  const badge = document.getElementById('taskBadge'), open = openTaskCount_(r);
+  badge.textContent = open; badge.style.display = open ? "inline-block" : "none";
 
-  const finSection = document.getElementById("financeSection");
-  const composeSection = document.getElementById("composeSection");
-  if (r.finance) {
-    finSection.style.display = "block";
-    document.getElementById("finSociete").value = r.finance.societe || "";
-    document.getElementById("finService").value = r.finance.service;
-    document.getElementById("finType").value = r.finance.type || "Privatisation";
-    document.getElementById("finCuisineHT").value = r.finance.caCuisineHT;
-    document.getElementById("finAlcoolsHT").value = r.finance.caAlcoolsHT;
-    document.getElementById("finStatutPaiement").value = r.finance.statutPaiement;
-    renderPaymentLines();
-    renderDishRows();
-    updateFinanceComputed();
-    document.getElementById("dishesSection").style.display = isPastDate(r.date) ? "none" : "block";
-  } else {
-    finSection.style.display = "none";
-  }
-  composeSection.style.display = r.statut === "Confirmé" ? "none" : "block";
+  renderConflictAlert_(r);
+  renderDetInfo_(r);
+  renderDetActions_(r);
+  renderTimeline_(r);
+  if (r.statut === "Confirmé") renderFinance_(r);
+  if (r.statut === "Confirmé") renderTasks_(r);
+  if (!isClosed) resetCompose();
 
-  resetCompose();
-  showTab("detail");
+  let defaultPane;
+  if (currentView === "detail" && currentPane) defaultPane = currentPane;
+  else defaultPane = r.statut === "Confirmé" ? "finance" : (r.statut === "Archivée" ? "timeline" : "compose");
+  showView("detail");
+  showPane((defaultPane === "compose" && isClosed) || (defaultPane === "finance" && r.statut !== "Confirmé") || (defaultPane === "tasks" && r.statut !== "Confirmé") ? "timeline" : defaultPane);
 }
 
-function onStatutChange() {
-  if (!currentReq) return;
-  const val = document.getElementById("detailStatutSelect").value;
-  currentReq.statut = val;
-  document.getElementById("detailStatutSelect").className = "badge-select " + STATUT_CLASS[val];
-  document.getElementById("detailCardTop").className = "detail-card detail-card-top " + STATUT_CLASS[val];
+function showPane(p) {
+  const tab = document.querySelector('.tab[data-pane="' + p + '"]');
+  if (tab && tab.style.display === "none") p = "timeline";
+  currentPane = p;
+  document.querySelectorAll('.tabpane').forEach(el => el.classList.remove('on'));
+  document.getElementById('pane-' + p).classList.add('on');
+  document.querySelectorAll('.tab').forEach(b => b.classList.toggle('on', b.dataset.pane === p));
+}
 
-  if (val === "Confirmé" && !currentReq.finance) {
-    currentReq.finance = { service: "Dîner", type: "Privatisation", societe: "", caCuisineHT: 0, caAlcoolsHT: 0, statutPaiement: "En attente d'acompte", paiements: [] };
-  }
-  const finSection = document.getElementById("financeSection");
-  if (currentReq.finance) {
-    finSection.style.display = "block";
-    document.getElementById("finSociete").value = currentReq.finance.societe || "";
-    document.getElementById("finService").value = currentReq.finance.service;
-    document.getElementById("finType").value = currentReq.finance.type || "Privatisation";
-    document.getElementById("finCuisineHT").value = currentReq.finance.caCuisineHT;
-    document.getElementById("finAlcoolsHT").value = currentReq.finance.caAlcoolsHT;
-    document.getElementById("finStatutPaiement").value = currentReq.finance.statutPaiement;
-    renderPaymentLines();
-    renderDishRows();
-    updateFinanceComputed();
-    document.getElementById("dishesSection").style.display = isPastDate(currentReq.date) ? "none" : "block";
+let availConflictIdx_ = null;
+function availability_(r) {
+  availConflictIdx_ = null;
+  if (!r.date || !parseDate(r.date)) return { state: "none" };
+  const others = DATA.filter(o => o !== r && o.date === r.date && o.statut !== "Archivée");
+  if (!others.length) return { state: "free" };
+  const conf = others.find(o => o.statut === "Confirmé");
+  if (conf) { availConflictIdx_ = DATA.indexOf(conf); return { state: r.statut === "Confirmé" ? "double" : "busy", other: conf }; }
+  const pend = others.find(o => o.statut !== "Confirmé");
+  if (pend) { availConflictIdx_ = DATA.indexOf(pend); return { state: "pending", other: pend }; }
+  return { state: "free" };
+}
+function openAvailConflict() { if (availConflictIdx_ !== null) openDetail(availConflictIdx_, backTarget); }
+
+function conflictIcon_() {
+  return '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>';
+}
+function renderConflictAlert_(r) {
+  const box = document.getElementById('detConflict');
+  const av = availability_(r);
+  if (av.state === "double") {
+    box.className = "alert hot"; box.style.display = "flex";
+    box.innerHTML = `<div class="ai">${conflictIcon_()}</div><div class="at"><p class="a1">Double réservation — "${esc(av.other.client)}" est confirmée à la même date</p><p class="a2">Deux confirmations sur le même jour : à vérifier avant de préparer le service.</p></div><button class="btn sm" onclick="openAvailConflict()">Voir l'autre fiche</button>`;
+  } else if (av.state === "busy") {
+    box.className = "alert hot"; box.style.display = "flex";
+    box.innerHTML = `<div class="ai">${conflictIcon_()}</div><div class="at"><p class="a1">Date déjà prise par "${esc(av.other.client)}" (confirmée)</p><p class="a2">Cette demande ne pourra probablement pas être honorée à cette date.</p></div><button class="btn sm" onclick="openAvailConflict()">Voir la confirmée</button>`;
+  } else if (av.state === "pending") {
+    box.className = "alert warn"; box.style.display = "flex";
+    box.innerHTML = `<div class="ai">${conflictIcon_()}</div><div class="at"><p class="a1">Demande concurrente sur la même date — "${esc(av.other.client)}"</p><p class="a2">Aucune des deux n'est encore confirmée, à trancher avec le client.</p></div><button class="btn sm" onclick="openAvailConflict()">Voir l'autre demande</button>`;
   } else {
-    finSection.style.display = "none";
+    box.style.display = "none";
   }
-  document.getElementById("composeSection").style.display = val === "Confirmé" ? "none" : "block";
+}
 
+function tile_(k, v, s, extra) {
+  const clickable = extra && extra.includes("clickable");
+  return `<div class="itile${extra ? " " + extra : ""}"${clickable ? ' onclick="openAvailConflict()"' : ""}><p class="k">${k}</p><p class="v">${v}</p>${s ? `<p class="s">${s}</p>` : ""}</div>`;
+}
+const TILE_ICONS_ = {
+  prestation: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h18v4H3z"/><path d="M5 7v13a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V7"/><line x1="10" y1="12" x2="14" y2="12"/></svg>',
+  societe: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 9h1M9 13h1M9 17h1M14 9h1M14 13h1M14 17h1"/></svg>',
+  demande: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>',
+  calendar: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>',
+  people: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
+  door: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="1"/><circle cx="14" cy="12" r="1"/></svg>',
+  calendarCheck: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M9 16l2 2 4-4"/></svg>',
+  money: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/><line x1="12" y1="1" x2="12" y2="23"/></svg>'
+};
+function tileIcon_(name) { return `<span style="color:var(--bordeaux); display:inline-flex; margin-bottom:6px;">${TILE_ICONS_[name] || ""}</span>`; }
+
+function renderDetInfo_(r) {
+  // Toutes les infos utiles vivent dans le bandeau du haut (nom, statut, sous-titre, 4 boîtes) ;
+  // la citation du client (s'il y en a une) est intégrée directement à la fin de ce même bandeau.
+  const q = document.getElementById('detQuote');
+  if (!q) return;
+  if (r.commentaire) { q.style.display = "block"; q.textContent = "« " + r.commentaire + " »"; } else q.style.display = "none";
+}
+function onTypeInline_(val) {
+  if (!currentReq || !currentReq.finance) return;
+  currentReq.finance.type = val;
   saveData();
-  applyFilters();
+  if (document.getElementById('finSociete')) renderFinance_(currentReq); // resynchronise l'onglet Finances si déjà ouvert
+}
+function onSocieteInline_(val) {
+  if (!currentReq || !currentReq.finance) return;
+  currentReq.finance.societe = val;
+  saveData();
+  if (document.getElementById('finSociete')) document.getElementById('finSociete').value = val;
+}
+function onEspaceInline_(val) {
+  if (!currentReq) return;
+  currentReq.espace = val;
+  saveData();
 }
 
-function parseDate(str) {
-  const [d, m, y] = str.split("/").map(Number);
-  return new Date(y, m - 1, d);
+/* ---- Modal : informations client (relié à la Base clients) ---- */
+function openClientEditModal_() {
+  if (!currentReq) return;
+  document.getElementById('clientEditSociete').value = (currentReq.finance && currentReq.finance.societe) || "";
+  document.getElementById('clientEditEmail').value = currentReq.email || "";
+  document.getElementById('clientEditBackdrop').classList.add('on');
+  setTimeout(() => document.getElementById('clientEditSociete').focus(), 50);
+}
+function closeClientEdit_() {
+  document.getElementById('clientEditBackdrop').classList.remove('on');
+}
+function submitClientEdit_() {
+  if (!currentReq) return;
+  const newSociete = document.getElementById('clientEditSociete').value.trim();
+  const newEmail = document.getElementById('clientEditEmail').value.trim();
+  const oldEmail = (currentReq.email || "").toLowerCase();
+  // Toutes les demandes/événements du même client (même email d'origine) sont mis à jour ensemble,
+  // pour rester cohérent avec la Base clients qui est calculée à partir de ces mêmes données.
+  DATA.forEach(r => {
+    const isSame = r === currentReq || (oldEmail && (r.email || "").toLowerCase() === oldEmail);
+    if (!isSame) return;
+    r.email = newEmail;
+    if (r.finance) r.finance.societe = newSociete;
+  });
+  saveData();
+  closeClientEdit_();
+  openDetail(DATA.indexOf(currentReq), backTarget);
 }
 
-function isPastDate(str) {
-  const today = new Date(); today.setHours(0, 0, 0, 0);
-  return parseDate(str) < today;
+function renderDetActions_(r) {
+  // Le statut se change désormais directement depuis le menu déroulant du bandeau du haut —
+  // il ne reste ici que l'action de rédaction, qui ouvre un onglet distinct.
+  const bar = document.getElementById('detActions');
+  const out = [];
+  const replyLbl = { "Nouvelle demande": "Rédiger la proposition", "À répondre": "Répondre au client", "En attente client": "Envoyer une relance" };
+  if (replyLbl[r.statut]) out.push(`<button class="btn primary" onclick="showPane('compose')">${replyLbl[r.statut]}</button>`);
+  bar.innerHTML = out.join("");
 }
 
-function toNumber(v) {
-  if (typeof v === "number") return v;
-  return parseFloat(String(v).trim().replace(",", ".")) || 0;
+function setStatut_(val) {
+  if (!currentReq) return;
+  currentReq.statut = val;
+  if (val === "Confirmé") {
+    if (!currentReq.finance) currentReq.finance = { service: "Dîner", type: "Privatisation", societe: "", caCuisineHT: 0, caAlcoolsHT: 0, statutPaiement: "En attente d'acompte", paiements: [] };
+    ensureTasks_(currentReq);
+  }
+  saveData();
+  openDetail(DATA.indexOf(currentReq), backTarget);
+}
+function actionConfirm() { setStatut_("Confirmé"); }
+function actionReopen() { setStatut_(computeAutoStatut_(currentReq)); }
+function actionLost() {
+  if (!currentReq) return;
+  if (!confirm('Marquer la demande de "' + currentReq.client + '" comme perdue ? Elle passera en Archivée (toujours consultable).')) return;
+  setStatut_("Archivée");
 }
 
-function fmtEUR(n) {
-  return (Math.round((n || 0) * 100) / 100).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €";
+/* ---- Édition directe des infos restantes (email, citation du client) au clic ---- */
+function startInlineEditEmail_() {
+  if (!currentReq) return;
+  const sub = document.querySelector('.hero-light-sub');
+  if (!sub || sub.querySelector('input')) return;
+  sub.innerHTML = `<input value="${esc(currentReq.email || "")}" placeholder="email" onclick="event.stopPropagation()" onkeydown="if(event.key==='Enter') this.blur();" onblur="commitInlineEmail_(this.value)">`;
+  const inp = sub.querySelector('input'); inp.focus(); inp.select();
+}
+function commitInlineEmail_(val) {
+  if (!currentReq) return;
+  currentReq.email = val.trim();
+  saveData();
+  openDetail(DATA.indexOf(currentReq), backTarget);
+}
+function startInlineEditQuote_() {
+  if (!currentReq) return;
+  const q = document.getElementById('detQuote');
+  if (!q || q.querySelector('textarea')) return;
+  q.innerHTML = `<textarea rows="2" style="width:100%;" onclick="event.stopPropagation()" onblur="commitInlineQuote_(this.value)">${esc(currentReq.commentaire || "")}</textarea>`;
+  const ta = q.querySelector('textarea'); ta.focus();
+}
+function commitInlineQuote_(val) {
+  if (!currentReq) return;
+  currentReq.commentaire = val;
+  saveData();
+  openDetail(DATA.indexOf(currentReq), backTarget);
 }
 
-function financeTotals(f) {
-  const tvaCuisine = f.caCuisineHT * 0.10;
-  const tvaAlcools = f.caAlcoolsHT * 0.20;
-  const totalHT = f.caCuisineHT + f.caAlcoolsHT;
-  const totalTVA = tvaCuisine + tvaAlcools;
-  const totalTTC = totalHT + totalTVA;
-  return { tvaCuisine, tvaAlcools, totalHT, totalTVA, totalTTC };
+/* ---- pane finance ---- */
+function renderFinance_(r) {
+  const f = r.finance;
+  document.getElementById('finSociete').value = f.societe || "";
+  document.getElementById('finService').value = f.service || "Dîner";
+  document.getElementById('finCuisineHT').value = f.caCuisineHT || "";
+  document.getElementById('finAlcoolsHT').value = f.caAlcoolsHT || "";
+  renderPaymentLines();
+  updateFinanceComputed();
 }
-
 function onFinanceInput() {
   if (!currentReq || !currentReq.finance) return;
-  currentReq.finance.societe = document.getElementById("finSociete").value;
-  currentReq.finance.service = document.getElementById("finService").value;
-  currentReq.finance.type = document.getElementById("finType").value;
-  currentReq.finance.caCuisineHT = toNumber(document.getElementById("finCuisineHT").value);
-  currentReq.finance.caAlcoolsHT = toNumber(document.getElementById("finAlcoolsHT").value);
-  currentReq.finance.statutPaiement = document.getElementById("finStatutPaiement").value;
+  const f = currentReq.finance;
+  f.societe = document.getElementById('finSociete').value;
+  f.service = document.getElementById('finService').value;
+  f.caCuisineHT = toNumber(document.getElementById('finCuisineHT').value);
+  f.caAlcoolsHT = toNumber(document.getElementById('finAlcoolsHT').value);
   updateFinanceComputed();
   saveData();
+  const inlineSoc = document.getElementById('detSocieteInline');
+  if (inlineSoc && inlineSoc.value !== f.societe) inlineSoc.value = f.societe;
 }
-
 function updateFinanceComputed() {
-  const t = financeTotals(currentReq.finance);
-  document.getElementById("finTvaCuisine").textContent = fmtEUR(t.tvaCuisine);
-  document.getElementById("finTvaAlcools").textContent = fmtEUR(t.tvaAlcools);
-  document.getElementById("finTotalHT").textContent = fmtEUR(t.totalHT);
-  document.getElementById("finTotalTTC").textContent = fmtEUR(t.totalTTC);
-  const paid = (currentReq.finance.paiements || []).reduce((s, p) => s + toNumber(p.montant), 0);
-  const balance = t.totalTTC - paid;
-  const banner = document.getElementById("finBalanceBanner");
-  const statusClass = balance <= 0.01 ? "paid" : (paid > 0 ? "partial" : "unpaid");
-  banner.className = "finance-balance " + statusClass;
-  document.getElementById("finBalanceText").textContent = fmtEUR(paid) + " reçus sur " + fmtEUR(t.totalTTC) + (balance > 0.01 ? " — reste " + fmtEUR(balance) : " — soldé ✓");
-  const pct = t.totalTTC > 0 ? Math.min(100, Math.max(0, (paid / t.totalTTC) * 100)) : 0;
-  document.getElementById("finBalanceProgress").style.width = pct + "%";
+  const f = currentReq.finance, t = financeTotals(f);
+  document.getElementById('finTvaCuisine').textContent = fmtEUR2(t.tvaCuisine);
+  document.getElementById('finTvaAlcools').textContent = fmtEUR2(t.tvaAlcools);
+  document.getElementById('finTotalHT').textContent = fmtEUR2(t.totalHT);
+  document.getElementById('finTotalTTC').textContent = fmtEUR2(t.totalTTC);
+  const paid = paidAmount_(f), bal = t.totalTTC - paid;
+  document.getElementById('finBig').textContent = t.totalTTC > 0.01 ? fmtEUR2(t.totalTTC) : "À chiffrer";
+  document.getElementById('finNote').textContent = "Cuisine " + fmtEUR(f.caCuisineHT) + " HT · Alcools " + fmtEUR(f.caAlcoolsHT) + " HT · TVA " + fmtEUR(t.tvaCuisine + t.tvaAlcools);
+  const st = document.getElementById('finStatus');
+  let color;
+  if (t.totalTTC <= 0.01) { st.textContent = "Renseigne les montants"; color = "var(--ink-3)"; }
+  else if (bal <= 0.01) { st.textContent = "Soldé ✓"; color = "var(--green-d)"; }
+  else if (paid > 0.01) { st.textContent = fmtEUR(paid) + " encaissés — reste " + fmtEUR(bal); color = "var(--amber-d)"; }
+  else { st.textContent = "0 € encaissé — acompte de " + fmtEUR(t.totalTTC * DEPOSIT_RATE) + " à demander"; color = "var(--red-d)"; }
+  st.style.color = color;
+  const pct = t.totalTTC > 0 ? Math.min(100, Math.max(0, paid / t.totalTTC * 100)) : 0;
+  const g = document.getElementById('finGauge');
+  g.style.width = pct + "%";
+  g.style.background = bal <= 0.01 && t.totalTTC > 0.01 ? "var(--green)" : (paid > 0.01 ? "var(--amber)" : "var(--red)");
+  document.getElementById('finDeposit').textContent = t.totalTTC > 0.01 ? fmtEUR(t.totalTTC * DEPOSIT_RATE) : "—";
+  document.getElementById('finPaid').textContent = fmtEUR(paid);
+  document.getElementById('finRest').textContent = fmtEUR(Math.max(0, bal));
 }
-
 function renderPaymentLines() {
-  const tbody = document.getElementById("finPaymentsTbody");
   const list = currentReq.finance.paiements || [];
-  if (list.length === 0) { tbody.innerHTML = '<tr><td colspan="3" style="padding:16px; text-align:center; color:#8a8a90;">Aucun paiement enregistré.</td></tr>'; return; }
-  tbody.innerHTML = list.map((p, i) => `
-    <tr>
-      <td><select onchange="updatePayment(${i}, 'canal', this.value)">${PAYMENT_CHANNELS.map(c => `<option ${c === p.canal ? "selected" : ""}>${c}</option>`).join("")}</select></td>
-      <td><input type="text" value="${p.montant}" oninput="updatePayment(${i}, 'montant', this.value)"></td>
-      <td><button class="ghost" onclick="removePaymentLine(${i})">Retirer</button></td>
-    </tr>`).join("");
+  const box = document.getElementById('finPayments');
+  if (!list.length) { box.innerHTML = '<p style="font-size:12.5px;color:var(--ink-3);font-style:italic;margin:0">Aucun paiement enregistré.</p>'; return; }
+  box.innerHTML = list.map((p, i) => `
+    <div class="pay-row">
+      <span class="pay-ic">${esc((p.canal || "?").slice(0, 2))}</span>
+      <select style="width:auto;flex:1;max-width:160px" onchange="updatePayment(${i},'canal',this.value)">${PAYMENT_CHANNELS.map(c => `<option ${c === p.canal ? "selected" : ""}>${c}</option>`).join("")}</select>
+      <input style="width:120px" value="${p.montant}" oninput="updatePayment(${i},'montant',this.value)">
+      <button class="btn sm ghost" onclick="removePaymentLine(${i})">Retirer</button>
+    </div>`).join("");
+}
+function addPaymentLine() { currentReq.finance.paiements = currentReq.finance.paiements || []; currentReq.finance.paiements.push({ canal: "Qonto", montant: 0 }); renderPaymentLines(); updateFinanceComputed(); saveData(); }
+function removePaymentLine(i) { currentReq.finance.paiements.splice(i, 1); renderPaymentLines(); updateFinanceComputed(); saveData(); }
+function updatePayment(i, field, val) { currentReq.finance.paiements[i][field] = field === "montant" ? toNumber(val) : val; updateFinanceComputed(); saveData(); }
+
+/* ---- pane tasks ---- */
+function renderTasks_(r) {
+  const box = document.getElementById('taskList');
+  const tasks = (r.tasks || []).slice().sort((a, b) => b.offset - a.offset);
+  if (!tasks.length) { box.innerHTML = '<p style="font-size:12.5px;color:var(--ink-3);margin:0">Aucune tâche. Ajoute-en une ci-dessous.</p>'; return; }
+  box.innerHTML = tasks.map(t => {
+    const due = taskDueLabel_(r, t);
+    return `<div class="task ${t.done ? 'done' : ''}">
+      <div class="cbox ${t.done ? 'done' : ''}" onclick="toggleTask('${t.id}')">${t.done ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg>' : ''}</div>
+      <div class="tt"><p class="t1">${esc(t.label)}</p>${t.blocking ? '<p class="t2">Bloquant</p>' : ''}</div>
+      <input class="task-resp" placeholder="Responsable" value="${esc(t.responsable || '')}" oninput="updateTaskResponsable('${t.id}', this.value)">
+      <span class="due"><span class="pill ${due.cls === 'amber' ? 'answer' : due.cls}" style="${due.cls === 'amber' ? 'background:#faedd4;color:var(--amber-d)' : ''}">${due.txt}</span></span>
+      <button class="btn sm ghost" onclick="removeTask('${t.id}')">✕</button>
+    </div>`;
+  }).join("");
+}
+function updateTaskResponsable(id, val) {
+  const t = (currentReq.tasks || []).find(x => x.id === id);
+  if (t) { t.responsable = val; saveData(); }
+}
+function toggleTask(id) { const t = (currentReq.tasks || []).find(x => x.id === id); if (t) { t.done = !t.done; saveData(); renderTasks_(currentReq); updateTaskBadge_(); } }
+function removeTask(id) { currentReq.tasks = (currentReq.tasks || []).filter(x => x.id !== id); saveData(); renderTasks_(currentReq); updateTaskBadge_(); }
+function addTask() {
+  const label = prompt("Intitulé de la tâche :"); if (!label) return;
+  const offStr = prompt("Échéance en jours avant l'événement (ex. 3 pour J-3, 0 pour le jour J) :", "3");
+  const offset = offStr === null ? 3 : (parseInt(offStr, 10) || 0);
+  const responsable = prompt("Responsable (optionnel) :", "") || "";
+  currentReq.tasks = currentReq.tasks || [];
+  currentReq.tasks.push({ id: "t_" + Date.now(), label, offset, blocking: false, responsable, done: false });
+  saveData(); renderTasks_(currentReq); updateTaskBadge_();
+}
+function updateTaskBadge_() { const badge = document.getElementById('taskBadge'), o = openTaskCount_(currentReq); badge.textContent = o; badge.style.display = o ? "inline-block" : "none"; }
+
+/* ---- pane timeline ---- */
+function renderTimeline_(r) {
+  const el = document.getElementById('detTimeline');
+  const tl = r.timeline || [];
+  if (!tl.length) { el.innerHTML = '<p style="font-size:12.5px;color:var(--ink-3);margin:0">Aucun échange enregistré.</p>'; }
+  else el.innerHTML = tl.map((t, i) => `
+    <div class="tl-row">
+      <div class="tl-dot"><div class="d ${t.dir}"></div>${i < tl.length - 1 ? '<div class="line"></div>' : ''}</div>
+      <div class="tl-body"><p class="t1">${esc(t.title || (t.dir === "out" ? "Message envoyé" : "Message reçu"))}<span class="tl-dir ${t.dir}">${t.dir === "out" ? "nous" : "client"}</span></p><p class="t2">${esc(t.meta || "")}</p></div>
+    </div>`).join("");
+  const link = document.getElementById('detGmailLink');
+  if (r.gmailThread && /^https:\/\/mail\.google\.com\//.test(r.gmailThread)) { link.style.display = "inline-flex"; link.href = r.gmailThread; }
+  else link.style.display = "none";
 }
 
-function addPaymentLine() {
-  currentReq.finance.paiements = currentReq.finance.paiements || [];
-  currentReq.finance.paiements.push({ canal: "Qonto", montant: 0 });
-  renderPaymentLines();
-  updateFinanceComputed();
-  saveData();
-}
-
-function removePaymentLine(i) {
-  currentReq.finance.paiements.splice(i, 1);
-  renderPaymentLines();
-  updateFinanceComputed();
-  saveData();
-}
-
-function updatePayment(i, field, value) {
-  currentReq.finance.paiements[i][field] = field === "montant" ? toNumber(value) : value;
-  updateFinanceComputed();
-  saveData();
-}
-
-function renderDishRows() {
-  const tbody = document.getElementById("finDishesTbody");
-  const list = MENU.filter(m => m.included);
-  if (list.length === 0) { tbody.innerHTML = '<tr><td colspan="2" style="padding:16px; text-align:center; color:#8a8a90;">Aucun plat actif — configure le menu dans Paramètres.</td></tr>'; return; }
-  tbody.innerHTML = list.map(m => `
-    <tr>
-      <td>${m.nom}</td>
-      <td style="font-weight:600;">${Math.ceil(toNumber(m.qtePerPers) * currentReq.pax)}</td>
-    </tr>`).join("");
-}
-
-function renderMenuForm() {
-  document.getElementById("menuTbody").innerHTML = MENU.map((m, i) => `
-    <tr>
-      <td><input type="checkbox" ${m.included ? "checked" : ""} onchange="MENU[${i}].included = this.checked; updateMenuSummary();" style="width:auto; cursor:pointer;"></td>
-      <td>${m.nom}</td>
-      <td><input type="text" value="${m.prixUnitaire}" oninput="MENU[${i}].prixUnitaire = toNumber(this.value); updateMenuRow(${i}); updateMenuSummary();"></td>
-      <td><input type="text" value="${m.qtePerPers}" oninput="MENU[${i}].qtePerPers = toNumber(this.value); updateMenuRow(${i}); updateMenuSummary();"></td>
-      <td id="menuQte_${i}" style="font-weight:600;">—</td>
-      <td id="menuPrixLigne_${i}">—</td>
-    </tr>`).join("");
-  MENU.forEach((m, i) => updateMenuRow(i));
-  updateMenuSummary();
-}
-
-function refPax() {
-  return toNumber(document.getElementById("menuRefPax").value) || 0;
-}
-
-function updateMenuRow(i) {
-  const m = MENU[i];
-  const qte = Math.ceil(toNumber(m.qtePerPers) * refPax());
-  document.getElementById("menuQte_" + i).textContent = qte;
-  document.getElementById("menuPrixLigne_" + i).textContent = fmtEUR(toNumber(m.prixUnitaire) * qte);
-}
-
-function onMenuRefPaxChange() {
-  MENU.forEach((m, i) => updateMenuRow(i));
-  updateMenuSummary();
-}
-
-function updateMenuSummary() {
-  const active = MENU.filter(m => m.included);
-  const perPerson = active.reduce((s, m) => s + toNumber(m.qtePerPers), 0);
-  const pricePerPerson = active.reduce((s, m) => s + toNumber(m.qtePerPers) * toNumber(m.prixUnitaire), 0);
-  document.getElementById("menuSumPerPerson").textContent = perPerson.toLocaleString("fr-FR", { maximumFractionDigits: 2 }) + " / pers";
-  document.getElementById("menuSumPricePerPerson").textContent = fmtEUR(pricePerPerson) + " / pers";
-  document.getElementById("menuSumPriceTotal").textContent = fmtEUR(pricePerPerson * refPax());
-}
-
-function renderConfirmedLists() {
-  const today = new Date(); today.setHours(0, 0, 0, 0);
-  const confirmed = DATA.map((r, idx) => ({ r, idx })).filter(x => x.r.statut === "Confirmé" && x.r.finance);
-  const upcoming = confirmed.filter(x => parseDate(x.r.date) >= today).sort((a, b) => parseDate(a.r.date) - parseDate(b.r.date));
-  const past = confirmed.filter(x => parseDate(x.r.date) < today).sort((a, b) => parseDate(b.r.date) - parseDate(a.r.date));
-
-  const rowHtml = (x) => {
-    const t = financeTotals(x.r.finance);
-    return `<tr class="req-row" onclick="openDetail(${x.idx}, 'confirmed')">
-      <td><span class="client-name">${x.r.client}</span><div class="client-sub">${x.r.email}</div></td>
-      <td>${x.r.date}</td>
-      <td>${x.r.finance.service}</td>
-      <td>${x.r.finance.type || 'Privatisation'}</td>
-      <td>${x.r.espace}</td>
-      <td>${x.r.pax}</td>
-      <td>${fmtEUR(t.totalTTC)}</td>
-      <td>${x.r.finance.statutPaiement}</td>
-    </tr>`;
-  };
-
-  document.getElementById("confUpcomingTbody").innerHTML = upcoming.length ? upcoming.map(rowHtml).join("") : '<tr><td colspan="8" style="padding:30px; text-align:center; color:#8a8a90;">Aucune privatisation confirmée à venir.</td></tr>';
-  document.getElementById("confPastTbody").innerHTML = past.length ? past.map(rowHtml).join("") : '<tr><td colspan="8" style="padding:30px; text-align:center; color:#8a8a90;">Aucune privatisation confirmée passée.</td></tr>';
-}
-
-// --- Base clients ------------------------------------------------------
-const PERSONAL_EMAIL_DOMAINS = new Set([
-  "gmail.com", "hotmail.com", "hotmail.fr", "yahoo.com", "yahoo.fr", "outlook.com", "outlook.fr",
-  "icloud.com", "free.fr", "wanadoo.fr", "orange.fr", "laposte.net", "live.fr", "live.com",
-  "ymail.com", "protonmail.com", "sfr.fr", "bbox.fr", "aol.com", "gmx.com", "msn.com", "me.com"
-]);
-
-function guessSociete_(email) {
-  const domain = (email.split("@")[1] || "").toLowerCase();
-  if (!domain || PERSONAL_EMAIL_DOMAINS.has(domain)) return "";
-  const base = domain.split(".")[0];
-  return base.charAt(0).toUpperCase() + base.slice(1);
-}
-
-function guessPhone_(commentaire) {
-  if (!commentaire) return "";
-  const m = commentaire.match(/(?:\+33\s?|0)[1-9](?:[\s.-]?\d{2}){4}/);
-  return m ? m[0] : "";
-}
-
-function renderClientsTable() {
-  const search = (document.getElementById("fClientSearch").value || "").toLowerCase();
-  const byEmail = {};
-  DATA.forEach(r => {
-    if (!r.email) return;
-    const key = r.email.toLowerCase();
-    if (!byEmail[key]) {
-      byEmail[key] = {
-        client: r.client,
-        email: r.email,
-        societe: (r.finance && r.finance.societe) || guessSociete_(r.email),
-        phone: guessPhone_(r.commentaire),
-        count: 0
-      };
-    }
-    byEmail[key].count++;
-    // Une fiche financière avec société renseignée prime sur une estimation par domaine.
-    if (r.finance && r.finance.societe) byEmail[key].societe = r.finance.societe;
-    if (!byEmail[key].phone) byEmail[key].phone = guessPhone_(r.commentaire);
-  });
-
-  let clients = Object.values(byEmail).sort((a, b) => a.client.localeCompare(b.client));
-  if (search) clients = clients.filter(c => c.client.toLowerCase().includes(search) || (c.societe || "").toLowerCase().includes(search));
-
-  const tbody = document.getElementById("clientsTbody");
-  if (clients.length === 0) { tbody.innerHTML = '<tr><td colspan="5" style="padding:40px; text-align:center; color:#8a8a90;">Aucun client sur ce filtre.</td></tr>'; return; }
-  tbody.innerHTML = clients.map(c => `<tr>
-      <td><span class="client-name">${c.client}</span></td>
-      <td>${c.email}</td>
-      <td>${c.phone || '—'}</td>
-      <td>${c.societe || '—'}</td>
-      <td>${c.count}</td>
-    </tr>`).join("");
-}
-
+/* =========================================================================
+   COMPOSE / ÉDITEUR DE PROPOSITION
+   ========================================================================= */
 function fillPlaceholders(text) {
   if (!currentReq) return text;
-  return text
-    .replace(/{prenom}/g, firstName(currentReq.client))
-    .replace(/{date}/g, currentReq.date)
-    .replace(/{pax}/g, currentReq.pax);
+  return String(text).replace(/{prenom}/g, firstName(currentReq.client)).replace(/{date}/g, currentReq.date || "").replace(/{pax}/g, currentReq.pax || "");
 }
-
-function needsRelance(r) {
-  return !!(r && r.timeline && r.timeline.length && r.timeline[r.timeline.length - 1].dir === "out");
+function lastExchangeInfo_(r) {
+  const tl = r.timeline || [], last = tl.length ? tl[tl.length - 1] : null;
+  const d = last ? timelineEntryDate_(last) : null, since = d ? daysSince_(d) : null;
+  return { since, ago: since === null ? "" : (since === 0 ? "aujourd'hui" : (since === 1 ? "hier" : "il y a " + since + " j")) };
 }
-
 function resetCompose() {
   selectedOptions = [];
-  document.querySelectorAll(".option-btn").forEach(b => b.classList.remove("active"));
+  composeMode = !currentReq ? "proposition"
+    : currentReq.statut === "En attente client" ? "relance"
+    : currentReq.statut === "À répondre" ? "reply" : "proposition";
 
-  const hasOutMessage = !!(currentReq && currentReq.timeline && currentReq.timeline.some(t => t.dir === "out"));
-  const modeRow = document.getElementById("composeModeRow");
-  modeRow.style.display = hasOutMessage ? "flex" : "none";
-  relanceMode = hasOutMessage && needsRelance(currentReq);
-  updateModeButtons();
+  document.getElementById('pvTo').textContent = "À : " + (currentReq && currentReq.email ? currentReq.email : "—");
+  document.getElementById('pvSubj').textContent = "Rosario — Privatisation le " + (currentReq ? currentReq.date : "");
 
+  const ctx = document.getElementById('composeCtx');
+  const { since, ago } = currentReq ? lastExchangeInfo_(currentReq) : { since: null, ago: "" };
+  const isFirstReply = composeMode === "proposition";
+  if (!isFirstReply) selectedOptions = [];
+  const leftCol = document.getElementById('composeLeftCol');
+  const grid = document.getElementById('composeGrid');
+  if (leftCol) leftCol.style.display = isFirstReply ? "block" : "none";
+  if (grid) grid.style.gridTemplateColumns = isFirstReply ? "1fr 1fr" : "1fr";
+
+  if (composeMode === "relance") ctx.textContent = "Relance simple — proposition déjà envoyée" + (since !== null ? ", sans réponse depuis " + since + " j." : ".") + " Pas de nouvelles options à proposer, juste une piqûre de rappel.";
+  else if (composeMode === "reply") ctx.textContent = "Le client a répondu " + ago + " — rédige ta réponse (les options ne sont proposées qu'à la toute première réponse).";
+  else ctx.textContent = "Première réponse — coche les espaces et formules à proposer, le message se construit tout seul.";
+
+  renderComposeBlocks_();
   rebuildComposeBody();
 }
-
-function setRelanceMode(isRelance) {
-  relanceMode = isRelance;
-  updateModeButtons();
-  rebuildComposeBody();
+function renderComposeBlocks_() {
+  const blocks = [
+    { key: "salon", name: "Salon privatif", p: "20 pers" },
+    { key: "etage", name: "Étage", p: "45 pers" },
+    { key: "etablissement", name: "Établissement entier", p: "100 pers" },
+    { key: "groupe", name: "Formule groupe", p: "45 €/pers" }
+  ];
+  document.getElementById('composeBlocks').innerHTML = blocks.map(b => `
+    <div class="blk ${selectedOptions.includes(b.key) ? 'on' : ''}" onclick="toggleOption('${b.key}')">
+      <div class="blk-h"><span class="blk-tog">${selectedOptions.includes(b.key) ? '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg>' : ''}</span>
+        <p class="blk-n">${b.name}</p><span class="blk-p">${b.p}</span></div>
+    </div>`).join("");
 }
-
-function updateModeButtons() {
-  document.getElementById("modeBtnInitial").classList.toggle("active", !relanceMode);
-  document.getElementById("modeBtnRelance").classList.toggle("active", relanceMode);
-  document.getElementById("relanceActiveNote").style.display = (relanceMode && needsRelance(currentReq)) ? "inline" : "none";
-}
-
-function toggleOption(key, btn) {
+function toggleOption(key) {
   const i = selectedOptions.indexOf(key);
-  if (i >= 0) { selectedOptions.splice(i, 1); btn.classList.remove("active"); }
-  else { selectedOptions.push(key); btn.classList.add("active"); }
+  if (i >= 0) selectedOptions.splice(i, 1); else selectedOptions.push(key);
+  renderComposeBlocks_();
   rebuildComposeBody();
 }
-
 function rebuildComposeBody() {
-  const intro = fillPlaceholders(relanceMode ? TEMPLATES.relance : TEMPLATES.intro);
-  const sig = document.getElementById("composeSignature").value;
+  const replyIntro = "Bonjour {prenom},\n\nMerci pour votre retour !\n\n";
+  const intro = fillPlaceholders(composeMode === "relance" ? TEMPLATES.relance : (composeMode === "reply" ? replyIntro : TEMPLATES.intro));
+  const sig = document.getElementById('composeSignature').value;
   const signature = sig === "theodore" ? TEMPLATES.sigTheodore : TEMPLATES.sigAdrien;
-
-  const titleWithSchedule = (key) => OPTION_TITLES[key] + (key === "groupe" ? " — 19h-21h ou 21h15-minuit" : " — toute la soirée");
-
+  const titleWithSchedule = k => OPTION_TITLES[k] + (k === "groupe" ? " — 19h-21h ou 21h15-minuit" : " — toute la soirée");
   let optionsText = "";
-  if (selectedOptions.length === 1) {
-    const key = selectedOptions[0];
-    optionsText = titleWithSchedule(key) + "\n" + fillPlaceholders(TEMPLATES[key]);
-  } else if (selectedOptions.length > 1) {
-    const ordered = OPTION_ORDER.filter(k => selectedOptions.includes(k));
-    optionsText = ordered.map((key) => titleWithSchedule(key) + "\n" + fillPlaceholders(TEMPLATES[key])).join("\n\n");
-  }
-
-  // Le message de relance se suffit à lui-même (il a déjà sa propre formule de politesse) :
-  // on n'ajoute la clôture standard que si on repropose une offre (options sélectionnées).
-  const skipCloture = relanceMode && !optionsText;
+  const ordered = OPTION_ORDER.filter(k => selectedOptions.includes(k));
+  if (ordered.length) optionsText = ordered.map(k => titleWithSchedule(k) + "\n" + fillPlaceholders(TEMPLATES[k])).join("\n\n");
+  const skipCloture = composeMode !== "proposition" && !optionsText;
   const body = optionsText ? intro + "\n" + optionsText + "\n" : intro;
-  document.getElementById("composeBody").value = body + (skipCloture ? "" : TEMPLATES.cloture) + "\n" + signature;
+  document.getElementById('composeBody').value = body + (skipCloture ? "" : TEMPLATES.cloture) + "\n" + signature;
 }
-
 function openMailto() {
   if (!currentReq) return;
   const subject = "Rosario - Privatisation le " + currentReq.date;
-  const body = document.getElementById("composeBody").value;
-  const url = "mailto:" + encodeURIComponent(currentReq.email) + "?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(body);
-  window.location.href = url;
+  const body = document.getElementById('composeBody').value;
+  window.location.href = "mailto:" + encodeURIComponent(currentReq.email || "") + "?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(body);
 }
-
 function copyCompose() {
-  navigator.clipboard.writeText(document.getElementById("composeBody").value).then(() => {
-    const note = document.getElementById("copyNote");
-    note.style.display = "inline";
-    setTimeout(() => note.style.display = "none", 1500);
+  navigator.clipboard.writeText(document.getElementById('composeBody').value).then(() => {
+    const n = document.getElementById('copyNote'); n.style.display = "inline"; setTimeout(() => n.style.display = "none", 1500);
   });
 }
-
-function loadTemplatesIntoForm() {
-  document.getElementById("tplIntro").value = TEMPLATES.intro;
-  document.getElementById("tplRelance").value = TEMPLATES.relance;
-  document.getElementById("tplSalon").value = TEMPLATES.salon;
-  document.getElementById("tplEtage").value = TEMPLATES.etage;
-  document.getElementById("tplEtablissement").value = TEMPLATES.etablissement;
-  document.getElementById("tplGroupe").value = TEMPLATES.groupe;
-  document.getElementById("tplCloture").value = TEMPLATES.cloture;
-  document.getElementById("tplSigTheodore").value = TEMPLATES.sigTheodore;
-  document.getElementById("tplSigAdrien").value = TEMPLATES.sigAdrien;
+function logSent_() {
+  if (!currentReq) return;
+  const titles = { proposition: "Proposition commerciale envoyée", reply: "Réponse envoyée au client", relance: "Relance envoyée" };
+  const sig = document.getElementById('composeSignature').value === "adrien" ? "Adrien" : "Théodore";
+  currentReq.timeline = currentReq.timeline || [];
+  currentReq.timeline.push({ dir: "out", title: titles[composeMode] || "Message envoyé", meta: todayStr_() + " — par " + sig + " (consigné depuis l'outil)", ts: Date.now() });
+  if (currentReq.statut !== "Confirmé" && currentReq.statut !== "Archivée") currentReq.statut = computeAutoStatut_(currentReq);
+  saveData();
+  currentPane = "timeline";
+  openDetail(DATA.indexOf(currentReq), backTarget);
 }
 
-function saveTemplates() {
-  TEMPLATES = {
-    intro: document.getElementById("tplIntro").value,
-    relance: document.getElementById("tplRelance").value,
-    salon: document.getElementById("tplSalon").value,
-    etage: document.getElementById("tplEtage").value,
-    etablissement: document.getElementById("tplEtablissement").value,
-    groupe: document.getElementById("tplGroupe").value,
-    cloture: document.getElementById("tplCloture").value,
-    sigTheodore: document.getElementById("tplSigTheodore").value,
-    sigAdrien: document.getElementById("tplSigAdrien").value
+/* =========================================================================
+   NOUVELLE DEMANDE
+   ========================================================================= */
+function openNewRequest() {
+  const g = id => document.getElementById(id);
+  g('newReqClient').value = ""; g('newReqEmail').value = ""; g('newReqDate').value = "";
+  g('newReqPax').value = ""; g('newReqEspace').value = "Salon privatif"; g('newReqComment').value = "";
+  g('newReqErr').style.display = "none";
+  document.getElementById('newReqBackdrop').classList.add('on');
+  setTimeout(() => g('newReqClient').focus(), 50);
+}
+function closeNewRequest() {
+  document.getElementById('newReqBackdrop').classList.remove('on');
+}
+function submitNewRequest_() {
+  const g = id => document.getElementById(id).value;
+  const client = g('newReqClient').trim();
+  if (!client) {
+    document.getElementById('newReqErr').style.display = "block";
+    document.getElementById('newReqClient').focus();
+    return;
+  }
+  const req = {
+    id: "local_" + Date.now(),
+    client, email: g('newReqEmail').trim(),
+    espace: g('newReqEspace'),
+    date: g('newReqDate').trim(),
+    dateDemande: todayStr_(),
+    pax: g('newReqPax').trim(),
+    statut: "Nouvelle demande",
+    commentaire: g('newReqComment').trim(),
+    timeline: [{ dir: "in", title: "Demande créée manuellement", meta: todayStr_(), ts: Date.now() }]
   };
+  DATA.push(req); saveData();
+  closeNewRequest();
+  openDetail(DATA.length - 1, "dashboard");
+}
+
+/* =========================================================================
+   PARAMÈTRES
+   ========================================================================= */
+function showSettingsSub(name) {
+  ['templates', 'tasks', 'options', 'menu', 'data'].forEach(s => document.getElementById('set-' + s).style.display = s === name ? "block" : "none");
+  document.querySelectorAll('.settings-sub .tab').forEach(b => b.classList.toggle('on', b.dataset.sub === name));
+  if (name === 'tasks') renderTaskTplForm();
+  if (name === 'menu') renderMenuForm_();
+  if (name === 'data') document.getElementById('setSyncInfo').textContent = SYNC_MODE
+    ? "Connecté au cloud — données partagées avec Adrien, synchronisées via Google Sheets."
+    : "Mode local — non connecté au cloud. Configure SCRIPT_URL en haut du script pour synchroniser en ligne.";
+}
+function loadSettingsForms() {
+  const g = id => document.getElementById(id);
+  g('tplIntro').value = TEMPLATES.intro; g('tplReply').value = TEMPLATES.reply || "Bonjour {prenom},\n\nMerci pour votre retour !\n";
+  g('tplRelance').value = TEMPLATES.relance; g('tplCloture').value = TEMPLATES.cloture;
+  g('tplSigTheodore').value = TEMPLATES.sigTheodore; g('tplSigAdrien').value = TEMPLATES.sigAdrien;
+  g('tplSalon').value = TEMPLATES.salon; g('tplEtage').value = TEMPLATES.etage; g('tplEtablissement').value = TEMPLATES.etablissement; g('tplGroupe').value = TEMPLATES.groupe;
+  renderTaskTplForm();
+}
+function saveTemplates() {
+  const g = id => document.getElementById(id).value;
+  TEMPLATES = Object.assign({}, TEMPLATES, {
+    intro: g('tplIntro'), reply: g('tplReply'), relance: g('tplRelance'), cloture: g('tplCloture'),
+    sigTheodore: g('tplSigTheodore'), sigAdrien: g('tplSigAdrien'),
+    salon: g('tplSalon'), etage: g('tplEtage'), etablissement: g('tplEtablissement'), groupe: g('tplGroupe')
+  });
   localStorage.setItem('rosarioTemplates', JSON.stringify(TEMPLATES));
+  if (SYNC_MODE) pushData_();
+  showSaveNote_('tplSaveNote');
+}
+function showSaveNote_(id) { const n = document.getElementById(id); if (!n) return; n.style.display = "inline"; setTimeout(() => n.style.display = "none", 1500); }
+
+function renderTaskTplForm() {
+  document.getElementById('taskTplBody').innerHTML = TASK_TEMPLATE.map((t, i) => `
+    <tr>
+      <td><input value="${esc(t.label)}" oninput="TASK_TEMPLATE[${i}].label=this.value"></td>
+      <td><input value="${t.offset}" style="width:60px" oninput="TASK_TEMPLATE[${i}].offset=parseInt(this.value,10)||0"> <span style="font-size:11px;color:var(--ink-3)">j avant</span></td>
+      <td><input value="${esc(t.responsable || '')}" placeholder="—" oninput="TASK_TEMPLATE[${i}].responsable=this.value"></td>
+      <td style="text-align:center"><input type="checkbox" ${t.blocking ? "checked" : ""} style="width:auto" onchange="TASK_TEMPLATE[${i}].blocking=this.checked"></td>
+      <td><button class="btn sm ghost" onclick="removeTaskTplRow(${i})">✕</button></td>
+    </tr>`).join("");
+}
+function addTaskTplRow() { TASK_TEMPLATE.push({ label: "Nouvelle tâche", offset: 3, blocking: false, responsable: "" }); renderTaskTplForm(); }
+function removeTaskTplRow(i) { TASK_TEMPLATE.splice(i, 1); renderTaskTplForm(); }
+function saveTaskTemplate() {
+  localStorage.setItem('rosarioTaskTpl', JSON.stringify(TASK_TEMPLATE));
+  if (SYNC_MODE) pushData_();
+  showSaveNote_('taskSaveNote');
+}
+
+function renderMenuForm_() {
+  document.getElementById('menuTbody').innerHTML = MENU.map((m, i) => `
+    <tr>
+      <td style="text-align:center"><input type="checkbox" ${m.included ? "checked" : ""} style="width:auto;cursor:pointer;" onchange="MENU[${i}].included=this.checked; updateMenuSummary_();"></td>
+      <td><input value="${esc(m.nom)}" oninput="MENU[${i}].nom=this.value"></td>
+      <td><input value="${m.prixUnitaire}" oninput="MENU[${i}].prixUnitaire=toNumber(this.value); updateMenuRow_(${i}); updateMenuSummary_();"></td>
+      <td><input value="${m.qtePerPers}" oninput="MENU[${i}].qtePerPers=toNumber(this.value); updateMenuRow_(${i}); updateMenuSummary_();"></td>
+      <td id="menuQte_${i}" style="font-weight:600">—</td>
+      <td id="menuPrixLigne_${i}">—</td>
+    </tr>`).join("");
+  MENU.forEach((m, i) => updateMenuRow_(i));
+  updateMenuSummary_();
+}
+function menuRefPax_() { return toNumber(document.getElementById('menuRefPax').value) || 0; }
+function updateMenuRow_(i) {
+  const m = MENU[i];
+  const qte = Math.ceil(toNumber(m.qtePerPers) * menuRefPax_());
+  const qEl = document.getElementById('menuQte_' + i), pEl = document.getElementById('menuPrixLigne_' + i);
+  if (qEl) qEl.textContent = qte;
+  if (pEl) pEl.textContent = fmtEUR(toNumber(m.prixUnitaire) * qte);
+}
+function onMenuRefPaxChange() { MENU.forEach((m, i) => updateMenuRow_(i)); updateMenuSummary_(); }
+function updateMenuSummary_() {
+  const active = MENU.filter(m => m.included);
+  const perPerson = active.reduce((s, m) => s + toNumber(m.qtePerPers), 0);
+  const pricePerPerson = active.reduce((s, m) => s + toNumber(m.qtePerPers) * toNumber(m.prixUnitaire), 0);
+  document.getElementById('menuSumPerPerson').textContent = perPerson.toLocaleString("fr-FR", { maximumFractionDigits: 2 }) + " / pers";
+  document.getElementById('menuSumPricePerPerson').textContent = fmtEUR(pricePerPerson) + " / pers";
+  document.getElementById('menuSumPriceTotal').textContent = fmtEUR(pricePerPerson * menuRefPax_());
+}
+function addMenuRow_() { MENU.push({ nom: "Nouveau plat", included: true, qtePerPers: 0.5, prixUnitaire: 0 }); renderMenuForm_(); }
+function saveMenu_() {
   localStorage.setItem('rosarioMenu', JSON.stringify(MENU));
   if (SYNC_MODE) pushData_();
-  const note = document.getElementById("saveNote");
-  note.style.display = "inline";
-  setTimeout(() => note.style.display = "none", 1500);
+  showSaveNote_('menuSaveNote');
 }
 
-function showSettingsSubtab(name) {
-  document.getElementById("settings-reponse").style.display = name === "reponse" ? "block" : "none";
-  document.getElementById("settings-menu").style.display = name === "menu" ? "block" : "none";
-  document.querySelectorAll(".subtab-btn").forEach(b => b.classList.toggle("active", b.dataset.subtab === name));
-}
-
-function showTab(tab) {
-  document.getElementById("view-list").style.display = tab === "list" ? "block" : "none";
-  document.getElementById("view-confirmed").style.display = tab === "confirmed" ? "block" : "none";
-  document.getElementById("view-clients").style.display = tab === "clients" ? "block" : "none";
-  document.getElementById("view-detail").style.display = tab === "detail" ? "block" : "none";
-  document.getElementById("view-settings").style.display = tab === "settings" ? "block" : "none";
-  document.querySelectorAll(".tab-btn").forEach(b => b.classList.toggle("active", b.dataset.tab === tab || (tab === "detail" && b.dataset.tab === originTab)));
-  if (tab === "settings") { loadTemplatesIntoForm(); renderMenuForm(); }
-  if (tab === "confirmed") renderConfirmedLists();
-  if (tab === "clients") renderClientsTable();
-}
-
+/* =========================================================================
+   BOOT
+   ========================================================================= */
 loadData();
 </script>
+
 </body>
 </html>
