@@ -27,6 +27,7 @@
     --amber: #e0a13a; --amber-d: #8a5a12; --amber-bg: #fdf7ec;
     --red: #d24b4b; --red-d: #a32d2d; --red-bg: #fbe2e2;
     --blue: #378add; --blue-d: #185fa5; --blue-bg: #e6f1fb;
+    --slate: #6b7280; --slate-d: #3f4654; --slate-bg: #eaecef;
   }
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; }
@@ -271,7 +272,7 @@
   .type-tag { font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 99px; display: inline-flex; align-items: center; white-space: nowrap; }
   .type-tag.privatisation { background: var(--bordeaux-100); color: var(--bordeaux-dark); }
   .type-tag.groupe { background: var(--blue-bg); color: var(--blue-d); }
-  .type-tag.prestation { background: var(--green-bg); color: var(--green-d); }
+  .type-tag.prestation { background: var(--slate-bg); color: var(--slate-d); }
   .pay-date { width: 110px; font-size: 12px; color: var(--ink-2); }
   .origine-select { width: auto; font-size: 11.5px; padding: 4px 8px; border-radius: 99px; border: 0.5px solid var(--border-strong); background: var(--surface-2); color: var(--ink-2); }
   .origine-select.caisse { background: var(--amber-bg); color: var(--amber-d); border-color: #eddcb3; }
@@ -1585,12 +1586,15 @@ function caRealiseHT_(r) {
 function confRow_(r, origin) {
   const idx = DATA.indexOf(r), tot = financeTotals(r.finance), t = tot.totalTTC, paid = paidAmount_(r.finance);
   const status = paid >= t - 0.01 ? '<span class="pill confirmed">Soldé</span>' : (paid > 0 ? '<span class="pill waiting">Partiel</span>' : '<span class="pill answer">Impayé</span>');
+  const espaceOpts = ["Salon privatif", "Étage", "Restaurant entier", "Terrasse"].map(o => `<option ${o === (r.espace || "Salon privatif") ? "selected" : ""}>${o}</option>`).join("");
+  const curType = (r.finance && r.finance.type) || "Privatisation";
+  const typeOpts = ["Privatisation", "Prestation", "Formule groupe"].map(o => `<option ${o === curType ? "selected" : ""}>${o}</option>`).join("");
   return `<tr class="row" onclick="openDetail(${idx}, '${origin}')">
     <td>${dateBlockHtml_(r.date)}</td>
     <td><div class="cl-name">${esc(r.client)}</div><div class="cl-sub">${esc(r.finance.service || "")}</div></td>
-    <td class="pax-cell">${toNumber(r.pax) > 0 ? r.pax : "—"}</td>
-    <td>${esc(r.espace || "—")}</td>
-    <td>${typeTagHtml_((r.finance && r.finance.type) || "Privatisation")}</td>
+    <td class="pax-cell"><input type="number" min="0" value="${toNumber(r.pax) || ""}" placeholder="—" onclick="event.stopPropagation()" onchange="onConfPaxInline_(${idx}, this.value)" style="width:52px; border:none; background:transparent; font:inherit; font-weight:inherit; color:inherit; padding:0;"></td>
+    <td><select onclick="event.stopPropagation()" onchange="onConfEspaceInline_(${idx}, this.value)" style="border:none; background:transparent; font:inherit; color:inherit; cursor:pointer; padding:0;">${espaceOpts}</select></td>
+    <td><select onclick="event.stopPropagation()" onchange="onConfTypeInline_(${idx}, this.value)" class="type-tag ${curType === 'Formule groupe' ? 'groupe' : curType === 'Prestation' ? 'prestation' : 'privatisation'}" style="border:none; cursor:pointer; appearance:none; -webkit-appearance:none;">${typeOpts}</select></td>
     <td class="amt-cell">${fmtEUR(tot.totalHT)}</td>
     <td>${status} <span style="font-size:11px;color:var(--ink-3);margin-left:4px">${fmtEUR(paid)}</span></td>
   </tr>`;
@@ -1705,8 +1709,8 @@ function quadRowConfirmed_(r) {
   return `
     <div class="quad-box editable" onclick="startQuadEdit_(this,'date')"><span class="qic">${TILE_ICONS_.calendar}</span><p class="qv">${esc(dateVal)}</p><p class="qs">date de l'événement</p></div>
     <div class="quad-box editable" onclick="startQuadEdit_(this,'pax')"><span class="qic">${TILE_ICONS_.people}</span><p class="qv">${toNumber(r.pax) > 0 ? r.pax + " personnes" : "?"}</p><p class="qs">personnes attendues</p></div>
-    <div class="quad-box" style="border-left:3px solid ${f.type === 'Formule groupe' ? 'var(--blue)' : f.type === 'Prestation' ? 'var(--green)' : 'var(--bordeaux-300)'}"><span class="qic">${TILE_ICONS_.prestation}</span>
-      <select id="detTypeSelect" onchange="onTypeInline_(this.value)" style="font-size:13px; padding:5px 0 0; margin:2px 0 0; border:none; background:transparent; font-weight:600; cursor:pointer; color:${f.type === 'Formule groupe' ? 'var(--blue-d)' : f.type === 'Prestation' ? 'var(--green-d)' : 'var(--bordeaux-dark)'}">
+    <div class="quad-box" style="border-left:3px solid ${f.type === 'Formule groupe' ? 'var(--blue)' : f.type === 'Prestation' ? 'var(--slate)' : 'var(--bordeaux-300)'}"><span class="qic">${TILE_ICONS_.prestation}</span>
+      <select id="detTypeSelect" onchange="onTypeInline_(this.value)" style="font-size:13px; padding:5px 0 0; margin:2px 0 0; border:none; background:transparent; font-weight:600; cursor:pointer; color:${f.type === 'Formule groupe' ? 'var(--blue-d)' : f.type === 'Prestation' ? 'var(--slate-d)' : 'var(--bordeaux-dark)'}">
         <option ${(f.type || "Privatisation") === "Privatisation" ? "selected" : ""}>Privatisation</option>
         <option ${f.type === "Prestation" ? "selected" : ""}>Prestation</option>
         <option ${f.type === "Formule groupe" ? "selected" : ""}>Formule groupe</option>
@@ -1852,24 +1856,45 @@ function renderDetInfo_(r) {
   if (!q) return;
   if (r.commentaire) { q.style.display = "block"; q.textContent = "« " + r.commentaire + " »"; } else q.style.display = "none";
 }
+// Formule groupe = tarif fixe (nourriture uniquement, le reste est réglé à la caisse) : on
+// pré-remplit le chiffrage à partir du pax et du tarif réglé dans Paramètres, mais ça reste
+// un point de départ — modifiable à la main ensuite comme n'importe quel autre chiffrage.
+// Un changement de pax après coup ne redéclenche pas ce calcul, pour ne jamais écraser une
+// correction manuelle : il suffit de rebasculer le type pour le relancer si besoin.
+function applyTypeChange_(r, val) {
+  if (!r || !r.finance) return;
+  r.finance.type = val;
+  if (val === "Formule groupe") {
+    r.finance.caCuisineHT = TARIF_GROUPE * (toNumber(r.pax) || 0);
+    r.finance.caAlcoolsHT = 0;
+  }
+}
 function onTypeInline_(val) {
   if (!currentReq || !currentReq.finance) return;
-  currentReq.finance.type = val;
-  // Formule groupe = tarif fixe (nourriture uniquement, le reste est réglé à la caisse) : on
-  // pré-remplit le chiffrage à partir du pax et du tarif réglé dans Paramètres, mais ça reste
-  // un point de départ — modifiable à la main ensuite comme n'importe quel autre chiffrage.
-  // Un changement de pax après coup ne redéclenche pas ce calcul, pour ne jamais écraser une
-  // correction manuelle : il suffit de rebasculer le type pour le relancer si besoin.
-  if (val === "Formule groupe") {
-    currentReq.finance.caCuisineHT = TARIF_GROUPE * (toNumber(currentReq.pax) || 0);
-    currentReq.finance.caAlcoolsHT = 0;
-  }
+  applyTypeChange_(currentReq, val);
   saveData();
   openDetail(DATA.indexOf(currentReq), backTarget);
 }
 function onEspaceInline_(val) {
   if (!currentReq) return;
   currentReq.espace = val;
+  saveData();
+}
+// Édition rapide depuis la liste Confirmées (espace / type / pax), sans ouvrir la fiche.
+function onConfEspaceInline_(idx, val) {
+  const r = DATA[idx]; if (!r) return;
+  r.espace = val;
+  saveData();
+}
+function onConfTypeInline_(idx, val) {
+  const r = DATA[idx]; if (!r) return;
+  applyTypeChange_(r, val);
+  saveData();
+  renderConfirmedTab_();
+}
+function onConfPaxInline_(idx, val) {
+  const r = DATA[idx]; if (!r) return;
+  r.pax = toNumber(val) || 0;
   saveData();
 }
 
