@@ -28,6 +28,7 @@
     --red: #d24b4b; --red-d: #a32d2d; --red-bg: #fbe2e2;
     --blue: #378add; --blue-d: #185fa5; --blue-bg: #e6f1fb;
     --slate: #6b7280; --slate-d: #3f4654; --slate-bg: #eaecef;
+    --violet: #7c6fae; --violet-d: #4f4470; --violet-bg: #ece9f5;
   }
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; }
@@ -270,7 +271,7 @@
   .pay-row:last-child { border: none; }
   .pay-ic { width: 28px; height: 28px; border-radius: 8px; background: var(--bordeaux-100); color: var(--bordeaux); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; flex-shrink: 0; }
   .type-tag { font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 99px; display: inline-flex; align-items: center; white-space: nowrap; }
-  .type-tag.privatisation { background: var(--bordeaux-100); color: var(--bordeaux-dark); }
+  .type-tag.privatisation { background: var(--violet-bg); color: var(--violet-d); }
   .type-tag.groupe { background: var(--blue-bg); color: var(--blue-d); }
   .type-tag.prestation { background: var(--slate-bg); color: var(--slate-d); }
   .pay-date { width: 110px; font-size: 12px; color: var(--ink-2); }
@@ -279,31 +280,6 @@
   .facture-link { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; background: var(--surface-2); border: 0.5px solid var(--border-strong); color: var(--ink-2); padding: 5px 10px; border-radius: 99px; text-decoration: none; margin: 0 6px 6px 0; }
   .facture-link:hover { color: var(--bordeaux); border-color: var(--bordeaux-300); }
 
-  /* ---- Rapprochement Qonto ---- */
-  .recon-notice { background: var(--blue-bg); border: 0.5px solid #cfe0f2; color: var(--blue-d); border-radius: 10px; padding: 10px 14px; font-size: 12px; line-height: 1.5; margin: 10px 0 18px; }
-  .recon-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; padding-bottom: 90px; }
-  .recon-col-title { font-size: 12px; font-weight: 500; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-3); margin: 0 0 11px; }
-  .recon-item { background: var(--surface); border: 1.5px solid var(--border); border-radius: 12px; padding: 12px 14px; margin-bottom: 10px; cursor: pointer; transition: border-color .12s, box-shadow .12s; }
-  .recon-item:hover { border-color: var(--border-strong); }
-  .recon-item.selected { border-color: var(--bordeaux); box-shadow: 0 0 0 3px var(--bordeaux-100); }
-  .recon-item.close-match { border-color: var(--green); }
-  .recon-item.close-match::after { content: "complète le montant attendu"; font-size: 10px; color: var(--green-d); background: var(--green-bg); padding: 1px 7px; border-radius: 99px; margin-left: 8px; }
-  .recon-item-top { display: flex; justify-content: space-between; gap: 10px; }
-  .recon-item .name { font-size: 13.5px; font-weight: 600; }
-  .recon-item .amt { font-size: 14px; font-weight: 600; white-space: nowrap; }
-  .recon-item .meta { font-size: 11.5px; color: var(--ink-2); margin-top: 3px; }
-  .recon-item .ref { font-size: 11px; color: var(--ink-3); margin-top: 2px; font-style: italic; }
-  .recon-item .progress { font-size: 11px; margin-top: 6px; padding-top: 6px; border-top: 0.5px solid var(--border); }
-  .recon-item .progress.partial { color: var(--amber-d); }
-  .recon-item .progress.full { color: var(--green-d); }
-  .recon-item .ignore { font-size: 11px; color: var(--ink-3); text-decoration: underline; background: none; border: none; cursor: pointer; margin-top: 6px; padding: 0; display: inline-block; }
-  .recon-link-bar { position: fixed; bottom: 0; left: 0; right: 0; background: var(--surface); border-top: 1px solid var(--border-strong); padding: 12px 20px; display: none; align-items: center; justify-content: center; gap: 18px; box-shadow: 0 -4px 16px rgba(0,0,0,.06); flex-wrap: wrap; z-index: 30; }
-  .recon-link-bar.on { display: flex; }
-  .recon-link-bar .side { font-size: 12.5px; }
-  .recon-link-bar .side b { color: var(--bordeaux-dark); }
-  .recon-link-bar .total { font-size: 13px; font-weight: 600; }
-  .recon-link-bar .total.ok { color: var(--green-d); }
-  .recon-link-bar .total.warn { color: var(--amber-d); }
 
   /* ---- Tasks ---- */
   .task { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 0.5px solid #f2f1ed; }
@@ -402,7 +378,6 @@
       <button id="nav-dashboard" class="on" onclick="showView('dashboard')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg><span class="lbl">Tableau de bord</span><span class="navb" id="navDashBadge" style="display:none">0</span></button>
       <button id="nav-confirmed" onclick="showView('confirmed')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4 12 14.01l-3-3"/></svg><span class="lbl">Confirmées</span></button>
       <button id="nav-tasks" onclick="showView('tasks')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="6" height="6" rx="1"/><path d="M11 6h9"/><rect x="3" y="14" width="6" height="6" rx="1"/><path d="M11 15h9"/></svg><span class="lbl">Tâches</span><span class="navb" id="navTasksBadge" style="display:none">0</span></button>
-      <button id="nav-recon" onclick="showView('recon')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 3H8a2 2 0 0 0-2 2v2h12V5a2 2 0 0 0-2-2z"/><path d="M12 12v4M10 14h4"/></svg><span class="lbl">Rapprochement</span><span class="navb" id="navReconBadge" style="display:none">0</span></button>
       <button id="nav-clients" onclick="showView('clients')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span class="lbl">Base clients</span></button>
       <button id="nav-settings" onclick="showView('settings')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span class="lbl">Paramètres</span></button>
     </nav>
@@ -472,30 +447,6 @@
   </div>
 
   <!-- ============ BASE CLIENTS ============ -->
-  <div class="view" id="view-recon">
-    <p class="sec-title"><span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 3H8a2 2 0 0 0-2 2v2h12V5a2 2 0 0 0-2-2z"/></svg></span> Rapprochement Qonto</p>
-    <div id="reconNotice" class="recon-notice"></div>
-    <div class="recon-cols">
-      <div>
-        <p class="recon-col-title">Privatisations à rapprocher <span class="count" id="reconCountLeft">0</span></p>
-        <div id="reconLeft"></div>
-      </div>
-      <div>
-        <p class="recon-col-title">Virements Qonto reçus <span class="count" id="reconCountRight">0</span></p>
-        <div id="reconRight"></div>
-      </div>
-    </div>
-  </div>
-
-  <div class="recon-link-bar" id="reconLinkBar">
-    <span class="side">Relier <b id="reconLbLeft">—</b></span>
-    <span style="color:var(--ink-3)">↔</span>
-    <span class="side" id="reconLbRightList">—</span>
-    <span class="total" id="reconLbTotal"></span>
-    <button class="btn primary" onclick="reconConfirmLink_()">✓ Relier</button>
-    <button class="btn ghost" onclick="reconClearSelection_()">Annuler</button>
-  </div>
-
   <div class="view" id="view-clients">
     <p class="sec-title"><span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span> Base clients <span class="count" id="clientsCount"></span></p>
     <div class="toolbar">
@@ -731,9 +682,9 @@
         <button class="btn" onclick="resetDemoData()">Réinitialiser les données locales</button>
       </div>
       <div class="panel">
-        <p class="panel-t">Historique — import ponctuel</p>
-        <p style="font-size:12.5px; color:var(--ink-2); margin:0 0 10px;">Rentre les 35 privatisations historiques (données fournies au départ, avec leur chiffrage et leurs paiements) dans le Sheet, une bonne fois pour toutes. Elles deviennent ensuite des demandes confirmées normales : éditables depuis la page comme directement dans le Sheet. Sans risque à relancer, les lignes déjà importées ne sont jamais dupliquées.</p>
-        <button class="btn" id="importHistoriqueBtn" onclick="importHistoriqueIntoSheet()">Importer l'historique dans le Sheet</button>
+        <p class="panel-t">Historique — réimport</p>
+        <p style="font-size:12.5px; color:var(--ink-2); margin:0 0 10px;">Réinstalle les 34 privatisations historiques (chiffrage + paiements) comme base de vérité dans le Sheet. Attention : ceci réinitialise ces lignes précises à ces valeurs de référence, en écrasant toute modification faite depuis sur CES lignes-là (les autres demandes ne sont jamais touchées). Une fois réimportées, ce sont tes modifications depuis la page qui font foi.</p>
+        <button class="btn" id="importHistoriqueBtn" onclick="importHistoriqueIntoSheet()">Réimporter l'historique dans le Sheet</button>
       </div>
     </div>
   </div>
@@ -893,18 +844,18 @@ const HISTORIQUE_CONFIRMES = [
   // Julien Benattar retiré de cet historique : c'est une demande déjà suivie en direct par l'outil
   // (visible dans le Sheet), pas un événement d'avant l'outil — la laisser ici aurait créé un
   // doublon (avec en plus un chiffrage périmé) au moment de l'import.
-  ["Eric Pizigo", "06/06/2026", "Déjeuner", 25, 1125, 0, "Paiement effectué", [{ canal: "Lien Sunday", montant: 563 }]],
-  ["Joia Silva", "13/06/2026", "Dîner", 9, 600, 200, "Paiement effectué", [{ canal: "Lien Sunday", montant: 450 }]],
+  ["Eric Pizigo", "06/06/2026", "Déjeuner", 25, 1100, 129, "Paiement effectué", [{ canal: "Lien Sunday", montant: 563 }, { canal: "CB", montant: 803 }]],
+  ["Joia Silva", "13/06/2026", "Dîner", 9, 607, 200, "Paiement effectué", [{ canal: "Lien Sunday", montant: 450 }, { canal: "CB", montant: 458 }]],
   ["Rosalie", "27/05/2026", "Dîner", 17, 765, 0, "Paiement effectué", [{ canal: "Lien Sunday", montant: 383 }]],
   ["Bpi / Business profilers", "18/06/2026", "Déjeuner", 50, 3000, 0, "Acompte versé", [{ canal: "Qonto", montant: 990 }]],
-  ["Hyperline", "26/06/2026", "Déjeuner", 22, 1120, 0, "Acompte versé", [{ canal: "Qonto", montant: 616 }]],
-  ["Alhaja", "16/06/2026", "Dîner", 0, 0, 800, "En attente d'acompte", []],
+  ["Hyperline", "26/06/2026", "Déjeuner", 22, 1069, 0, "Acompte versé", [{ canal: "Qonto", montant: 1176 }]],
+  ["Alhaja", "16/06/2026", "Dîner", 0, 0, 800, "En attente d'acompte", [{ canal: "Qonto", montant: 960 }]],
   ["PSG / Les camionneuses", "30/05/2026", "Dîner", 0, 1300, 0, "Paiement effectué", [{ canal: "Qonto", montant: 1430 }]],
-  ["Nareg / LVMH", "02/07/2026", "Dîner", 16, 1500, 403, "En attente d'acompte", []],
+  ["Nareg / LVMH", "02/07/2026", "Dîner", 16, 1500, 403, "En attente d'acompte", [{ canal: "Qonto", montant: 2133 }]],
   ["Fives", "17/06/2026", "Dîner", 16, 900, 200, "Paiement effectué", [{ canal: "Lien Sunday", montant: 615 }, { canal: "CB", montant: 615 }]]
 ];
 
-// Emails et sociétés retrouvés en fouillant l'historique Gmail (pour le rapprochement Qonto).
+// Emails et sociétés retrouvés en fouillant l'historique Gmail.
 const HISTORIQUE_EMAILS = {
   "Nathalie Gentili": "nathalie.gentili@protonmail.com",
   "Yara El-Haddad": "yara.el.haddad@gmail.com",
@@ -918,12 +869,12 @@ const HISTORIQUE_SOCIETES = {
   "Caroline Charles": "Caroline Charles Communication (EURL Caroline Charles)"
 };
 
-// Ces 35 lignes sont les données fournies en dur au départ pour les privatisations déjà confirmées
-// avant la mise en place de l'outil. Elles ne sont PAS fusionnées automatiquement à l'affichage :
-// il faut les importer une bonne fois pour toutes dans le Sheet (Paramètres > Données > "Importer
-// l'historique dans le Sheet"), après quoi ce sont des demandes confirmées normales, éditables
-// depuis la page comme directement dans le Sheet. L'id stable ("hist_N") sert uniquement à
-// l'import idempotent (relancer ne duplique jamais les lignes déjà importées).
+// Ces 34 lignes sont la base de vérité des privatisations confirmées avant la mise en place de
+// l'outil (Julien Benattar exclu : suivi en direct, pas un événement historique). Elles ne sont
+// PAS fusionnées automatiquement à l'affichage : il faut les (ré)installer dans le Sheet via
+// Paramètres > Historique > "Réimporter l'historique dans le Sheet", après quoi ce sont des
+// demandes confirmées normales, éditables depuis la page comme directement dans le Sheet. L'id
+// stable ("hist_N") sert de clé : chaque réimport réinitialise ces lignes précises à ces valeurs.
 const DATA_HISTORIQUE = HISTORIQUE_CONFIRMES.map(([client, date, service, pax, caCuisineHT, caAlcoolsHT, statutPaiement, paiements], i) => ({
   id: "hist_" + i,
   client, email: HISTORIQUE_EMAILS[client] || "", espace: pax > 20 ? "Restaurant entier" : "Salon privatif", date, pax, statut: "Confirmé",
@@ -932,8 +883,8 @@ const DATA_HISTORIQUE = HISTORIQUE_CONFIRMES.map(([client, date, service, pax, c
 }));
 
 let DATA = [];
-let QONTO_SUGGESTIONS = []; // virements Qonto pas encore rapprochés — déposés dans le Sheet depuis Cowork
 let SYNC_MODE = !!SCRIPT_URL;
+let CURRENT_REV = 0; // compteur de révision du Sheet — sert à détecter un écrasement par une session obsolète
 
 function esc(v) {
   return String(v == null ? "" : v)
@@ -965,13 +916,29 @@ function loadData() {
     return;
   }
 
+  // Des modifications de la session précédente n'ont peut-être jamais été confirmées envoyées
+  // (fermeture/rechargement juste après une frappe, réseau coupé...). On ne fait jamais confiance
+  // au cloud avant d'avoir d'abord repoussé ces données locales — sinon on écraserait
+  // silencieusement une saisie jamais synchronisée par une version plus ancienne du Sheet.
+  if (localStorage.getItem('rosarioDirty') === '1') {
+    DATA = localFallback();
+    unsavedChanges_ = true;
+    setSyncBanner_("Des modifications précédentes n'avaient pas été confirmées envoyées — nouvel essai en cours…", 'warn');
+    pushData_(() => loadDataFromCloud_());
+    return;
+  }
+  loadDataFromCloud_();
+}
+function loadDataFromCloud_() {
+  const localFallback = () => ensureIds_(JSON.parse(localStorage.getItem('rosarioData') || 'null') || DATA_DEFAULT.slice());
   setSyncBanner_("Connexion au cloud…", 'warn');
   fetch(SCRIPT_URL)
     .then(r => r.json())
     .then(json => {
-      QONTO_SUGGESTIONS = json.qontoSuggestions || [];
+      CURRENT_REV = json.rev || 0;
       if (json.data && json.data.length > 0) {
         DATA = ensureIds_(json.data);
+        localStorage.setItem('rosarioData', JSON.stringify(DATA));
         applyCloudConfig_(json.config);
         setSyncBanner_("Connecté au cloud — données partagées, à jour.", 'ok');
         afterDataLoaded_();
@@ -989,16 +956,19 @@ function loadData() {
     });
 }
 
-// Import ponctuel : rentre les 35 privatisations historiques (données fournies en dur, avec leur
-// chiffrage et leurs paiements) dans le Sheet — après quoi ce sont des demandes confirmées
-// normales, éditables depuis la page ou directement dans le Sheet, comme n'importe quelle autre.
-// Sans risque à relancer : idempotent par id, les lignes déjà importées ne sont jamais dupliquées.
+// Réimport : (ré)installe les privatisations historiques (données fournies en dur, avec leur
+// chiffrage et leurs paiements) comme base de vérité dans le Sheet — après quoi ce sont des
+// demandes confirmées normales, éditables depuis la page ou directement dans le Sheet. ATTENTION :
+// contrairement à un simple import, ceci RÉINITIALISE ces lignes précises (préfixe "hist_") à ces
+// valeurs de référence à chaque appel, en écrasant toute modification faite depuis dessus — c'est
+// volontaire, pour repartir d'une base garantie propre plutôt que de rapiécer des lignes
+// potentiellement corrompues. Les autres demandes ne sont jamais touchées.
 function importHistoriqueIntoSheet() {
   if (!SYNC_MODE) { setSyncBanner_("Connecte d'abord SCRIPT_URL pour importer l'historique.", 'error'); return; }
-  if (!confirm("Importer les " + DATA_HISTORIQUE.length + " privatisations historiques dans le Sheet, une bonne fois pour toutes ? Elles deviendront des demandes confirmées normales, éditables depuis la page ou le Sheet. Sans risque à relancer : les lignes déjà importées ne seront pas dupliquées.")) return;
+  if (!confirm("Réinitialiser les " + DATA_HISTORIQUE.length + " privatisations historiques dans le Sheet avec ces valeurs de référence ? Toute modification faite depuis sur CES lignes précises sera remplacée (les autres demandes ne sont pas touchées). Une fois fait, ce sont tes modifications depuis la page qui font foi.")) return;
   const btn = document.getElementById('importHistoriqueBtn');
   btn.disabled = true;
-  setSyncBanner_("Import de l'historique en cours…", 'warn');
+  setSyncBanner_("Réimport de l'historique en cours…", 'warn');
   fetch(SCRIPT_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'text/plain' },
@@ -1008,7 +978,7 @@ function importHistoriqueIntoSheet() {
     .then(json => {
       btn.disabled = false;
       if (json.ok) {
-        setSyncBanner_(json.created + " événement(s) importé(s), " + (json.repaired || 0) + " chiffrage(s) manquant(s) complété(s), " + json.skipped + " déjà complet(s).", 'ok');
+        setSyncBanner_(json.reimported + " privatisation(s) historique(s) réinstallée(s) comme base de vérité.", 'ok');
         loadData();
       } else {
         setSyncBanner_("Erreur pendant l'import : " + json.error, 'error');
@@ -1028,18 +998,34 @@ function afterDataLoaded_() {
 function pushData_(onDone) {
   localStorage.setItem('rosarioData', JSON.stringify(DATA));
   if (!SYNC_MODE) return;
+  pushInFlight_ = true;
   fetch(SCRIPT_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'text/plain' }, // évite le preflight CORS, Apps Script ne le gère pas
-    body: JSON.stringify({ data: DATA, config: { templates: TEMPLATES, menu: MENU, taskTpl: TASK_TEMPLATE, tarifGroupe: TARIF_GROUPE } })
+    body: JSON.stringify({ data: DATA, rev: CURRENT_REV, config: { templates: TEMPLATES, menu: MENU, taskTpl: TASK_TEMPLATE, tarifGroupe: TARIF_GROUPE } })
   })
     .then(r => r.json())
     .then(json => {
-      if (json.ok) { setSyncBanner_("Connecté au cloud — modifications enregistrées.", 'ok'); }
+      pushInFlight_ = false;
+      if (json.ok) {
+        unsavedChanges_ = false;
+        localStorage.removeItem('rosarioDirty');
+        if (json.rev !== undefined) CURRENT_REV = json.rev;
+        setSyncBanner_("Connecté au cloud — modifications enregistrées.", 'ok');
+      } else if (json.error === 'conflict') {
+        // Une autre session a sauvegardé entre-temps : on refuse d'écraser silencieusement, on
+        // recharge la dernière version du Sheet à la place. La modif en cours reste dans DATA/
+        // localStorage (rosarioDirty toujours posé) le temps que le rechargement se termine.
+        setSyncBanner_("Des données ont été modifiées ailleurs entre-temps — rechargement de la dernière version pour ne rien écraser…", 'error');
+        loadDataFromCloud_();
+      }
       else { setSyncBanner_("Erreur de synchronisation : " + json.error, 'error'); }
       if (onDone) onDone();
     })
-    .catch(err => setSyncBanner_("Erreur de synchronisation (" + err.message + ") — modification gardée en local seulement.", 'error'));
+    .catch(err => {
+      pushInFlight_ = false;
+      setSyncBanner_("Erreur de synchronisation (" + err.message + ") — modification gardée en local seulement.", 'error');
+    });
 }
 
 function scanGmailInbox() {
@@ -1077,17 +1063,53 @@ function scanGmailInbox() {
 // attend une courte pause dans la frappe avant de renvoyer tout le Sheet, plutôt que de le
 // réécrire en entier à chaque touche. Ça évite d'écraser en boucle une donnée que le scan Gmail
 // (côté serveur) aurait pu ajouter entre deux frappes, et ça réduit fortement le nombre de
-// requêtes envoyées. Un envoi est aussi forcé si l'onglet se ferme pendant la pause, pour ne
-// jamais perdre la toute dernière frappe.
+// requêtes envoyées.
+//
+// Le point délicat : si l'onglet se ferme (ou se recharge) pendant cette pause, un fetch()
+// classique lancé depuis beforeunload peut être interrompu par le navigateur avant d'arriver à
+// destination — la modif reste alors uniquement sur cet ordinateur, jamais sur le Sheet partagé.
+// Trois filets de sécurité contre ça :
+//  1. sendBeacon (conçu pour survivre à la fermeture d'un onglet, contrairement à fetch) sur
+//     beforeunload/pagehide/changement de visibilité — bien plus fiable qu'un fetch normal.
+//  2. Un flag 'rosarioDirty' persistant : tant qu'un envoi n'a pas été confirmé réussi, il reste
+//     posé. Au prochain chargement (même après un crash ou un sendBeacon qui aurait échoué), on
+//     repousse d'abord ces données avant de faire confiance au cloud — jamais un écrasement
+//     silencieux d'une modif non confirmée.
+//  3. Une confirmation native du navigateur ("quitter sans enregistrer ?") si on tente de fermer
+//     l'onglet pendant qu'un envoi est encore en attente ou en cours.
 let pushDebounceTimer_ = null;
+let unsavedChanges_ = false;
+let pushInFlight_ = false;
 function saveData() {
   localStorage.setItem('rosarioData', JSON.stringify(DATA));
   if (!SYNC_MODE) return;
+  unsavedChanges_ = true;
+  localStorage.setItem('rosarioDirty', '1');
   clearTimeout(pushDebounceTimer_);
   pushDebounceTimer_ = setTimeout(() => { pushDebounceTimer_ = null; pushData_(); }, 800);
 }
-window.addEventListener('beforeunload', () => {
-  if (pushDebounceTimer_) { clearTimeout(pushDebounceTimer_); pushDebounceTimer_ = null; pushData_(); }
+function flushPendingSave_() {
+  clearTimeout(pushDebounceTimer_); pushDebounceTimer_ = null;
+  if (!SYNC_MODE || !unsavedChanges_) return;
+  localStorage.setItem('rosarioData', JSON.stringify(DATA));
+  const body = JSON.stringify({ data: DATA, rev: CURRENT_REV, config: { templates: TEMPLATES, menu: MENU, taskTpl: TASK_TEMPLATE, tarifGroupe: TARIF_GROUPE } });
+  if (navigator.sendBeacon) {
+    navigator.sendBeacon(SCRIPT_URL, new Blob([body], { type: 'text/plain' }));
+  } else {
+    fetch(SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body, keepalive: true });
+  }
+  // On ne peut pas attendre la réponse ici (l'onglet est en train de se fermer) donc on ne peut
+  // pas confirmer que ça a marché — le flag 'rosarioDirty' reste posé et sera vérifié/rejoué au
+  // prochain chargement de la page, réussi ou non.
+}
+window.addEventListener('pagehide', flushPendingSave_);
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flushPendingSave_(); });
+window.addEventListener('beforeunload', (e) => {
+  flushPendingSave_();
+  if (unsavedChanges_ || pushInFlight_) {
+    e.preventDefault();
+    e.returnValue = '';
+  }
 });
 
 function resetDemoData() {
@@ -1390,7 +1412,6 @@ function renderCurrentView_() {
   else if (currentView === 'clients') renderClientsTable();
   else if (currentView === 'confirmed') renderConfirmedTab_();
   else if (currentView === 'tasks') renderTasksTab_();
-  else if (currentView === 'recon') renderRecon_();
   else if (currentView === 'settings') loadSettingsForms();
 }
 
@@ -1402,10 +1423,6 @@ function updateNavBadges_() {
   const openTasks = DATA.filter(r => r.statut === "Confirmé").reduce((s, r) => s + openTaskCount_(r), 0);
   const tb = document.getElementById('navTasksBadge');
   tb.textContent = openTasks; tb.style.display = openTasks ? 'inline-block' : 'none';
-
-  const pending = (QONTO_SUGGESTIONS || []).length;
-  const rb = document.getElementById('navReconBadge');
-  rb.textContent = pending; rb.style.display = pending ? 'inline-block' : 'none';
 }
 
 /* =========================================================================
@@ -1600,7 +1617,7 @@ function confRow_(r, origin) {
   </tr>`;
 }
 
-let confSort = { key: "event", dir: 1 };
+let confSort = { key: "event", dir: -1 };
 function confSetSort_(key, dir) { confSort = { key, dir }; renderConfirmedTab_(); }
 function renderConfirmedTab_() {
   const today = new Date(); today.setHours(0, 0, 0, 0);
@@ -1709,8 +1726,8 @@ function quadRowConfirmed_(r) {
   return `
     <div class="quad-box editable" onclick="startQuadEdit_(this,'date')"><span class="qic">${TILE_ICONS_.calendar}</span><p class="qv">${esc(dateVal)}</p><p class="qs">date de l'événement</p></div>
     <div class="quad-box editable" onclick="startQuadEdit_(this,'pax')"><span class="qic">${TILE_ICONS_.people}</span><p class="qv">${toNumber(r.pax) > 0 ? r.pax + " personnes" : "?"}</p><p class="qs">personnes attendues</p></div>
-    <div class="quad-box" style="border-left:3px solid ${f.type === 'Formule groupe' ? 'var(--blue)' : f.type === 'Prestation' ? 'var(--slate)' : 'var(--bordeaux-300)'}"><span class="qic">${TILE_ICONS_.prestation}</span>
-      <select id="detTypeSelect" onchange="onTypeInline_(this.value)" style="font-size:13px; padding:5px 0 0; margin:2px 0 0; border:none; background:transparent; font-weight:600; cursor:pointer; color:${f.type === 'Formule groupe' ? 'var(--blue-d)' : f.type === 'Prestation' ? 'var(--slate-d)' : 'var(--bordeaux-dark)'}">
+    <div class="quad-box" style="border-left:3px solid ${f.type === 'Formule groupe' ? 'var(--blue)' : f.type === 'Prestation' ? 'var(--slate)' : 'var(--violet)'}"><span class="qic">${TILE_ICONS_.prestation}</span>
+      <select id="detTypeSelect" onchange="onTypeInline_(this.value)" style="font-size:13px; padding:5px 0 0; margin:2px 0 0; border:none; background:transparent; font-weight:600; cursor:pointer; color:${f.type === 'Formule groupe' ? 'var(--blue-d)' : f.type === 'Prestation' ? 'var(--slate-d)' : 'var(--violet-d)'}">
         <option ${(f.type || "Privatisation") === "Privatisation" ? "selected" : ""}>Privatisation</option>
         <option ${f.type === "Prestation" ? "selected" : ""}>Prestation</option>
         <option ${f.type === "Formule groupe" ? "selected" : ""}>Formule groupe</option>
@@ -2068,135 +2085,14 @@ function addPaymentLine() { currentReq.finance.paiements = currentReq.finance.pa
 function removePaymentLine(i) { currentReq.finance.paiements.splice(i, 1); renderPaymentLines(); updateFinanceComputed(); saveData(); }
 function updatePayment(i, field, val) { currentReq.finance.paiements[i][field] = field === "montant" ? toNumber(val) : val; updateFinanceComputed(); saveData(); }
 
-// Factures liées (renseignées uniquement via le rapprochement Qonto — voir l'onglet dédié) :
-// simple liste de liens cliquables, rien n'est récupéré depuis le contenu des factures elles-mêmes.
+// Factures liées : simple liste de liens cliquables si des factureUrls existent sur la demande.
 function renderFactureLinks_(r) {
   const box = document.getElementById('finFactures');
   if (!box) return;
   const list = r.factureUrls || [];
   if (!list.length) { box.innerHTML = ''; return; }
-  box.innerHTML = '<p class="k" style="margin:0 0 8px">Factures liées (via rapprochement Qonto)</p>' +
+  box.innerHTML = '<p class="k" style="margin:0 0 8px">Factures liées</p>' +
     list.map(f => `<a href="${esc(f.url)}" target="_blank" class="facture-link">📄 ${esc(f.number || 'Facture')}</a>`).join('');
-}
-
-/* =========================================================================
-   RAPPROCHEMENT QONTO
-   Les virements Qonto pas encore rapprochés sont déposés dans le Sheet (onglet
-   QontoSuggestions) par un scan Qonto déclenché depuis Cowork — cette page n'appelle
-   jamais Qonto elle-même. Ici on choisit une privatisation à gauche, un ou plusieurs
-   virements à droite (plusieurs versements possibles), et on relie : ça ajoute des
-   lignes de paiement datées, met à jour le statut de paiement selon le total encaissé,
-   et associe le lien de facture si le virement en désigne une. Les montants
-   cuisine/alcool ne sont jamais touchés depuis cet écran.
-   ========================================================================= */
-let reconSelLeft = null;
-let reconSelRight = new Set();
-
-function reconEncaisse_(r) { return paidAmount_(r.finance); }
-function reconAttendu_(r) { return financeTotals(r.finance).totalTTC; }
-function reconIsClose_(a, b) { return Math.abs(a - b) <= Math.max(a, b, 1) * 0.05; }
-
-function renderRecon_() {
-  const left = DATA.filter(r => r.statut === "Confirmé" && r.finance && reconEncaisse_(r) < reconAttendu_(r) * 0.98);
-  const right = QONTO_SUGGESTIONS;
-  document.getElementById('reconCountLeft').textContent = left.length;
-  document.getElementById('reconCountRight').textContent = right.length;
-
-  document.getElementById('reconNotice').innerHTML = SYNC_MODE
-    ? "Les virements affichés ici viennent du dernier scan Qonto déclenché depuis Cowork — demande-moi de relancer un scan si une liste te semble périmée."
-    : "Mode local — connecte SCRIPT_URL pour voir les vrais virements Qonto.";
-
-  const selectedR = reconSelLeft ? DATA.find(r => r.id === reconSelLeft) : null;
-  const selSum = [...reconSelRight].reduce((s, id) => { const t = right.find(x => x.txId === id); return s + (t ? t.montant : 0); }, 0);
-  const already = selectedR ? reconEncaisse_(selectedR) : 0;
-
-  document.getElementById('reconLeft').innerHTML = left.length ? left.map(r => {
-    const enc = reconEncaisse_(r);
-    const att = reconAttendu_(r);
-    const progress = enc > 0 ? `<div class="progress partial">${fmtEUR(enc)} déjà encaissés sur ${fmtEUR(att)} attendus</div>` : `<div class="progress">${fmtEUR(att)} attendus</div>`;
-    return `<div class="recon-item ${reconSelLeft === r.id ? 'selected' : ''}" onclick="reconPickLeft_('${r.id}')">
-      <div class="recon-item-top"><span class="name">${esc(r.client)}</span></div>
-      <div class="meta">${esc(r.date || '')} — ${esc((r.finance && r.finance.service) || '')}</div>
-      ${progress}
-    </div>`;
-  }).join("") : '<p style="font-size:12.5px;color:var(--ink-3);">Rien à rapprocher — tout est encaissé.</p>';
-
-  document.getElementById('reconRight').innerHTML = right.length ? right.map(t => {
-    const wouldBeTotal = already + selSum + (reconSelRight.has(t.txId) ? 0 : t.montant);
-    const close = selectedR && !reconSelRight.has(t.txId) && reconIsClose_(reconAttendu_(selectedR), wouldBeTotal);
-    return `<div class="recon-item ${reconSelRight.has(t.txId) ? 'selected' : ''} ${close ? 'close-match' : ''}" onclick="reconToggleRight_('${t.txId}')">
-      <div class="recon-item-top"><span class="name">${esc(t.label)}</span><span class="amt">${fmtEUR(t.montant)}</span></div>
-      <div class="meta">Reçu le ${esc(t.date)}</div>
-      <div class="ref">Réf. ${esc(t.ref || '—')}${t.factureNumber ? ' — facture ' + esc(t.factureNumber) + ' liée automatiquement' : ''}</div>
-      <button class="ignore" onclick="event.stopPropagation(); reconIgnore_('${t.txId}')">Ignorer / je rapproche moi-même</button>
-    </div>`;
-  }).join("") : '<p style="font-size:12.5px;color:var(--ink-3);">Aucun virement en attente de rapprochement.</p>';
-
-  const bar = document.getElementById('reconLinkBar');
-  if (reconSelLeft && reconSelRight.size) {
-    bar.classList.add('on');
-    document.getElementById('reconLbLeft').textContent = selectedR.client;
-    document.getElementById('reconLbRightList').textContent = [...reconSelRight].map(id => right.find(t => t.txId === id).label).join(" + ");
-    const att = reconAttendu_(selectedR);
-    const totalEl = document.getElementById('reconLbTotal');
-    totalEl.textContent = fmtEUR(selSum) + (already ? " (+" + fmtEUR(already) + " déjà encaissés)" : "") + " sur " + fmtEUR(att) + " attendus";
-    totalEl.className = "total " + (reconIsClose_(already + selSum, att) || (already + selSum) >= att ? "ok" : "warn");
-  } else {
-    bar.classList.remove('on');
-  }
-}
-
-function reconPickLeft_(id) { reconSelLeft = (reconSelLeft === id ? null : id); reconSelRight = new Set(); renderRecon_(); }
-function reconToggleRight_(txId) {
-  if (!reconSelLeft) return;
-  if (reconSelRight.has(txId)) reconSelRight.delete(txId); else reconSelRight.add(txId);
-  renderRecon_();
-}
-function reconClearSelection_() { reconSelLeft = null; reconSelRight = new Set(); renderRecon_(); }
-
-function reconConfirmLink_() {
-  if (!SYNC_MODE) { setSyncBanner_("Connecte d'abord SCRIPT_URL.", 'error'); return; }
-  const r = DATA.find(x => x.id === reconSelLeft);
-  const chosen = QONTO_SUGGESTIONS.filter(t => reconSelRight.has(t.txId));
-  if (!r || !chosen.length) return;
-
-  const newPaiements = chosen.map(t => ({ canal: "Qonto", montant: t.montant, date: t.date }));
-  const newFactures = chosen.filter(t => t.factureNumber && t.factureUrl).map(t => ({ number: t.factureNumber, url: t.factureUrl }));
-  const totalApres = reconEncaisse_(r) + chosen.reduce((s, t) => s + t.montant, 0);
-  const attendu = reconAttendu_(r);
-  const statutPaiement = totalApres >= attendu * 0.98 ? "Paiement effectué" : (totalApres > 0 ? "Acompte versé" : r.finance.statutPaiement);
-  const txIds = chosen.map(t => t.txId);
-
-  fetch(SCRIPT_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'text/plain' },
-    body: JSON.stringify({ action: 'link_qonto_payment', demandeId: r.id, paiements: newPaiements, factureUrls: newFactures, statutPaiement, txIds })
-  })
-    .then(res => res.json())
-    .then(json => {
-      if (!json.ok) { setSyncBanner_("Erreur pendant le rapprochement : " + json.error, 'error'); return; }
-      r.finance.paiements = (r.finance.paiements || []).concat(newPaiements);
-      r.finance.statutPaiement = statutPaiement;
-      r.factureUrls = (r.factureUrls || []).concat(newFactures.filter(f => !(r.factureUrls || []).some(e => e.number === f.number)));
-      QONTO_SUGGESTIONS = QONTO_SUGGESTIONS.filter(t => !txIds.includes(t.txId));
-      localStorage.setItem('rosarioData', JSON.stringify(DATA));
-      setSyncBanner_("Rapprochement enregistré — " + r.client + " (" + fmtEUR(chosen.reduce((s, t) => s + t.montant, 0)) + ").", 'ok');
-      reconSelLeft = null; reconSelRight = new Set();
-      renderRecon_();
-    })
-    .catch(err => setSyncBanner_("Erreur pendant le rapprochement (" + err.message + ").", 'error'));
-}
-
-function reconIgnore_(txId) {
-  if (!SYNC_MODE) { QONTO_SUGGESTIONS = QONTO_SUGGESTIONS.filter(t => t.txId !== txId); renderRecon_(); return; }
-  fetch(SCRIPT_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'text/plain' },
-    body: JSON.stringify({ action: 'dismiss_qonto_suggestion', txId })
-  }).then(res => res.json()).then(json => {
-    if (json.ok) { QONTO_SUGGESTIONS = QONTO_SUGGESTIONS.filter(t => t.txId !== txId); reconSelRight.delete(txId); renderRecon_(); }
-    else setSyncBanner_("Erreur : " + json.error, 'error');
-  }).catch(err => setSyncBanner_("Erreur (" + err.message + ").", 'error'));
 }
 
 /* ---- pane tasks ---- */
