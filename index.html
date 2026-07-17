@@ -271,7 +271,10 @@
   .type-tag { font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 99px; display: inline-flex; align-items: center; white-space: nowrap; }
   .type-tag.privatisation { background: var(--bordeaux-100); color: var(--bordeaux-dark); }
   .type-tag.groupe { background: var(--blue-bg); color: var(--blue-d); }
+  .type-tag.prestation { background: var(--green-bg); color: var(--green-d); }
   .pay-date { width: 110px; font-size: 12px; color: var(--ink-2); }
+  .origine-select { width: auto; font-size: 11.5px; padding: 4px 8px; border-radius: 99px; border: 0.5px solid var(--border-strong); background: var(--surface-2); color: var(--ink-2); }
+  .origine-select.caisse { background: var(--amber-bg); color: var(--amber-d); border-color: #eddcb3; }
   .facture-link { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; background: var(--surface-2); border: 0.5px solid var(--border-strong); color: var(--ink-2); padding: 5px 10px; border-radius: 99px; text-decoration: none; margin: 0 6px 6px 0; }
   .facture-link:hover { color: var(--bordeaux); border-color: var(--bordeaux-300); }
 
@@ -1208,8 +1211,9 @@ function timelineEntryDate_(t) {
 /* ---- Nombres / finance ---- */
 function toNumber(v) { return typeof v === "number" ? v : (parseFloat(String(v).trim().replace(",", ".")) || 0); }
 function typeTagHtml_(type) {
-  const isGroupe = type === "Formule groupe";
-  return `<span class="type-tag ${isGroupe ? 'groupe' : 'privatisation'}">${isGroupe ? 'Formule groupe' : 'Privatisation'}</span>`;
+  const cls = type === "Formule groupe" ? "groupe" : type === "Prestation" ? "prestation" : "privatisation";
+  const label = type === "Formule groupe" ? "Formule groupe" : type === "Prestation" ? "Prestation" : "Privatisation";
+  return `<span class="type-tag ${cls}">${label}</span>`;
 }
 function fmtEUR(n) { return (Math.round((n || 0) * 100) / 100).toLocaleString("fr-FR", { minimumFractionDigits: 0, maximumFractionDigits: 0 }) + " €"; }
 function fmtEUR2(n) { return (Math.round((n || 0) * 100) / 100).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €"; }
@@ -1565,6 +1569,19 @@ function renderClientsTable() {
    ========================================================================= */
 function kpi_(lbl, val, sub) { return `<div class="kpi"><p class="lbl">${lbl}</p><p class="val">${val}</p><p class="sub">${sub}</p></div>`; }
 
+// CA réalisé HT d'une demande, en retirant la part déjà encaissée directement en caisse
+// (Lightspeed) — sinon ce CA serait compté deux fois entre cet outil et Lightspeed. On convertit
+// le montant caisse (TTC) en HT au prorata du ratio HT/TTC réel de la demande, plutôt que de
+// supposer un taux de TVA fixe. Le suivi encaissé/solde de la fiche, lui, n'est pas concerné :
+// il continue de compter toutes les lignes de paiement normalement.
+function caRealiseHT_(r) {
+  const tot = financeTotals(r.finance);
+  const caisseTTC = (r.finance && r.finance.paiements || []).filter(p => p.origine === "Caisse").reduce((s, p) => s + toNumber(p.montant), 0);
+  if (caisseTTC <= 0) return tot.totalHT;
+  const ratio = tot.totalTTC > 0 ? tot.totalHT / tot.totalTTC : 0;
+  return Math.max(0, tot.totalHT - caisseTTC * ratio);
+}
+
 function confRow_(r, origin) {
   const idx = DATA.indexOf(r), tot = financeTotals(r.finance), t = tot.totalTTC, paid = paidAmount_(r.finance);
   const status = paid >= t - 0.01 ? '<span class="pill confirmed">Soldé</span>' : (paid > 0 ? '<span class="pill waiting">Partiel</span>' : '<span class="pill answer">Impayé</span>');
@@ -1590,7 +1607,7 @@ function renderConfirmedTab_() {
   past.sort(sortCmp); upcoming.sort(sortCmp);
   updateSortCarets_('confup', confSort, ['pax', 'event']);
   updateSortCarets_('confpast', confSort, ['pax', 'event']);
-  const caReal = past.reduce((s, r) => s + financeTotals(r.finance).totalHT, 0);
+  const caReal = past.reduce((s, r) => s + caRealiseHT_(r), 0);
   const panier = past.length ? caReal / past.length : 0;
   const enAttente = confirmed.reduce((s, r) => s + Math.max(0, financeTotals(r.finance).totalTTC - paidAmount_(r.finance)), 0);
 
@@ -1601,7 +1618,7 @@ function renderConfirmedTab_() {
     kpi_("Encaissements en attente", fmtEUR(enAttente), "acomptes + soldes dus");
 
   const byMonth = {};
-  past.forEach(r => { const d = parseDate(r.date); if (!d) return; const k = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0"); byMonth[k] = (byMonth[k] || 0) + financeTotals(r.finance).totalHT; });
+  past.forEach(r => { const d = parseDate(r.date); if (!d) return; const k = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0"); byMonth[k] = (byMonth[k] || 0) + caRealiseHT_(r); });
   const keys = Object.keys(byMonth).sort().slice(-8);
   const max = Math.max(1, ...keys.map(k => byMonth[k]));
   document.getElementById('histChart').innerHTML = keys.map((k, i) => {
@@ -1688,9 +1705,10 @@ function quadRowConfirmed_(r) {
   return `
     <div class="quad-box editable" onclick="startQuadEdit_(this,'date')"><span class="qic">${TILE_ICONS_.calendar}</span><p class="qv">${esc(dateVal)}</p><p class="qs">date de l'événement</p></div>
     <div class="quad-box editable" onclick="startQuadEdit_(this,'pax')"><span class="qic">${TILE_ICONS_.people}</span><p class="qv">${toNumber(r.pax) > 0 ? r.pax + " personnes" : "?"}</p><p class="qs">personnes attendues</p></div>
-    <div class="quad-box" style="border-left:3px solid ${f.type === 'Formule groupe' ? 'var(--blue)' : 'var(--bordeaux-300)'}"><span class="qic">${TILE_ICONS_.prestation}</span>
-      <select id="detTypeSelect" onchange="onTypeInline_(this.value)" style="font-size:13px; padding:5px 0 0; margin:2px 0 0; border:none; background:transparent; font-weight:600; cursor:pointer; color:${f.type === 'Formule groupe' ? 'var(--blue-d)' : 'var(--bordeaux-dark)'}">
+    <div class="quad-box" style="border-left:3px solid ${f.type === 'Formule groupe' ? 'var(--blue)' : f.type === 'Prestation' ? 'var(--green)' : 'var(--bordeaux-300)'}"><span class="qic">${TILE_ICONS_.prestation}</span>
+      <select id="detTypeSelect" onchange="onTypeInline_(this.value)" style="font-size:13px; padding:5px 0 0; margin:2px 0 0; border:none; background:transparent; font-weight:600; cursor:pointer; color:${f.type === 'Formule groupe' ? 'var(--blue-d)' : f.type === 'Prestation' ? 'var(--green-d)' : 'var(--bordeaux-dark)'}">
         <option ${(f.type || "Privatisation") === "Privatisation" ? "selected" : ""}>Privatisation</option>
+        <option ${f.type === "Prestation" ? "selected" : ""}>Prestation</option>
         <option ${f.type === "Formule groupe" ? "selected" : ""}>Formule groupe</option>
       </select>
       <select onchange="onEspaceInline_(this.value)" style="font-size:12px; padding:2px 0 0; margin:0; border:none; background:transparent; color:var(--ink-2); cursor:pointer;">${espaceOptions}</select>
@@ -2014,10 +2032,14 @@ function renderPaymentLines() {
       <select style="width:auto;flex:1;max-width:160px" onchange="updatePayment(${i},'canal',this.value)">${PAYMENT_CHANNELS.map(c => `<option ${c === p.canal ? "selected" : ""}>${c}</option>`).join("")}</select>
       <input style="width:120px" value="${p.montant}" oninput="updatePayment(${i},'montant',this.value)">
       <input class="pay-date" placeholder="jj/mm/aaaa" value="${esc(p.date || '')}" oninput="updatePayment(${i},'date',this.value)">
+      <select class="origine-select ${(p.origine || 'Facture') === 'Caisse' ? 'caisse' : ''}" onchange="updatePayment(${i},'origine',this.value)" title="Facture = hors caisse (viré/facturé). Caisse = déjà encaissé dans Lightspeed, retiré du CA réalisé pour ne pas compter deux fois.">
+        <option ${(p.origine || 'Facture') === 'Facture' ? 'selected' : ''}>Facture</option>
+        <option ${p.origine === 'Caisse' ? 'selected' : ''}>Caisse</option>
+      </select>
       <button class="btn sm ghost" onclick="removePaymentLine(${i})">Retirer</button>
     </div>`).join("");
 }
-function addPaymentLine() { currentReq.finance.paiements = currentReq.finance.paiements || []; currentReq.finance.paiements.push({ canal: "Qonto", montant: 0, date: todayStr_() }); renderPaymentLines(); updateFinanceComputed(); saveData(); }
+function addPaymentLine() { currentReq.finance.paiements = currentReq.finance.paiements || []; currentReq.finance.paiements.push({ canal: "Qonto", montant: 0, date: todayStr_(), origine: "Facture" }); renderPaymentLines(); updateFinanceComputed(); saveData(); }
 function removePaymentLine(i) { currentReq.finance.paiements.splice(i, 1); renderPaymentLines(); updateFinanceComputed(); saveData(); }
 function updatePayment(i, field, val) { currentReq.finance.paiements[i][field] = field === "montant" ? toNumber(val) : val; updateFinanceComputed(); saveData(); }
 
