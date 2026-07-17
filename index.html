@@ -268,6 +268,9 @@
   .pay-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 0.5px solid #f2f1ed; }
   .pay-row:last-child { border: none; }
   .pay-ic { width: 28px; height: 28px; border-radius: 8px; background: var(--bordeaux-100); color: var(--bordeaux); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; flex-shrink: 0; }
+  .type-tag { font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 99px; display: inline-flex; align-items: center; white-space: nowrap; }
+  .type-tag.privatisation { background: var(--bordeaux-100); color: var(--bordeaux-dark); }
+  .type-tag.groupe { background: var(--blue-bg); color: var(--blue-d); }
   .pay-date { width: 110px; font-size: 12px; color: var(--ink-2); }
   .facture-link { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; background: var(--surface-2); border: 0.5px solid var(--border-strong); color: var(--ink-2); padding: 5px 10px; border-radius: 99px; text-decoration: none; margin: 0 6px 6px 0; }
   .facture-link:hover { color: var(--bordeaux); border-color: var(--bordeaux-300); }
@@ -687,7 +690,14 @@
       <div class="tpl-card"><p class="name">Salon privatif (20 pers)</p><textarea id="tplSalon" rows="4"></textarea></div>
       <div class="tpl-card"><p class="name">Étage (45 pers)</p><textarea id="tplEtage" rows="4"></textarea></div>
       <div class="tpl-card"><p class="name">Établissement entier (100 pers)</p><textarea id="tplEtablissement" rows="4"></textarea></div>
-      <div class="tpl-card"><p class="name">Formule groupe (45 €/pers)</p><textarea id="tplGroupe" rows="3"></textarea></div>
+      <div class="tpl-card">
+        <p class="name">Formule groupe</p>
+        <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+          <label class="k" style="margin:0;">Tarif (€ HT / pers, nourriture uniquement)</label>
+          <input id="tarifGroupeInput" type="number" style="width:90px">
+        </div>
+        <textarea id="tplGroupe" rows="3"></textarea>
+      </div>
     </div>
 
     <div id="set-menu" style="display:none">
@@ -1017,7 +1027,7 @@ function pushData_(onDone) {
   fetch(SCRIPT_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'text/plain' }, // évite le preflight CORS, Apps Script ne le gère pas
-    body: JSON.stringify({ data: DATA, config: { templates: TEMPLATES, menu: MENU, taskTpl: TASK_TEMPLATE } })
+    body: JSON.stringify({ data: DATA, config: { templates: TEMPLATES, menu: MENU, taskTpl: TASK_TEMPLATE, tarifGroupe: TARIF_GROUPE } })
   })
     .then(r => r.json())
     .then(json => {
@@ -1123,12 +1133,16 @@ const MENU_DEFAULT = [
   { nom: "Bellota", prix: 28 }
 ].map(d => ({ nom: d.nom, included: true, qtePerPers: 0.5, prixUnitaire: d.prix }));
 let MENU = JSON.parse(localStorage.getItem('rosarioMenu') || 'null') || MENU_DEFAULT;
+// Tarif fixe des formules groupe (€ HT par personne, nourriture uniquement — le reste est
+// réglé sur place à la caisse et n'est pas suivi ici). Réglable dans Paramètres > Espaces & formules.
+let TARIF_GROUPE = Number(localStorage.getItem('rosarioTarifGroupe')) || 45;
 
 function applyCloudConfig_(config) {
   if (!config) return;
   if (config.templates) { TEMPLATES = Object.assign({}, DEFAULT_TEMPLATES, config.templates); localStorage.setItem('rosarioTemplates', JSON.stringify(TEMPLATES)); }
   if (config.menu) { MENU = config.menu; localStorage.setItem('rosarioMenu', JSON.stringify(MENU)); }
   if (config.taskTpl) { TASK_TEMPLATE = config.taskTpl; localStorage.setItem('rosarioTaskTpl', JSON.stringify(TASK_TEMPLATE)); }
+  if (config.tarifGroupe) { TARIF_GROUPE = Number(config.tarifGroupe) || 45; localStorage.setItem('rosarioTarifGroupe', TARIF_GROUPE); }
 }
 
 let currentReq = null;
@@ -1193,6 +1207,10 @@ function timelineEntryDate_(t) {
 
 /* ---- Nombres / finance ---- */
 function toNumber(v) { return typeof v === "number" ? v : (parseFloat(String(v).trim().replace(",", ".")) || 0); }
+function typeTagHtml_(type) {
+  const isGroupe = type === "Formule groupe";
+  return `<span class="type-tag ${isGroupe ? 'groupe' : 'privatisation'}">${isGroupe ? 'Formule groupe' : 'Privatisation'}</span>`;
+}
 function fmtEUR(n) { return (Math.round((n || 0) * 100) / 100).toLocaleString("fr-FR", { minimumFractionDigits: 0, maximumFractionDigits: 0 }) + " €"; }
 function fmtEUR2(n) { return (Math.round((n || 0) * 100) / 100).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €"; }
 function fmtEURCompact_(n) {
@@ -1413,10 +1431,10 @@ function eventRow_(r) {
   let flag = "";
   if (t > 0.01 && paid < t * DEPOSIT_RATE - 0.01 && dju !== null && dju <= 10) flag = '<span class="tag red">Acompte en retard</span>';
   else if (openTaskCount_(r) > 0 && dju !== null && dju <= 7) flag = '<span class="tag amber">' + openTaskCount_(r) + ' tâche' + (openTaskCount_(r) > 1 ? 's' : '') + '</span>';
-  const sub = [toNumber(r.pax) > 0 ? "👥 " + r.pax + " pers" : null, r.finance && r.finance.service ? "🍽 " + r.finance.service.toLowerCase() : null, r.espace, (r.finance && r.finance.type) || "Privatisation"].filter(Boolean);
+  const sub = [toNumber(r.pax) > 0 ? "👥 " + r.pax + " pers" : null, r.finance && r.finance.service ? "🍽 " + r.finance.service.toLowerCase() : null, r.espace].filter(Boolean);
   return `<div class="ev" onclick="openDetail(${idx}, 'dashboard')">
     <div class="dblock"><p class="m">${d ? MOIS_COURT_[d.getMonth()] : "—"}</p><p class="d">${d ? d.getDate() : "?"}</p><p class="w">${d ? JOURS_COURT_[d.getDay()] : ""}</p></div>
-    <div class="ev-main"><p class="ev-name">${esc(r.client)} ${flag}</p><p class="ev-sub">${sub.map(s => "<span>" + esc(s) + "</span>").join("")}</p></div>
+    <div class="ev-main"><p class="ev-name">${esc(r.client)} ${flag} ${typeTagHtml_((r.finance && r.finance.type) || "Privatisation")}</p><p class="ev-sub">${sub.map(s => "<span>" + esc(s) + "</span>").join("")}</p></div>
     <div class="ev-prog"><p class="pt"><span>Encaissé</span><span>${pct} %</span></p><div class="bar"><i style="width:${Math.max(2, pct)}%;background:${barColor}"></i></div></div>
     <p class="ev-amt">${t > 0.01 ? fmtEUR(t) : "—"}</p>
   </div>`;
@@ -1555,7 +1573,7 @@ function confRow_(r, origin) {
     <td><div class="cl-name">${esc(r.client)}</div><div class="cl-sub">${esc(r.finance.service || "")}</div></td>
     <td class="pax-cell">${toNumber(r.pax) > 0 ? r.pax : "—"}</td>
     <td>${esc(r.espace || "—")}</td>
-    <td><span class="tag" style="background:var(--bordeaux-100);color:var(--bordeaux-dark)">${esc((r.finance && r.finance.type) || "Privatisation")}</span></td>
+    <td>${typeTagHtml_((r.finance && r.finance.type) || "Privatisation")}</td>
     <td class="amt-cell">${fmtEUR(tot.totalHT)}</td>
     <td>${status} <span style="font-size:11px;color:var(--ink-3);margin-left:4px">${fmtEUR(paid)}</span></td>
   </tr>`;
@@ -1670,8 +1688,8 @@ function quadRowConfirmed_(r) {
   return `
     <div class="quad-box editable" onclick="startQuadEdit_(this,'date')"><span class="qic">${TILE_ICONS_.calendar}</span><p class="qv">${esc(dateVal)}</p><p class="qs">date de l'événement</p></div>
     <div class="quad-box editable" onclick="startQuadEdit_(this,'pax')"><span class="qic">${TILE_ICONS_.people}</span><p class="qv">${toNumber(r.pax) > 0 ? r.pax + " personnes" : "?"}</p><p class="qs">personnes attendues</p></div>
-    <div class="quad-box"><span class="qic">${TILE_ICONS_.prestation}</span>
-      <select id="detTypeSelect" onchange="onTypeInline_(this.value)" style="font-size:13px; padding:5px 0 0; margin:2px 0 0; border:none; background:transparent; font-weight:600; cursor:pointer;">
+    <div class="quad-box" style="border-left:3px solid ${f.type === 'Formule groupe' ? 'var(--blue)' : 'var(--bordeaux-300)'}"><span class="qic">${TILE_ICONS_.prestation}</span>
+      <select id="detTypeSelect" onchange="onTypeInline_(this.value)" style="font-size:13px; padding:5px 0 0; margin:2px 0 0; border:none; background:transparent; font-weight:600; cursor:pointer; color:${f.type === 'Formule groupe' ? 'var(--blue-d)' : 'var(--bordeaux-dark)'}">
         <option ${(f.type || "Privatisation") === "Privatisation" ? "selected" : ""}>Privatisation</option>
         <option ${f.type === "Formule groupe" ? "selected" : ""}>Formule groupe</option>
       </select>
@@ -1819,8 +1837,17 @@ function renderDetInfo_(r) {
 function onTypeInline_(val) {
   if (!currentReq || !currentReq.finance) return;
   currentReq.finance.type = val;
+  // Formule groupe = tarif fixe (nourriture uniquement, le reste est réglé à la caisse) : on
+  // pré-remplit le chiffrage à partir du pax et du tarif réglé dans Paramètres, mais ça reste
+  // un point de départ — modifiable à la main ensuite comme n'importe quel autre chiffrage.
+  // Un changement de pax après coup ne redéclenche pas ce calcul, pour ne jamais écraser une
+  // correction manuelle : il suffit de rebasculer le type pour le relancer si besoin.
+  if (val === "Formule groupe") {
+    currentReq.finance.caCuisineHT = TARIF_GROUPE * (toNumber(currentReq.pax) || 0);
+    currentReq.finance.caAlcoolsHT = 0;
+  }
   saveData();
-  if (document.getElementById('finSociete')) renderFinance_(currentReq); // resynchronise l'onglet Finances si déjà ouvert
+  openDetail(DATA.indexOf(currentReq), backTarget);
 }
 function onEspaceInline_(val) {
   if (!currentReq) return;
@@ -2321,6 +2348,7 @@ function loadSettingsForms() {
   g('tplRelance').value = TEMPLATES.relance; g('tplCloture').value = TEMPLATES.cloture;
   g('tplSigTheodore').value = TEMPLATES.sigTheodore; g('tplSigAdrien').value = TEMPLATES.sigAdrien;
   g('tplSalon').value = TEMPLATES.salon; g('tplEtage').value = TEMPLATES.etage; g('tplEtablissement').value = TEMPLATES.etablissement; g('tplGroupe').value = TEMPLATES.groupe;
+  g('tarifGroupeInput').value = TARIF_GROUPE;
   renderTaskTplForm();
 }
 function saveTemplates() {
@@ -2331,6 +2359,8 @@ function saveTemplates() {
     salon: g('tplSalon'), etage: g('tplEtage'), etablissement: g('tplEtablissement'), groupe: g('tplGroupe')
   });
   localStorage.setItem('rosarioTemplates', JSON.stringify(TEMPLATES));
+  TARIF_GROUPE = Number(g('tarifGroupeInput')) || 45;
+  localStorage.setItem('rosarioTarifGroupe', TARIF_GROUPE);
   if (SYNC_MODE) pushData_();
   showSaveNote_('tplSaveNote');
 }
