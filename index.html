@@ -268,6 +268,35 @@
   .pay-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 0.5px solid #f2f1ed; }
   .pay-row:last-child { border: none; }
   .pay-ic { width: 28px; height: 28px; border-radius: 8px; background: var(--bordeaux-100); color: var(--bordeaux); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; flex-shrink: 0; }
+  .pay-date { width: 110px; font-size: 12px; color: var(--ink-2); }
+  .facture-link { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; background: var(--surface-2); border: 0.5px solid var(--border-strong); color: var(--ink-2); padding: 5px 10px; border-radius: 99px; text-decoration: none; margin: 0 6px 6px 0; }
+  .facture-link:hover { color: var(--bordeaux); border-color: var(--bordeaux-300); }
+
+  /* ---- Rapprochement Qonto ---- */
+  .recon-notice { background: var(--blue-bg); border: 0.5px solid #cfe0f2; color: var(--blue-d); border-radius: 10px; padding: 10px 14px; font-size: 12px; line-height: 1.5; margin: 10px 0 18px; }
+  .recon-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; padding-bottom: 90px; }
+  .recon-col-title { font-size: 12px; font-weight: 500; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-3); margin: 0 0 11px; }
+  .recon-item { background: var(--surface); border: 1.5px solid var(--border); border-radius: 12px; padding: 12px 14px; margin-bottom: 10px; cursor: pointer; transition: border-color .12s, box-shadow .12s; }
+  .recon-item:hover { border-color: var(--border-strong); }
+  .recon-item.selected { border-color: var(--bordeaux); box-shadow: 0 0 0 3px var(--bordeaux-100); }
+  .recon-item.close-match { border-color: var(--green); }
+  .recon-item.close-match::after { content: "complète le montant attendu"; font-size: 10px; color: var(--green-d); background: var(--green-bg); padding: 1px 7px; border-radius: 99px; margin-left: 8px; }
+  .recon-item-top { display: flex; justify-content: space-between; gap: 10px; }
+  .recon-item .name { font-size: 13.5px; font-weight: 600; }
+  .recon-item .amt { font-size: 14px; font-weight: 600; white-space: nowrap; }
+  .recon-item .meta { font-size: 11.5px; color: var(--ink-2); margin-top: 3px; }
+  .recon-item .ref { font-size: 11px; color: var(--ink-3); margin-top: 2px; font-style: italic; }
+  .recon-item .progress { font-size: 11px; margin-top: 6px; padding-top: 6px; border-top: 0.5px solid var(--border); }
+  .recon-item .progress.partial { color: var(--amber-d); }
+  .recon-item .progress.full { color: var(--green-d); }
+  .recon-item .ignore { font-size: 11px; color: var(--ink-3); text-decoration: underline; background: none; border: none; cursor: pointer; margin-top: 6px; padding: 0; display: inline-block; }
+  .recon-link-bar { position: fixed; bottom: 0; left: 0; right: 0; background: var(--surface); border-top: 1px solid var(--border-strong); padding: 12px 20px; display: none; align-items: center; justify-content: center; gap: 18px; box-shadow: 0 -4px 16px rgba(0,0,0,.06); flex-wrap: wrap; z-index: 30; }
+  .recon-link-bar.on { display: flex; }
+  .recon-link-bar .side { font-size: 12.5px; }
+  .recon-link-bar .side b { color: var(--bordeaux-dark); }
+  .recon-link-bar .total { font-size: 13px; font-weight: 600; }
+  .recon-link-bar .total.ok { color: var(--green-d); }
+  .recon-link-bar .total.warn { color: var(--amber-d); }
 
   /* ---- Tasks ---- */
   .task { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 0.5px solid #f2f1ed; }
@@ -366,6 +395,7 @@
       <button id="nav-dashboard" class="on" onclick="showView('dashboard')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg><span class="lbl">Tableau de bord</span><span class="navb" id="navDashBadge" style="display:none">0</span></button>
       <button id="nav-confirmed" onclick="showView('confirmed')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4 12 14.01l-3-3"/></svg><span class="lbl">Confirmées</span></button>
       <button id="nav-tasks" onclick="showView('tasks')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="6" height="6" rx="1"/><path d="M11 6h9"/><rect x="3" y="14" width="6" height="6" rx="1"/><path d="M11 15h9"/></svg><span class="lbl">Tâches</span><span class="navb" id="navTasksBadge" style="display:none">0</span></button>
+      <button id="nav-recon" onclick="showView('recon')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 3H8a2 2 0 0 0-2 2v2h12V5a2 2 0 0 0-2-2z"/><path d="M12 12v4M10 14h4"/></svg><span class="lbl">Rapprochement</span><span class="navb" id="navReconBadge" style="display:none">0</span></button>
       <button id="nav-clients" onclick="showView('clients')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span class="lbl">Base clients</span></button>
       <button id="nav-settings" onclick="showView('settings')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span class="lbl">Paramètres</span></button>
     </nav>
@@ -435,6 +465,30 @@
   </div>
 
   <!-- ============ BASE CLIENTS ============ -->
+  <div class="view" id="view-recon">
+    <p class="sec-title"><span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 3H8a2 2 0 0 0-2 2v2h12V5a2 2 0 0 0-2-2z"/></svg></span> Rapprochement Qonto</p>
+    <div id="reconNotice" class="recon-notice"></div>
+    <div class="recon-cols">
+      <div>
+        <p class="recon-col-title">Privatisations à rapprocher <span class="count" id="reconCountLeft">0</span></p>
+        <div id="reconLeft"></div>
+      </div>
+      <div>
+        <p class="recon-col-title">Virements Qonto reçus <span class="count" id="reconCountRight">0</span></p>
+        <div id="reconRight"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="recon-link-bar" id="reconLinkBar">
+    <span class="side">Relier <b id="reconLbLeft">—</b></span>
+    <span style="color:var(--ink-3)">↔</span>
+    <span class="side" id="reconLbRightList">—</span>
+    <span class="total" id="reconLbTotal"></span>
+    <button class="btn primary" onclick="reconConfirmLink_()">✓ Relier</button>
+    <button class="btn ghost" onclick="reconClearSelection_()">Annuler</button>
+  </div>
+
   <div class="view" id="view-clients">
     <p class="sec-title"><span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span> Base clients <span class="count" id="clientsCount"></span></p>
     <div class="toolbar">
@@ -505,6 +559,7 @@
           <div class="itile center ok"><p class="k">Encaissé</p><p class="v" id="finPaid">—</p></div>
           <div class="itile center"><p class="k">Solde restant</p><p class="v" id="finRest">—</p></div>
         </div>
+        <div id="finFactures" style="margin-top:14px"></div>
       </div>
     </div>
 
@@ -821,7 +876,9 @@ const HISTORIQUE_CONFIRMES = [
   ["Condé Nast", "24/03/2026", "Dîner", 40, 4000, 0, "Paiement effectué", [{ canal: "Qonto", montant: 4400 }]],
   ["Advancy", "23/04/2026", "Dîner", 50, 3500, 2224, "Paiement effectué", [{ canal: "Qonto", montant: 6519 }]],
   ["Coty / Tharsana", "23/04/2026", "Dîner", 52, 3332, 917, "Paiement effectué", [{ canal: "Qonto", montant: 4773 }]],
-  ["Julien Benattar", "18/07/2026", "Déjeuner", 80, 4590, 0, "En attente d'acompte", []],
+  // Julien Benattar retiré de cet historique : c'est une demande déjà suivie en direct par l'outil
+  // (visible dans le Sheet), pas un événement d'avant l'outil — la laisser ici aurait créé un
+  // doublon (avec en plus un chiffrage périmé) au moment de l'import.
   ["Eric Pizigo", "06/06/2026", "Déjeuner", 25, 1125, 0, "Paiement effectué", [{ canal: "Lien Sunday", montant: 563 }]],
   ["Joia Silva", "13/06/2026", "Dîner", 9, 600, 200, "Paiement effectué", [{ canal: "Lien Sunday", montant: 450 }]],
   ["Rosalie", "27/05/2026", "Dîner", 17, 765, 0, "Paiement effectué", [{ canal: "Lien Sunday", montant: 383 }]],
@@ -841,8 +898,7 @@ const HISTORIQUE_EMAILS = {
   "Eric Pizigo": "epizigo@yahoo.fr",
   "Joia Silva": "jjoialu@gmail.com",
   "Rosalie": "rosalietytgat@gmail.com",
-  "Basile": "basile.ricordel@essca.eu",
-  "Julien Benattar": "julienbenatt@gmail.com"
+  "Basile": "basile.ricordel@essca.eu"
 };
 const HISTORIQUE_SOCIETES = {
   "Caroline Charles": "Caroline Charles Communication (EURL Caroline Charles)"
@@ -862,6 +918,7 @@ const DATA_HISTORIQUE = HISTORIQUE_CONFIRMES.map(([client, date, service, pax, c
 }));
 
 let DATA = [];
+let QONTO_SUGGESTIONS = []; // virements Qonto pas encore rapprochés — déposés dans le Sheet depuis Cowork
 let SYNC_MODE = !!SCRIPT_URL;
 
 function esc(v) {
@@ -898,6 +955,7 @@ function loadData() {
   fetch(SCRIPT_URL)
     .then(r => r.json())
     .then(json => {
+      QONTO_SUGGESTIONS = json.qontoSuggestions || [];
       if (json.data && json.data.length > 0) {
         DATA = ensureIds_(json.data);
         applyCloudConfig_(json.config);
@@ -936,7 +994,7 @@ function importHistoriqueIntoSheet() {
     .then(json => {
       btn.disabled = false;
       if (json.ok) {
-        setSyncBanner_(json.created + " événement(s) importé(s) dans le Sheet, " + json.skipped + " déjà présent(s).", 'ok');
+        setSyncBanner_(json.created + " événement(s) importé(s), " + (json.repaired || 0) + " chiffrage(s) manquant(s) complété(s), " + json.skipped + " déjà complet(s).", 'ok');
         loadData();
       } else {
         setSyncBanner_("Erreur pendant l'import : " + json.error, 'error');
@@ -999,10 +1057,24 @@ function scanGmailInbox() {
     });
 }
 
+// saveData() est appelée à chaque frappe clavier sur pas mal de champs (finance, tâches...).
+// La copie locale (localStorage) est écrite tout de suite à chaque appel — aucun risque, c'est
+// instantané et propre à ce navigateur. L'envoi au cloud, lui, est regroupé (debounce) : on
+// attend une courte pause dans la frappe avant de renvoyer tout le Sheet, plutôt que de le
+// réécrire en entier à chaque touche. Ça évite d'écraser en boucle une donnée que le scan Gmail
+// (côté serveur) aurait pu ajouter entre deux frappes, et ça réduit fortement le nombre de
+// requêtes envoyées. Un envoi est aussi forcé si l'onglet se ferme pendant la pause, pour ne
+// jamais perdre la toute dernière frappe.
+let pushDebounceTimer_ = null;
 function saveData() {
   localStorage.setItem('rosarioData', JSON.stringify(DATA));
-  if (SYNC_MODE) pushData_();
+  if (!SYNC_MODE) return;
+  clearTimeout(pushDebounceTimer_);
+  pushDebounceTimer_ = setTimeout(() => { pushDebounceTimer_ = null; pushData_(); }, 800);
 }
+window.addEventListener('beforeunload', () => {
+  if (pushDebounceTimer_) { clearTimeout(pushDebounceTimer_); pushDebounceTimer_ = null; pushData_(); }
+});
 
 function resetDemoData() {
   const msg = SYNC_MODE
@@ -1295,6 +1367,7 @@ function renderCurrentView_() {
   else if (currentView === 'clients') renderClientsTable();
   else if (currentView === 'confirmed') renderConfirmedTab_();
   else if (currentView === 'tasks') renderTasksTab_();
+  else if (currentView === 'recon') renderRecon_();
   else if (currentView === 'settings') loadSettingsForms();
 }
 
@@ -1306,6 +1379,10 @@ function updateNavBadges_() {
   const openTasks = DATA.filter(r => r.statut === "Confirmé").reduce((s, r) => s + openTaskCount_(r), 0);
   const tb = document.getElementById('navTasksBadge');
   tb.textContent = openTasks; tb.style.display = openTasks ? 'inline-block' : 'none';
+
+  const pending = (QONTO_SUGGESTIONS || []).length;
+  const rb = document.getElementById('navReconBadge');
+  rb.textContent = pending; rb.style.display = pending ? 'inline-block' : 'none';
 }
 
 /* =========================================================================
@@ -1745,12 +1822,6 @@ function onTypeInline_(val) {
   saveData();
   if (document.getElementById('finSociete')) renderFinance_(currentReq); // resynchronise l'onglet Finances si déjà ouvert
 }
-function onSocieteInline_(val) {
-  if (!currentReq || !currentReq.finance) return;
-  currentReq.finance.societe = val;
-  saveData();
-  if (document.getElementById('finSociete')) document.getElementById('finSociete').value = val;
-}
 function onEspaceInline_(val) {
   if (!currentReq) return;
   currentReq.espace = val;
@@ -1833,14 +1904,6 @@ function setStatut_(val) {
   saveData();
   openDetail(DATA.indexOf(currentReq), backTarget);
 }
-function actionConfirm() { setStatut_("Confirmé"); }
-function actionReopen() { setStatut_(computeAutoStatut_(currentReq)); }
-function actionLost() {
-  if (!currentReq) return;
-  if (!confirm('Marquer la demande de "' + currentReq.client + '" comme perdue ? Elle passera en Archivée (toujours consultable).')) return;
-  setStatut_("Archivée");
-}
-
 /* ---- Édition directe des infos restantes (email, citation du client) au clic ---- */
 function startInlineEditEmail_() {
   if (!currentReq) return;
@@ -1877,6 +1940,7 @@ function renderFinance_(r) {
   document.getElementById('finCuisineHT').value = f.caCuisineHT || "";
   document.getElementById('finAlcoolsHT').value = f.caAlcoolsHT || "";
   renderPaymentLines();
+  renderFactureLinks_(r);
   updateFinanceComputed();
 }
 function onFinanceInput() {
@@ -1888,8 +1952,6 @@ function onFinanceInput() {
   f.caAlcoolsHT = toNumber(document.getElementById('finAlcoolsHT').value);
   updateFinanceComputed();
   saveData();
-  const inlineSoc = document.getElementById('detSocieteInline');
-  if (inlineSoc && inlineSoc.value !== f.societe) inlineSoc.value = f.societe;
 }
 function updateFinanceComputed() {
   const f = currentReq.finance, t = financeTotals(f);
@@ -1924,12 +1986,144 @@ function renderPaymentLines() {
       <span class="pay-ic">${esc((p.canal || "?").slice(0, 2))}</span>
       <select style="width:auto;flex:1;max-width:160px" onchange="updatePayment(${i},'canal',this.value)">${PAYMENT_CHANNELS.map(c => `<option ${c === p.canal ? "selected" : ""}>${c}</option>`).join("")}</select>
       <input style="width:120px" value="${p.montant}" oninput="updatePayment(${i},'montant',this.value)">
+      <input class="pay-date" placeholder="jj/mm/aaaa" value="${esc(p.date || '')}" oninput="updatePayment(${i},'date',this.value)">
       <button class="btn sm ghost" onclick="removePaymentLine(${i})">Retirer</button>
     </div>`).join("");
 }
-function addPaymentLine() { currentReq.finance.paiements = currentReq.finance.paiements || []; currentReq.finance.paiements.push({ canal: "Qonto", montant: 0 }); renderPaymentLines(); updateFinanceComputed(); saveData(); }
+function addPaymentLine() { currentReq.finance.paiements = currentReq.finance.paiements || []; currentReq.finance.paiements.push({ canal: "Qonto", montant: 0, date: todayStr_() }); renderPaymentLines(); updateFinanceComputed(); saveData(); }
 function removePaymentLine(i) { currentReq.finance.paiements.splice(i, 1); renderPaymentLines(); updateFinanceComputed(); saveData(); }
 function updatePayment(i, field, val) { currentReq.finance.paiements[i][field] = field === "montant" ? toNumber(val) : val; updateFinanceComputed(); saveData(); }
+
+// Factures liées (renseignées uniquement via le rapprochement Qonto — voir l'onglet dédié) :
+// simple liste de liens cliquables, rien n'est récupéré depuis le contenu des factures elles-mêmes.
+function renderFactureLinks_(r) {
+  const box = document.getElementById('finFactures');
+  if (!box) return;
+  const list = r.factureUrls || [];
+  if (!list.length) { box.innerHTML = ''; return; }
+  box.innerHTML = '<p class="k" style="margin:0 0 8px">Factures liées (via rapprochement Qonto)</p>' +
+    list.map(f => `<a href="${esc(f.url)}" target="_blank" class="facture-link">📄 ${esc(f.number || 'Facture')}</a>`).join('');
+}
+
+/* =========================================================================
+   RAPPROCHEMENT QONTO
+   Les virements Qonto pas encore rapprochés sont déposés dans le Sheet (onglet
+   QontoSuggestions) par un scan Qonto déclenché depuis Cowork — cette page n'appelle
+   jamais Qonto elle-même. Ici on choisit une privatisation à gauche, un ou plusieurs
+   virements à droite (plusieurs versements possibles), et on relie : ça ajoute des
+   lignes de paiement datées, met à jour le statut de paiement selon le total encaissé,
+   et associe le lien de facture si le virement en désigne une. Les montants
+   cuisine/alcool ne sont jamais touchés depuis cet écran.
+   ========================================================================= */
+let reconSelLeft = null;
+let reconSelRight = new Set();
+
+function reconEncaisse_(r) { return paidAmount_(r.finance); }
+function reconAttendu_(r) { return financeTotals(r.finance).totalTTC; }
+function reconIsClose_(a, b) { return Math.abs(a - b) <= Math.max(a, b, 1) * 0.05; }
+
+function renderRecon_() {
+  const left = DATA.filter(r => r.statut === "Confirmé" && r.finance && reconEncaisse_(r) < reconAttendu_(r) * 0.98);
+  const right = QONTO_SUGGESTIONS;
+  document.getElementById('reconCountLeft').textContent = left.length;
+  document.getElementById('reconCountRight').textContent = right.length;
+
+  document.getElementById('reconNotice').innerHTML = SYNC_MODE
+    ? "Les virements affichés ici viennent du dernier scan Qonto déclenché depuis Cowork — demande-moi de relancer un scan si une liste te semble périmée."
+    : "Mode local — connecte SCRIPT_URL pour voir les vrais virements Qonto.";
+
+  const selectedR = reconSelLeft ? DATA.find(r => r.id === reconSelLeft) : null;
+  const selSum = [...reconSelRight].reduce((s, id) => { const t = right.find(x => x.txId === id); return s + (t ? t.montant : 0); }, 0);
+  const already = selectedR ? reconEncaisse_(selectedR) : 0;
+
+  document.getElementById('reconLeft').innerHTML = left.length ? left.map(r => {
+    const enc = reconEncaisse_(r);
+    const att = reconAttendu_(r);
+    const progress = enc > 0 ? `<div class="progress partial">${fmtEUR(enc)} déjà encaissés sur ${fmtEUR(att)} attendus</div>` : `<div class="progress">${fmtEUR(att)} attendus</div>`;
+    return `<div class="recon-item ${reconSelLeft === r.id ? 'selected' : ''}" onclick="reconPickLeft_('${r.id}')">
+      <div class="recon-item-top"><span class="name">${esc(r.client)}</span></div>
+      <div class="meta">${esc(r.date || '')} — ${esc((r.finance && r.finance.service) || '')}</div>
+      ${progress}
+    </div>`;
+  }).join("") : '<p style="font-size:12.5px;color:var(--ink-3);">Rien à rapprocher — tout est encaissé.</p>';
+
+  document.getElementById('reconRight').innerHTML = right.length ? right.map(t => {
+    const wouldBeTotal = already + selSum + (reconSelRight.has(t.txId) ? 0 : t.montant);
+    const close = selectedR && !reconSelRight.has(t.txId) && reconIsClose_(reconAttendu_(selectedR), wouldBeTotal);
+    return `<div class="recon-item ${reconSelRight.has(t.txId) ? 'selected' : ''} ${close ? 'close-match' : ''}" onclick="reconToggleRight_('${t.txId}')">
+      <div class="recon-item-top"><span class="name">${esc(t.label)}</span><span class="amt">${fmtEUR(t.montant)}</span></div>
+      <div class="meta">Reçu le ${esc(t.date)}</div>
+      <div class="ref">Réf. ${esc(t.ref || '—')}${t.factureNumber ? ' — facture ' + esc(t.factureNumber) + ' liée automatiquement' : ''}</div>
+      <button class="ignore" onclick="event.stopPropagation(); reconIgnore_('${t.txId}')">Ignorer / je rapproche moi-même</button>
+    </div>`;
+  }).join("") : '<p style="font-size:12.5px;color:var(--ink-3);">Aucun virement en attente de rapprochement.</p>';
+
+  const bar = document.getElementById('reconLinkBar');
+  if (reconSelLeft && reconSelRight.size) {
+    bar.classList.add('on');
+    document.getElementById('reconLbLeft').textContent = selectedR.client;
+    document.getElementById('reconLbRightList').textContent = [...reconSelRight].map(id => right.find(t => t.txId === id).label).join(" + ");
+    const att = reconAttendu_(selectedR);
+    const totalEl = document.getElementById('reconLbTotal');
+    totalEl.textContent = fmtEUR(selSum) + (already ? " (+" + fmtEUR(already) + " déjà encaissés)" : "") + " sur " + fmtEUR(att) + " attendus";
+    totalEl.className = "total " + (reconIsClose_(already + selSum, att) || (already + selSum) >= att ? "ok" : "warn");
+  } else {
+    bar.classList.remove('on');
+  }
+}
+
+function reconPickLeft_(id) { reconSelLeft = (reconSelLeft === id ? null : id); reconSelRight = new Set(); renderRecon_(); }
+function reconToggleRight_(txId) {
+  if (!reconSelLeft) return;
+  if (reconSelRight.has(txId)) reconSelRight.delete(txId); else reconSelRight.add(txId);
+  renderRecon_();
+}
+function reconClearSelection_() { reconSelLeft = null; reconSelRight = new Set(); renderRecon_(); }
+
+function reconConfirmLink_() {
+  if (!SYNC_MODE) { setSyncBanner_("Connecte d'abord SCRIPT_URL.", 'error'); return; }
+  const r = DATA.find(x => x.id === reconSelLeft);
+  const chosen = QONTO_SUGGESTIONS.filter(t => reconSelRight.has(t.txId));
+  if (!r || !chosen.length) return;
+
+  const newPaiements = chosen.map(t => ({ canal: "Qonto", montant: t.montant, date: t.date }));
+  const newFactures = chosen.filter(t => t.factureNumber && t.factureUrl).map(t => ({ number: t.factureNumber, url: t.factureUrl }));
+  const totalApres = reconEncaisse_(r) + chosen.reduce((s, t) => s + t.montant, 0);
+  const attendu = reconAttendu_(r);
+  const statutPaiement = totalApres >= attendu * 0.98 ? "Paiement effectué" : (totalApres > 0 ? "Acompte versé" : r.finance.statutPaiement);
+  const txIds = chosen.map(t => t.txId);
+
+  fetch(SCRIPT_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify({ action: 'link_qonto_payment', demandeId: r.id, paiements: newPaiements, factureUrls: newFactures, statutPaiement, txIds })
+  })
+    .then(res => res.json())
+    .then(json => {
+      if (!json.ok) { setSyncBanner_("Erreur pendant le rapprochement : " + json.error, 'error'); return; }
+      r.finance.paiements = (r.finance.paiements || []).concat(newPaiements);
+      r.finance.statutPaiement = statutPaiement;
+      r.factureUrls = (r.factureUrls || []).concat(newFactures.filter(f => !(r.factureUrls || []).some(e => e.number === f.number)));
+      QONTO_SUGGESTIONS = QONTO_SUGGESTIONS.filter(t => !txIds.includes(t.txId));
+      localStorage.setItem('rosarioData', JSON.stringify(DATA));
+      setSyncBanner_("Rapprochement enregistré — " + r.client + " (" + fmtEUR(chosen.reduce((s, t) => s + t.montant, 0)) + ").", 'ok');
+      reconSelLeft = null; reconSelRight = new Set();
+      renderRecon_();
+    })
+    .catch(err => setSyncBanner_("Erreur pendant le rapprochement (" + err.message + ").", 'error'));
+}
+
+function reconIgnore_(txId) {
+  if (!SYNC_MODE) { QONTO_SUGGESTIONS = QONTO_SUGGESTIONS.filter(t => t.txId !== txId); renderRecon_(); return; }
+  fetch(SCRIPT_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify({ action: 'dismiss_qonto_suggestion', txId })
+  }).then(res => res.json()).then(json => {
+    if (json.ok) { QONTO_SUGGESTIONS = QONTO_SUGGESTIONS.filter(t => t.txId !== txId); reconSelRight.delete(txId); renderRecon_(); }
+    else setSyncBanner_("Erreur : " + json.error, 'error');
+  }).catch(err => setSyncBanner_("Erreur (" + err.message + ").", 'error'));
+}
 
 /* ---- pane tasks ---- */
 function renderTasks_(r) {
@@ -2099,7 +2293,7 @@ function submitNewRequest_() {
     espace: g('newReqEspace'),
     date: g('newReqDate').trim(),
     dateDemande: todayStr_(),
-    pax: g('newReqPax').trim(),
+    pax: toNumber(g('newReqPax')) || 0,
     statut: "Nouvelle demande",
     commentaire: g('newReqComment').trim(),
     timeline: [{ dir: "in", title: "Demande créée manuellement", meta: todayStr_(), ts: Date.now() }]
