@@ -1044,7 +1044,7 @@ function scanGmailInbox() {
       btn.disabled = false;
       btn.textContent = "↻ Scanner mes emails";
       if (json.ok) {
-        setSyncBanner_("Scan terminé — " + json.newMessages + " nouveau(x) échange(s) trouvé(s).", 'ok');
+        setSyncBanner_("Scan terminé — " + json.newMessages + " nouveau(x) échange(s), " + (json.statutUpdates || 0) + " statut(s) mis à jour.", 'ok');
         loadData();
       } else {
         setSyncBanner_("Erreur pendant le scan : " + json.error, 'error');
