@@ -117,20 +117,21 @@
   .empty-box { background: var(--surface); border: 0.5px dashed var(--border-strong); border-radius: 12px; padding: 26px; text-align: center; color: var(--ink-3); font-size: 13px; }
 
   /* ---- Calendrier (moitié gauche du bloc "Événements à venir" du Tableau de bord) ---- */
-  .dash-upcoming-grid { display: grid; grid-template-columns: 1.05fr 1fr; gap: 18px; align-items: start; }
+  .dash-upcoming-grid { display: grid; grid-template-columns: 0.42fr 1fr; gap: 16px; align-items: start; }
   @media (max-width: 900px) { .dash-upcoming-grid { grid-template-columns: 1fr; } }
-  .cal-head { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
-  .cal-title { font-family: 'Fraunces', serif; font-weight: 600; font-size: 15px; color: var(--bordeaux-dark); margin: 0; min-width: 120px; text-transform: capitalize; }
-  .cal-legend { display: flex; gap: 12px; font-size: 11px; color: var(--ink-2); flex-wrap: wrap; }
-  .cal-legend span { display: inline-flex; align-items: center; gap: 5px; }
-  .cal-dot { display: inline-block; width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
-  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background: var(--border); border: 0.5px solid var(--border); border-radius: 10px; overflow: hidden; }
-  .cal-dow { background: var(--surface-2); padding: 6px 5px; font-size: 10px; text-transform: uppercase; letter-spacing: .03em; color: var(--ink-3); }
-  .cal-day { background: var(--surface); min-height: 56px; padding: 4px; }
+  .cal-head { display: flex; align-items: center; gap: 5px; margin-bottom: 7px; flex-wrap: wrap; }
+  .cal-title { font-family: 'Fraunces', serif; font-weight: 600; font-size: 11px; color: var(--bordeaux-dark); margin: 0; min-width: 78px; text-transform: capitalize; }
+  .cal-legend { display: flex; gap: 7px; font-size: 9px; color: var(--ink-2); flex-wrap: wrap; }
+  .cal-legend span { display: inline-flex; align-items: center; gap: 3px; }
+  .cal-dot { display: inline-block; width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background: var(--border); border: 0.5px solid var(--border); border-radius: 7px; overflow: hidden; }
+  .cal-dow { background: var(--surface-2); padding: 2px; font-size: 7.5px; text-transform: uppercase; letter-spacing: .01em; color: var(--ink-3); text-align: center; }
+  .cal-day { background: var(--surface); min-height: 20px; padding: 2px; display: flex; flex-direction: column; align-items: center; }
   .cal-day.out { background: var(--surface-2); }
   .cal-day.today .cal-daynum { background: var(--bordeaux); color: #fff; border-radius: 50%; }
-  .cal-daynum { font-size: 10.5px; color: var(--ink-2); display: inline-flex; align-items: center; justify-content: center; width: 17px; height: 17px; }
-  .cal-chip { margin-top: 3px; font-size: 10px; padding: 1px 5px; border-radius: 4px; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .cal-daynum { font-size: 8px; color: var(--ink-2); display: inline-flex; align-items: center; justify-content: center; width: 12px; height: 12px; }
+  .cal-dots { display: flex; gap: 1.5px; margin-top: 1px; flex-wrap: wrap; justify-content: center; }
+  .cal-ev-dot { width: 4px; height: 4px; border-radius: 50%; cursor: pointer; flex-shrink: 0; }
 
   /* ---- Pills / tags ---- */
   .pill { font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 99px; white-space: nowrap; display: inline-block; }
@@ -1695,14 +1696,9 @@ function calToday_() {
   calCursor = new Date(t.getFullYear(), t.getMonth(), 1);
   renderCalendar_();
 }
-function calChipStyle_(statut) {
-  const m = {
-    "Confirmé": ["var(--green-bg)", "var(--green-d)"],
-    "Nouvelle demande": ["var(--blue-bg)", "var(--blue-d)"],
-    "À répondre": ["var(--red-bg)", "var(--red-d)"]
-  };
-  const c = m[statut] || ["#f1efe8", "#5f5e5a"];
-  return "background:" + c[0] + ";color:" + c[1] + ";";
+function calDotColor_(statut) {
+  const m = { "Confirmé": "var(--green)", "Nouvelle demande": "var(--blue)", "À répondre": "var(--red)" };
+  return m[statut] || "#9a968c";
 }
 function renderCalendar_() {
   const y = calCursor.getFullYear(), m = calCursor.getMonth();
@@ -1736,13 +1732,12 @@ function renderCalendar_() {
     const key = cellY + "-" + cellM + "-" + cellD;
     const isToday = cellY === now.getFullYear() && cellM === now.getMonth() && cellD === now.getDate();
     const dayEvents = events[key] || [];
-    const chips = dayEvents.slice(0, 3).map(r => {
+    const dots = dayEvents.length ? `<div class="cal-dots">${dayEvents.map(r => {
       const idx = DATA.indexOf(r);
       const paxTxt = toNumber(r.pax) ? " · " + toNumber(r.pax) + "p" : "";
-      return `<div class="cal-chip" style="${calChipStyle_(r.statut)}" onclick="openDetail(${idx}, 'calendar')" title="${esc(r.client)}${paxTxt}">${esc(r.client)}${paxTxt}</div>`;
-    }).join("");
-    const more = dayEvents.length > 3 ? `<div class="cal-chip" style="background:var(--surface-2); color:var(--ink-3);">+${dayEvents.length - 3}</div>` : "";
-    cellsHtml += `<div class="cal-day${outClass}${isToday ? " today" : ""}"><span class="cal-daynum">${cellD}</span>${chips}${more}</div>`;
+      return `<span class="cal-ev-dot" style="background:${calDotColor_(r.statut)}" onclick="openDetail(${idx}, 'dashboard')" title="${esc(r.client)}${paxTxt}"></span>`;
+    }).join("")}</div>` : "";
+    cellsHtml += `<div class="cal-day${outClass}${isToday ? " today" : ""}"><span class="cal-daynum">${cellD}</span>${dots}</div>`;
   }
   document.getElementById('calGrid').innerHTML = cellsHtml;
 }
