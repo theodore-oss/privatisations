@@ -377,6 +377,7 @@
     <nav class="nav">
       <button id="nav-dashboard" class="on" onclick="showView('dashboard')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg><span class="lbl">Tableau de bord</span><span class="navb" id="navDashBadge" style="display:none">0</span></button>
       <button id="nav-confirmed" onclick="showView('confirmed')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4 12 14.01l-3-3"/></svg><span class="lbl">Confirmées</span></button>
+      <button id="nav-recon" onclick="showView('recon')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg><span class="lbl">Réconciliation</span></button>
       <button id="nav-tasks" onclick="showView('tasks')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="6" height="6" rx="1"/><path d="M11 6h9"/><rect x="3" y="14" width="6" height="6" rx="1"/><path d="M11 15h9"/></svg><span class="lbl">Tâches</span><span class="navb" id="navTasksBadge" style="display:none">0</span></button>
       <button id="nav-clients" onclick="showView('clients')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span class="lbl">Base clients</span></button>
       <button id="nav-settings" onclick="showView('settings')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span class="lbl">Paramètres</span></button>
@@ -415,7 +416,7 @@
             <th class="sortable-th">Pax<span class="sort-carets"><span class="care" id="care-suivi-pax-up" onclick="suiviSetSort_('pax',1)">⌃</span><span class="care" id="care-suivi-pax-down" onclick="suiviSetSort_('pax',-1)">⌄</span></span></th>
             <th>Espace</th>
             <th class="sortable-th">Demande<span class="sort-carets"><span class="care" id="care-suivi-demande-up" onclick="suiviSetSort_('demande',1)">⌃</span><span class="care" id="care-suivi-demande-down" onclick="suiviSetSort_('demande',-1)">⌄</span></span></th>
-            <th>Statut</th><th></th>
+            <th>Statut</th><th id="suiviLastCol"></th>
           </tr></thead>
           <tbody id="suiviBody"></tbody>
         </table>
@@ -473,9 +474,37 @@
 
     <div class="tabs">
       <button class="tab" data-pane="finance" onclick="showPane('finance')">Finances</button>
+      <button class="tab" data-pane="menu" onclick="showPane('menu')">Menu</button>
       <button class="tab" data-pane="tasks" onclick="showPane('tasks')">Tâches <span class="tb" id="taskBadge" style="display:none">0</span></button>
       <button class="tab on" data-pane="timeline" onclick="showPane('timeline')">Historique</button>
       <button class="tab" data-pane="compose" id="tabCompose" onclick="showPane('compose')">Répondre</button>
+    </div>
+
+    <!-- pane: menu (calculé pour cette demande depuis le menu standard, personnalisable) -->
+    <div class="tabpane" id="pane-menu">
+      <div class="panel">
+        <p class="panel-t">Menu — calculé pour <span id="menuPaxLabel">0</span> pers.</p>
+        <div class="tbl-wrap">
+          <table class="pipe">
+            <thead><tr>
+              <th style="width:34px"></th><th>Plat</th><th style="width:110px">Prix unit.</th>
+              <th style="width:90px">Qté/pers</th><th style="width:80px">Qté totale</th>
+              <th style="width:100px; text-align:right">Prix ligne</th><th style="width:40px"></th>
+            </tr></thead>
+            <tbody id="detMenuBody"></tbody>
+          </table>
+        </div>
+        <button class="add-line" onclick="addDemandeMenuRow_()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg> Ajouter un plat</button>
+        <div class="info-tiles" style="margin-top:16px">
+          <div class="itile"><p class="k">Prix théorique du menu</p><p class="v" id="detMenuTheorique">—</p><p class="s">base standard, pour ce nombre de personnes</p></div>
+          <div class="itile"><p class="k">Facturé au client (Cuisine HT)</p><p class="v" id="detMenuFacture">—</p></div>
+          <div class="itile" id="detMenuEcartTile"><p class="k">Écart</p><p class="v" id="detMenuEcart">—</p></div>
+        </div>
+        <p style="font-size:11.5px; color:var(--ink-3); margin-top:12px;">
+          <span id="detMenuOverrideNote"></span>
+          <a onclick="resetDemandeMenuToStandard_()" id="detMenuResetLink" style="cursor:pointer; color:var(--bordeaux); display:none;">Revenir au menu standard</a>
+        </p>
+      </div>
     </div>
 
     <!-- pane: finance -->
@@ -604,6 +633,22 @@
     </div>
   </div>
 
+  <!-- ============ RÉCONCILIATION QONTO ============ -->
+  <div class="view" id="view-recon">
+    <div class="upcoming-block">
+      <p class="sec-title"><span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/></svg></span> Soldes en attente <span class="count" id="reconSoldesCount"></span></p>
+      <div class="tbl-wrap">
+        <table class="pipe">
+          <thead><tr><th>Client</th><th>Événement</th><th style="text-align:right">Solde restant</th></tr></thead>
+          <tbody id="reconSoldesBody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="section-divider"><span>Transactions Qonto non liées</span></div>
+    <p style="font-size:12.5px; color:var(--ink-2); margin:0 0 14px;">Choisis à quelle demande correspond chaque transaction reçue sur le compte Qonto de Rosario, puis clique "Lier" — ça crée le paiement correspondant dans la fiche. Rien n'est jamais lié automatiquement.</p>
+    <div id="reconTxBox"><div class="empty-box">Chargement…</div></div>
+  </div>
+
   <!-- ============ SETTINGS ============ -->
   <div class="view" id="view-settings">
     <div class="settings-sub">
@@ -648,7 +693,7 @@
       <div class="tpl-card">
         <p class="name">Formule groupe</p>
         <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
-          <label class="k" style="margin:0;">Tarif (€ HT / pers, nourriture uniquement)</label>
+          <label class="k" style="margin:0;">Tarif (€ TTC / pers, nourriture uniquement)</label>
           <input id="tarifGroupeInput" type="number" style="width:90px">
         </div>
         <textarea id="tplGroupe" rows="3"></textarea>
@@ -768,6 +813,16 @@
       <button class="btn ghost" onclick="closeClientEdit_()">Annuler</button>
       <button class="btn primary" onclick="submitClientEdit_()">Enregistrer</button>
     </div>
+  </div>
+</div>
+
+<!-- Boîte de dialogue générique (remplace alert()/confirm() natifs du navigateur, aux couleurs de l'outil) -->
+<div class="modal-backdrop" id="uiDialogBackdrop" onclick="if(event.target===this) uiCloseDialog_(null)">
+  <div class="modal-card" style="max-width:420px">
+    <div class="modal-body" style="padding-top:24px; padding-bottom:4px;">
+      <p id="uiDialogMsg" style="font-size:14px; line-height:1.6; margin:0; white-space:pre-line;"></p>
+    </div>
+    <div class="modal-foot" id="uiDialogFoot"></div>
   </div>
 </div>
 
@@ -892,6 +947,43 @@ function esc(v) {
     .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 }
 
+/* ---- Boîte de dialogue générique (remplace alert()/confirm() natifs, style de l'outil) ----
+   uiAlert_(msg) : Promise résolue (valeur ignorée) quand l'utilisateur clique OK.
+   uiConfirm_(msg) : Promise<boolean> — true si "Confirmer", false/null si "Annuler"/clic hors modale/Échap.
+   uiChoice_(msg, options) : options = [{label, value}] — Promise résolue avec la value choisie,
+   ou null si "Annuler"/clic hors modale/Échap. Sert par ex. à choisir un motif d'archivage. */
+let uiDialogResolve_ = null;
+function uiCloseDialog_(result) {
+  const backdrop = document.getElementById('uiDialogBackdrop');
+  if (!backdrop.classList.contains('on')) return;
+  backdrop.classList.remove('on');
+  const resolve = uiDialogResolve_;
+  uiDialogResolve_ = null;
+  if (resolve) resolve(result);
+}
+function uiOpenDialog_(message, footHTML) {
+  return new Promise(resolve => {
+    uiDialogResolve_ = resolve;
+    document.getElementById('uiDialogMsg').textContent = message;
+    document.getElementById('uiDialogFoot').innerHTML = footHTML;
+    document.getElementById('uiDialogBackdrop').classList.add('on');
+  });
+}
+function uiAlert_(message) {
+  return uiOpenDialog_(message, '<button class="btn primary" onclick="uiCloseDialog_(true)">OK</button>');
+}
+function uiConfirm_(message) {
+  return uiOpenDialog_(message, '<button class="btn ghost" onclick="uiCloseDialog_(false)">Annuler</button><button class="btn primary" onclick="uiCloseDialog_(true)">Confirmer</button>');
+}
+function uiChoice_(message, options) {
+  const buttons = options.map(o => `<button class="btn" onclick='uiCloseDialog_(${JSON.stringify(o.value)})'>${esc(o.label)}</button>`).join("")
+    + '<button class="btn ghost" onclick="uiCloseDialog_(null)">Annuler</button>';
+  return uiOpenDialog_(message, buttons);
+}
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && document.getElementById('uiDialogBackdrop').classList.contains('on')) uiCloseDialog_(null);
+});
+
 function ensureIds_(arr) {
   arr.forEach((d, i) => { if (!d.id) d.id = 'local_' + i + '_' + Date.now(); });
   return arr;
@@ -924,8 +1016,22 @@ function loadData() {
     DATA = localFallback();
     unsavedChanges_ = true;
     setSyncBanner_("Des modifications précédentes n'avaient pas été confirmées envoyées — nouvel essai en cours…", 'warn');
+    renderCurrentView_(); // affichage immédiat du cache pendant l'envoi, voir commentaire ci-dessous
     pushData_(() => loadDataFromCloud_());
     return;
+  }
+
+  // Affiche tout de suite les dernières données connues (cache local) pendant que la version à
+  // jour arrive du cloud — l'appel réseau vers Apps Script (démarrage à froid + lecture du Sheet)
+  // prend souvent plusieurs secondes, ce n'est pas le rendu de la page qui est lent. La page
+  // n'est donc plus vide tout ce temps ; l'affichage se met à jour silencieusement dès que le
+  // cloud répond. Rendu brut seulement ici (pas refreshStatuses_/saveData, réservé au chargement
+  // cloud confirmé dans afterDataLoaded_) pour ne jamais déclencher un envoi avec une révision
+  // pas encore à jour.
+  const cached = JSON.parse(localStorage.getItem('rosarioData') || 'null');
+  if (cached && cached.length) {
+    DATA = ensureIds_(cached);
+    renderCurrentView_();
   }
   loadDataFromCloud_();
 }
@@ -963,9 +1069,9 @@ function loadDataFromCloud_() {
 // valeurs de référence à chaque appel, en écrasant toute modification faite depuis dessus — c'est
 // volontaire, pour repartir d'une base garantie propre plutôt que de rapiécer des lignes
 // potentiellement corrompues. Les autres demandes ne sont jamais touchées.
-function importHistoriqueIntoSheet() {
+async function importHistoriqueIntoSheet() {
   if (!SYNC_MODE) { setSyncBanner_("Connecte d'abord SCRIPT_URL pour importer l'historique.", 'error'); return; }
-  if (!confirm("Réinitialiser les " + DATA_HISTORIQUE.length + " privatisations historiques dans le Sheet avec ces valeurs de référence ? Toute modification faite depuis sur CES lignes précises sera remplacée (les autres demandes ne sont pas touchées). Une fois fait, ce sont tes modifications depuis la page qui font foi.")) return;
+  if (!(await uiConfirm_("Réinitialiser les " + DATA_HISTORIQUE.length + " privatisations historiques dans le Sheet avec ces valeurs de référence ? Toute modification faite depuis sur CES lignes précises sera remplacée (les autres demandes ne sont pas touchées). Une fois fait, ce sont tes modifications depuis la page qui font foi."))) return;
   const btn = document.getElementById('importHistoriqueBtn');
   btn.disabled = true;
   setSyncBanner_("Réimport de l'historique en cours…", 'warn');
@@ -1028,33 +1134,45 @@ function pushData_(onDone) {
     });
 }
 
+// URL du déploiement d'AdrienScan.gs (script indépendant, tourne sous le compte Google
+// d'Adrien — le seul moyen pour un script de lire sa boîte, Google ne permet pas à un script
+// autorisé sous un compte d'accéder à la boîte d'un autre). Laisser vide tant qu'Adrien ne l'a
+// pas déployé : le scan se limite alors à ta propre boîte, sans erreur ni blocage.
+const ADRIEN_SCRIPT_URL = "";
+
 function scanGmailInbox() {
   if (!SYNC_MODE) { setSyncBanner_("Connecte d'abord SCRIPT_URL pour pouvoir scanner tes emails.", 'error'); return; }
   const btn = document.getElementById("scanGmailBtn");
   btn.disabled = true;
   btn.textContent = "Scan en cours…";
   setSyncBanner_("Scan des emails en cours (peut prendre 10-30s)…", 'warn');
-  fetch(SCRIPT_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'text/plain' },
-    body: JSON.stringify({ action: 'scan' })
-  })
-    .then(r => r.json())
-    .then(json => {
-      btn.disabled = false;
-      btn.textContent = "↻ Scanner mes emails";
-      if (json.ok) {
-        setSyncBanner_("Scan terminé — " + json.newMessages + " nouveau(x) échange(s), " + (json.statutUpdates || 0) + " statut(s) mis à jour.", 'ok');
-        loadData();
-      } else {
-        setSyncBanner_("Erreur pendant le scan : " + json.error, 'error');
-      }
-    })
-    .catch(err => {
-      btn.disabled = false;
-      btn.textContent = "↻ Scanner mes emails";
-      setSyncBanner_("Erreur pendant le scan (" + err.message + ").", 'error');
-    });
+
+  const calls = [
+    fetch(SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'scan' }) })
+      .then(r => r.json())
+      .then(json => ({ who: "toi", ok: !!json.ok, count: json.newMessages, error: json.error }))
+      .catch(err => ({ who: "toi", ok: false, error: err.message }))
+  ];
+  if (ADRIEN_SCRIPT_URL) {
+    calls.push(
+      fetch(ADRIEN_SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'scan' }) })
+        .then(r => r.json())
+        .then(json => ({ who: "Adrien", ok: !!json.ok, count: json.added, error: json.error }))
+        .catch(err => ({ who: "Adrien", ok: false, error: err.message }))
+    );
+  }
+
+  Promise.all(calls).then(results => {
+    btn.disabled = false;
+    btn.textContent = "↻ Scanner mes emails";
+    const oks = results.filter(r => r.ok);
+    const fails = results.filter(r => !r.ok);
+    let msg = "";
+    if (oks.length) msg += "Scan terminé — " + oks.map(r => r.who + " : " + (r.count || 0)).join(" · ") + " nouveau(x) échange(s).";
+    if (fails.length) msg += (msg ? " — " : "Erreur pendant le scan — ") + fails.map(r => r.who + " (" + (r.error || "échec") + ")").join(" · ");
+    setSyncBanner_(msg, fails.length && !oks.length ? 'error' : (fails.length ? 'warn' : 'ok'));
+    if (oks.length) loadData();
+  });
 }
 
 // saveData() est appelée à chaque frappe clavier sur pas mal de champs (finance, tâches...).
@@ -1112,11 +1230,11 @@ window.addEventListener('beforeunload', (e) => {
   }
 });
 
-function resetDemoData() {
+async function resetDemoData() {
   const msg = SYNC_MODE
     ? "Réinitialiser ton cache local ? Cela ne touche pas les données partagées dans le cloud, seulement la copie de secours de ce navigateur."
     : "Réinitialiser toutes les données de démonstration ? Tes modifications locales (statuts, paiements) seront effacées.";
-  if (confirm(msg)) {
+  if (await uiConfirm_(msg)) {
     localStorage.removeItem('rosarioData');
     localStorage.removeItem('rosarioMenu');
     localStorage.removeItem('rosarioTemplates');
@@ -1279,7 +1397,7 @@ function refreshStatuses_() {
       const a = computeAutoStatut_(r);
       if (r.statut !== a) { r.statut = a; changed = true; }
     }
-    if (computeAutoArchive_(r)) { r.statut = "Archivée"; changed = true; }
+    if (computeAutoArchive_(r)) { r.statut = "Archivée"; r.archiveRaison = "Sans réponse"; changed = true; }
     r.relance = computeRelance_(r);
   });
   if (changed) saveData();
@@ -1347,6 +1465,99 @@ function renderTasksFinanceSection_() {
   }).join("");
 }
 
+/* ---- Rapprochement Qonto ----
+   Lecture seule + confirmation manuelle uniquement : on ne crée jamais un paiement tout seul.
+   Toute la logique de calcul de solde reste ici (financeTotals/paidAmount_, déjà utilisés
+   partout ailleurs) — le serveur ne fait que renvoyer les transactions Qonto brutes. */
+let RECON_TX = [];
+
+function pendingSoldes_() {
+  return DATA.filter(r => r.statut === "Confirmé" && r.finance).map(r => {
+    const tot = financeTotals(r.finance);
+    const paid = paidAmount_(r.finance);
+    return { r, solde: tot.totalTTC - paid };
+  }).filter(x => x.solde > 0.5).sort((a, b) => b.solde - a.solde);
+}
+
+function renderRecon_() {
+  renderReconSoldes_();
+  loadReconTransactions_();
+}
+
+function renderReconSoldes_() {
+  const body = document.getElementById('reconSoldesBody');
+  if (!body) return;
+  const items = pendingSoldes_();
+  const countEl = document.getElementById('reconSoldesCount');
+  if (countEl) countEl.textContent = items.length + (items.length > 1 ? " clients" : " client");
+  if (!items.length) { body.innerHTML = '<tr><td colspan="3" style="padding:20px;text-align:center;color:var(--ink-3)">Aucun solde en attente.</td></tr>'; return; }
+  body.innerHTML = items.map(({ r, solde }) => {
+    const d = parseDate(r.date);
+    return `<tr>
+      <td><div class="cl-name">${esc(r.client)}</div></td>
+      <td>${d ? d.getDate() + " " + MOIS_COURT_[d.getMonth()] + " " + d.getFullYear() : "—"}</td>
+      <td style="text-align:right"><b>${fmtEUR(solde)}</b></td>
+    </tr>`;
+  }).join("");
+}
+
+function loadReconTransactions_() {
+  const box = document.getElementById('reconTxBox');
+  if (!box) return;
+  if (!SYNC_MODE) { box.innerHTML = '<div class="empty-box">Connecte le cloud (SCRIPT_URL) pour voir les transactions Qonto.</div>'; return; }
+  box.innerHTML = '<div class="empty-box">Chargement des transactions Qonto…</div>';
+  fetch(SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'qonto_suggestions' }) })
+    .then(r => r.json())
+    .then(json => {
+      if (!json.ok) { box.innerHTML = '<div class="empty-box">Erreur Qonto : ' + esc(json.error || 'inconnue') + '</div>'; return; }
+      if (!json.configured) {
+        box.innerHTML = '<div class="empty-box">Qonto n\'est pas encore configuré pour cet outil.<br>Dans Apps Script (Extensions&nbsp;›&nbsp;Apps Script&nbsp;›&nbsp;⚙️ Paramètres du projet&nbsp;›&nbsp;Propriétés du script), ajoute <b>qontoLogin</b>, <b>qontoSecretKey</b> et <b>qontoIban</b>.</div>';
+        return;
+      }
+      RECON_TX = json.transactions || [];
+      renderReconTx_();
+    })
+    .catch(err => { box.innerHTML = '<div class="empty-box">Erreur de connexion à Qonto (' + esc(err.message) + ').</div>'; });
+}
+
+function renderReconTx_() {
+  const box = document.getElementById('reconTxBox');
+  if (!box) return;
+  if (!RECON_TX.length) { box.innerHTML = '<div class="empty-box">Aucune transaction Qonto non liée sur les 120 derniers jours.</div>'; return; }
+  const items = pendingSoldes_();
+  const rows = RECON_TX.map(t => {
+    const options = items.map(({ r, solde }) => {
+      const match = Math.abs(solde - t.montant) < 2 ? ' selected' : '';
+      return `<option value="${esc(r.id)}"${match}>${esc(r.client)} — solde ${fmtEUR(solde)}</option>`;
+    }).join("");
+    return `<tr>
+      <td>${esc(t.date)}</td>
+      <td>${esc(t.label)}${t.reference ? '<div class="cl-sub">' + esc(t.reference) + '</div>' : ''}</td>
+      <td style="text-align:right"><b>${fmtEUR(t.montant)}</b></td>
+      <td><select id="reconSel_${esc(t.txId)}"><option value="">— choisir la demande —</option>${options}</select></td>
+      <td><button class="btn sm" onclick="doLinkQonto_('${esc(t.txId)}')">Lier</button></td>
+    </tr>`;
+  }).join("");
+  box.innerHTML = '<div class="tbl-wrap"><table class="pipe"><thead><tr><th>Date</th><th>Libellé Qonto</th><th style="text-align:right">Montant</th><th>Lier à</th><th></th></tr></thead><tbody>' + rows + '</tbody></table></div>';
+}
+
+async function doLinkQonto_(txId) {
+  const sel = document.getElementById('reconSel_' + txId);
+  const id = sel ? sel.value : '';
+  if (!id) { uiAlert_("Choisis d'abord à quelle demande lier cette transaction."); return; }
+  const tx = RECON_TX.find(t => t.txId === txId);
+  if (!tx) return;
+  if (!(await uiConfirm_("Lier cette transaction Qonto de " + fmtEUR(tx.montant) + " à cette demande comme paiement ? Cette transaction ne sera plus proposée ensuite."))) return;
+  fetch(SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'link_qonto_payment', id: id, txId: tx.txId, montant: tx.montant, date: tx.date }) })
+    .then(r => r.json())
+    .then(json => {
+      if (!json.ok) { uiAlert_("Erreur : " + json.error); return; }
+      RECON_TX = RECON_TX.filter(t => t.txId !== txId);
+      loadData();
+    })
+    .catch(err => uiAlert_("Erreur : " + err.message));
+}
+
 /* ---- Onglet Tâches (toutes les confirmées, triées par urgence) ---- */
 function renderTasksTab_() {
   renderTasksFinanceSection_();
@@ -1411,6 +1622,7 @@ function renderCurrentView_() {
   if (currentView === 'dashboard') renderDashboard();
   else if (currentView === 'clients') renderClientsTable();
   else if (currentView === 'confirmed') renderConfirmedTab_();
+  else if (currentView === 'recon') renderRecon_();
   else if (currentView === 'tasks') renderTasksTab_();
   else if (currentView === 'settings') loadSettingsForms();
 }
@@ -1513,9 +1725,18 @@ function renderSuivi_() {
   document.getElementById('suiviCount').textContent = rows.length + (rows.length > 1 ? " demandes" : " demande");
   const body = document.getElementById('suiviBody');
   body.innerHTML = rows.length ? rows.map(r => suiviRow_(r)).join("") : '<tr><td colspan="7" style="padding:30px;text-align:center;color:var(--ink-3)">Aucune demande sur ce filtre.</td></tr>';
+  const lastCol = document.getElementById('suiviLastCol');
+  if (lastCol) lastCol.textContent = suiviFilter === 'archived' ? 'Motif' : '';
 
-  document.getElementById('suiviFooterLinks').innerHTML =
-    `<a onclick="toggleSuiviFilter('archived')">${suiviFilter === 'archived' ? 'Retour au suivi actif' : 'Voir les archivées (' + counts.archived + ')'}</a>`;
+  let footer = `<a onclick="toggleSuiviFilter('archived')">${suiviFilter === 'archived' ? 'Retour au suivi actif' : 'Voir les archivées (' + counts.archived + ')'}</a>`;
+  if (suiviFilter === 'archived' && counts.archived) {
+    const archivedAll = all.filter(r => r.statut === "Archivée");
+    const byRaison = {};
+    archivedAll.forEach(r => { const k = r.archiveRaison || "Non renseigné"; byRaison[k] = (byRaison[k] || 0) + 1; });
+    const breakdown = Object.keys(byRaison).sort((a, b) => byRaison[b] - byRaison[a]).map(k => k + " : " + byRaison[k]).join(" · ");
+    footer += `<span style="color:var(--ink-3); margin-left:14px;">${esc(breakdown)}</span>`;
+  }
+  document.getElementById('suiviFooterLinks').innerHTML = footer;
 }
 function toggleSuiviFilter(k) { suiviFilter = (suiviFilter === k) ? null : k; renderSuivi_(); }
 function onSuiviSearch(v) {
@@ -1532,13 +1753,25 @@ function suiviRow_(r) {
     <td>${esc(r.espace || "—")}</td>
     <td>${esc(fmtShortFR_(r.dateDemande))}</td>
     <td><span class="pill ${STAGE_CLASS[r.statut]}">${stageLabel_(r.statut)}</span>${r.relance ? '<span class="tag amber" style="margin-left:6px">à relancer</span>' : ''}</td>
-    <td><button class="archive-btn" onclick="event.stopPropagation(); archiveFromSuivi_(${idx})" title="Archiver"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button></td>
+    <td>${r.statut === "Archivée"
+      ? '<span class="cl-sub">' + esc(r.archiveRaison || "Non renseigné") + '</span>'
+      : '<button class="archive-btn" onclick="event.stopPropagation(); archiveFromSuivi_(' + idx + ')" title="Archiver"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>'}</td>
   </tr>`;
 }
-function archiveFromSuivi_(idx) {
+// Motifs d'archivage : capturés à chaque archivage manuel pour pouvoir faire des stats plus tard
+// (combien de demandes perdues vs annulées vs sans réponse). "Sans réponse" n'est jamais proposé
+// au clic : c'est la valeur posée automatiquement par computeAutoArchive_ (archivage silencieux
+// des demandes dont la date est passée depuis >14j sans qu'on ait tranché).
+const ARCHIVE_RAISONS_ = [
+  { label: "Perdu", value: "Perdu" },
+  { label: "Annulé", value: "Annulé" },
+  { label: "Autre", value: "Autre" }
+];
+async function archiveFromSuivi_(idx) {
   const r = DATA[idx]; if (!r) return;
-  if (!confirm('Archiver la demande de "' + r.client + '" ?')) return;
-  r.statut = "Archivée"; saveData(); renderDashboard();
+  const raison = await uiChoice_('Pourquoi archiver la demande de "' + r.client + '" ?', ARCHIVE_RAISONS_);
+  if (!raison) return;
+  r.statut = "Archivée"; r.archiveRaison = raison; saveData(); renderDashboard();
 }
 
 /* =========================================================================
@@ -1787,8 +2020,10 @@ function openDetail(idx, origin) {
   document.getElementById('tabCompose').style.display = isClosed ? "none" : "flex";
   const finTab = document.querySelector('.tab[data-pane="finance"]');
   const taskTab = document.querySelector('.tab[data-pane="tasks"]');
+  const menuTab = document.querySelector('.tab[data-pane="menu"]');
   if (finTab) finTab.style.display = r.statut === "Confirmé" ? "flex" : "none";
   if (taskTab) taskTab.style.display = r.statut === "Confirmé" ? "flex" : "none";
+  if (menuTab) menuTab.style.display = r.statut === "Confirmé" ? "flex" : "none";
   const badge = document.getElementById('taskBadge'), open = openTaskCount_(r);
   badge.textContent = open; badge.style.display = open ? "inline-block" : "none";
 
@@ -1798,6 +2033,7 @@ function openDetail(idx, origin) {
   renderTimeline_(r);
   if (r.statut === "Confirmé") renderFinance_(r);
   if (r.statut === "Confirmé") renderTasks_(r);
+  if (r.statut === "Confirmé") renderDemandeMenu_(r);
   if (!isClosed) resetCompose();
 
   let defaultPane;
@@ -1873,16 +2109,20 @@ function renderDetInfo_(r) {
   if (!q) return;
   if (r.commentaire) { q.style.display = "block"; q.textContent = "« " + r.commentaire + " »"; } else q.style.display = "none";
 }
-// Formule groupe = tarif fixe (nourriture uniquement, le reste est réglé à la caisse) : on
+// Formule groupe = tarif fixe TTC (nourriture uniquement, le reste est réglé à la caisse) : on
 // pré-remplit le chiffrage à partir du pax et du tarif réglé dans Paramètres, mais ça reste
 // un point de départ — modifiable à la main ensuite comme n'importe quel autre chiffrage.
+// TARIF_GROUPE est le prix TTC annoncé au client (ex. 45 €/pers) ; caCuisineHT doit rester HT
+// comme tous les autres chiffrages de l'app, donc on retire la TVA cuisine (10 %) avant de le
+// stocker : caCuisineHT = TARIF_GROUPE / 1.10 (sinon la TVA cuisine serait recalculée par-dessus
+// un montant déjà TTC, et le total TTC affiché serait faux).
 // Un changement de pax après coup ne redéclenche pas ce calcul, pour ne jamais écraser une
 // correction manuelle : il suffit de rebasculer le type pour le relancer si besoin.
 function applyTypeChange_(r, val) {
   if (!r || !r.finance) return;
   r.finance.type = val;
   if (val === "Formule groupe") {
-    r.finance.caCuisineHT = TARIF_GROUPE * (toNumber(r.pax) || 0);
+    r.finance.caCuisineHT = (TARIF_GROUPE / 1.10) * (toNumber(r.pax) || 0);
     r.finance.caAlcoolsHT = 0;
   }
 }
@@ -1981,8 +2221,15 @@ function renderDetActions_(r) {
   bar.innerHTML = out.join("");
 }
 
-function setStatut_(val) {
+async function setStatut_(val) {
   if (!currentReq) return;
+  if (val === "Archivée" && currentReq.statut !== "Archivée") {
+    const raison = await uiChoice_('Pourquoi archiver la demande de "' + currentReq.client + '" ?', ARCHIVE_RAISONS_);
+    if (!raison) { openDetail(DATA.indexOf(currentReq), backTarget); return; } // annulé : remet le select tel quel
+    currentReq.archiveRaison = raison;
+  } else if (val !== "Archivée") {
+    currentReq.archiveRaison = "";
+  }
   currentReq.statut = val;
   if (val === "Confirmé") {
     if (!currentReq.finance) currentReq.finance = { service: "Dîner", type: "Privatisation", societe: "", caCuisineHT: 0, caAlcoolsHT: 0, statutPaiement: "En attente d'acompte", paiements: [] };
@@ -2362,6 +2609,98 @@ function saveMenu_() {
   localStorage.setItem('rosarioMenu', JSON.stringify(MENU));
   if (SYNC_MODE) pushData_();
   showSaveNote_('menuSaveNote');
+}
+
+/* =========================================================================
+   Menu d'une demande confirmée : calculé depuis le menu standard (Paramètres
+   > Menu) au prorata du pax RÉEL de la demande. Tant que la demande n'a pas
+   de menu personnalisé (r.menu vide/absent), on lit et affiche en direct le
+   menu standard MENU (toute évolution du standard se répercute donc
+   automatiquement). Dès qu'on modifie une ligne ICI, on fige une copie
+   propre à cette demande (r.menu) — indépendante du menu standard partagé,
+   qui n'est jamais touché par ces modifications.
+   ========================================================================= */
+function demandeMenuActive_(r) { return (r.menu && r.menu.length) ? r.menu : MENU; }
+function ensureDemandeMenuOverride_(r) {
+  if (!r.menu || !r.menu.length) r.menu = JSON.parse(JSON.stringify(MENU));
+  return r.menu;
+}
+function renderDemandeMenu_(r) {
+  const list = demandeMenuActive_(r);
+  document.getElementById('menuPaxLabel').textContent = toNumber(r.pax) || 0;
+  document.getElementById('detMenuBody').innerHTML = list.map((m, i) => `
+    <tr>
+      <td style="text-align:center"><input type="checkbox" ${m.included ? "checked" : ""} style="width:auto;cursor:pointer;" onchange="onDemandeMenuField_(${i}, 'included', this.checked)"></td>
+      <td><input value="${esc(m.nom)}" oninput="onDemandeMenuField_(${i}, 'nom', this.value)"></td>
+      <td><input value="${m.prixUnitaire}" oninput="onDemandeMenuField_(${i}, 'prixUnitaire', toNumber(this.value))"></td>
+      <td><input value="${m.qtePerPers}" oninput="onDemandeMenuField_(${i}, 'qtePerPers', toNumber(this.value))"></td>
+      <td id="detMenuQte_${i}" style="font-weight:600">—</td>
+      <td id="detMenuLigne_${i}" style="text-align:right">—</td>
+      <td><button class="btn sm ghost" onclick="removeDemandeMenuRow_(${i})" title="Retirer">✕</button></td>
+    </tr>`).join("");
+  updateDemandeMenuRows_(r);
+  updateDemandeMenuSummary_(r);
+  refreshDemandeMenuOverrideNote_(r);
+}
+function updateDemandeMenuRows_(r) {
+  const list = demandeMenuActive_(r);
+  const pax = toNumber(r.pax) || 0;
+  list.forEach((m, i) => {
+    const qte = Math.ceil(toNumber(m.qtePerPers) * pax);
+    const qEl = document.getElementById('detMenuQte_' + i), lEl = document.getElementById('detMenuLigne_' + i);
+    if (qEl) qEl.textContent = qte;
+    if (lEl) lEl.textContent = fmtEUR(toNumber(m.prixUnitaire) * qte);
+  });
+}
+function updateDemandeMenuSummary_(r) {
+  const list = demandeMenuActive_(r);
+  const pax = toNumber(r.pax) || 0;
+  const active = list.filter(m => m.included);
+  const theorique = active.reduce((s, m) => s + toNumber(m.prixUnitaire) * Math.ceil(toNumber(m.qtePerPers) * pax), 0);
+  const facture = toNumber(r.finance && r.finance.caCuisineHT);
+  const ecart = facture - theorique;
+  document.getElementById('detMenuTheorique').textContent = fmtEUR(theorique);
+  document.getElementById('detMenuFacture').textContent = fmtEUR(facture);
+  document.getElementById('detMenuEcart').textContent = (ecart >= 0 ? "+" : "") + fmtEUR(ecart);
+  const tile = document.getElementById('detMenuEcartTile');
+  if (tile) tile.className = "itile " + (ecart >= 0 ? "ok" : "warn");
+}
+function refreshDemandeMenuOverrideNote_(r) {
+  const overridden = !!(r.menu && r.menu.length);
+  document.getElementById('detMenuOverrideNote').textContent = overridden
+    ? "Menu personnalisé pour cette demande (indépendant du menu standard). "
+    : "Basé sur le menu standard — modifie une ligne pour le personnaliser pour cette demande uniquement.";
+  document.getElementById('detMenuResetLink').style.display = overridden ? "inline" : "none";
+}
+function onDemandeMenuField_(i, field, val) {
+  if (!currentReq) return;
+  const list = ensureDemandeMenuOverride_(currentReq);
+  list[i][field] = val;
+  updateDemandeMenuRows_(currentReq);
+  updateDemandeMenuSummary_(currentReq);
+  refreshDemandeMenuOverrideNote_(currentReq);
+  saveData();
+}
+function addDemandeMenuRow_() {
+  if (!currentReq) return;
+  const list = ensureDemandeMenuOverride_(currentReq);
+  list.push({ nom: "Nouveau plat", included: true, qtePerPers: 0.5, prixUnitaire: 0 });
+  renderDemandeMenu_(currentReq);
+  saveData();
+}
+function removeDemandeMenuRow_(i) {
+  if (!currentReq) return;
+  const list = ensureDemandeMenuOverride_(currentReq);
+  list.splice(i, 1);
+  renderDemandeMenu_(currentReq);
+  saveData();
+}
+async function resetDemandeMenuToStandard_() {
+  if (!currentReq) return;
+  if (!(await uiConfirm_("Revenir au menu standard pour cette demande ? Les personnalisations faites sur cette fiche seront perdues (le menu standard partagé n'est jamais affecté)."))) return;
+  currentReq.menu = [];
+  renderDemandeMenu_(currentReq);
+  saveData();
 }
 
 /* =========================================================================
