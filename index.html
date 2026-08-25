@@ -116,20 +116,21 @@
   .ev-amt { font-size: 14px; font-weight: 600; margin: 0; min-width: 66px; text-align: right; font-family: 'Inter', sans-serif; }
   .empty-box { background: var(--surface); border: 0.5px dashed var(--border-strong); border-radius: 12px; padding: 26px; text-align: center; color: var(--ink-3); font-size: 13px; }
 
-  /* ---- Calendrier ---- */
-  .cal-head { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
-  .cal-title { font-family: 'Fraunces', serif; font-weight: 600; font-size: 16px; color: var(--bordeaux-dark); margin: 0; min-width: 150px; text-transform: capitalize; }
-  .cal-legend { margin-left: auto; display: flex; gap: 14px; font-size: 11.5px; color: var(--ink-2); flex-wrap: wrap; }
+  /* ---- Calendrier (moitié gauche du bloc "Événements à venir" du Tableau de bord) ---- */
+  .dash-upcoming-grid { display: grid; grid-template-columns: 1.05fr 1fr; gap: 18px; align-items: start; }
+  @media (max-width: 900px) { .dash-upcoming-grid { grid-template-columns: 1fr; } }
+  .cal-head { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+  .cal-title { font-family: 'Fraunces', serif; font-weight: 600; font-size: 15px; color: var(--bordeaux-dark); margin: 0; min-width: 120px; text-transform: capitalize; }
+  .cal-legend { display: flex; gap: 12px; font-size: 11px; color: var(--ink-2); flex-wrap: wrap; }
   .cal-legend span { display: inline-flex; align-items: center; gap: 5px; }
-  .cal-dot { display: inline-block; width: 8px; height: 8px; border-radius: 2px; }
+  .cal-dot { display: inline-block; width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
   .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background: var(--border); border: 0.5px solid var(--border); border-radius: 10px; overflow: hidden; }
-  .cal-dow { background: var(--surface-2); padding: 7px 8px; font-size: 10.5px; text-transform: uppercase; letter-spacing: .04em; color: var(--ink-3); }
-  .cal-day { background: var(--surface); min-height: 78px; padding: 6px; }
+  .cal-dow { background: var(--surface-2); padding: 6px 5px; font-size: 10px; text-transform: uppercase; letter-spacing: .03em; color: var(--ink-3); }
+  .cal-day { background: var(--surface); min-height: 56px; padding: 4px; }
   .cal-day.out { background: var(--surface-2); }
   .cal-day.today .cal-daynum { background: var(--bordeaux); color: #fff; border-radius: 50%; }
-  .cal-daynum { font-size: 11px; color: var(--ink-2); display: inline-flex; align-items: center; justify-content: center; width: 19px; height: 19px; }
-  .cal-chip { margin-top: 4px; font-size: 10.5px; padding: 2px 6px; border-radius: 5px; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  @media (max-width: 720px) { .cal-day { min-height: 54px; } .cal-legend { display: none; } }
+  .cal-daynum { font-size: 10.5px; color: var(--ink-2); display: inline-flex; align-items: center; justify-content: center; width: 17px; height: 17px; }
+  .cal-chip { margin-top: 3px; font-size: 10px; padding: 1px 5px; border-radius: 4px; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
   /* ---- Pills / tags ---- */
   .pill { font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 99px; white-space: nowrap; display: inline-block; }
@@ -392,7 +393,6 @@
     <nav class="nav">
       <button id="nav-dashboard" class="on" onclick="showView('dashboard')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg><span class="lbl">Tableau de bord</span><span class="navb" id="navDashBadge" style="display:none">0</span></button>
       <button id="nav-confirmed" onclick="showView('confirmed')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4 12 14.01l-3-3"/></svg><span class="lbl">Confirmées</span></button>
-      <button id="nav-calendar" onclick="showView('calendar')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span class="lbl">Calendrier</span></button>
       <button id="nav-recon" onclick="showView('recon')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg><span class="lbl">Réconciliation</span></button>
       <button id="nav-tasks" onclick="showView('tasks')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="6" height="6" rx="1"/><path d="M11 6h9"/><rect x="3" y="14" width="6" height="6" rx="1"/><path d="M11 15h9"/></svg><span class="lbl">Tâches</span><span class="navb" id="navTasksBadge" style="display:none">0</span></button>
       <button id="nav-clients" onclick="showView('clients')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span class="lbl">Base clients</span></button>
@@ -410,9 +410,26 @@
 
   <!-- ============ DASHBOARD (fusion : à venir + suivi) ============ -->
   <div class="view on" id="view-dashboard">
-    <div class="upcoming-block">
-      <p class="sec-title"><span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span> Événements à venir <span class="count" id="upcomingCount"></span></p>
-      <div id="dashUpcoming"></div>
+    <div class="dash-upcoming-grid">
+      <div class="upcoming-block">
+        <div class="cal-head">
+          <button class="btn sm ghost" onclick="calNav_(-1)" aria-label="Mois précédent"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+          <p class="cal-title" id="calTitle"></p>
+          <button class="btn sm ghost" onclick="calNav_(1)" aria-label="Mois suivant"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></button>
+          <button class="btn sm" style="margin-left:8px" onclick="calToday_()">Aujourd'hui</button>
+        </div>
+        <div class="cal-grid" id="calGrid"></div>
+        <div class="cal-legend" style="margin:10px 2px 0;">
+          <span><i class="cal-dot" style="background:var(--green)"></i>Confirmé</span>
+          <span><i class="cal-dot" style="background:var(--blue)"></i>Nouvelle demande</span>
+          <span><i class="cal-dot" style="background:var(--red)"></i>À répondre</span>
+          <span><i class="cal-dot" style="background:#9a968c"></i>En attente client</span>
+        </div>
+      </div>
+      <div class="upcoming-block">
+        <p class="sec-title"><span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span> Événements à venir <span class="count" id="upcomingCount"></span></p>
+        <div id="dashUpcoming"></div>
+      </div>
     </div>
 
     <div class="section-divider"><span>Suivi</span></div>
@@ -647,25 +664,6 @@
         </tr></thead>
         <tbody id="histBody"></tbody>
       </table>
-    </div>
-  </div>
-
-  <!-- ============ CALENDRIER ============ -->
-  <div class="view" id="view-calendar">
-    <div class="upcoming-block">
-      <div class="cal-head">
-        <button class="btn sm ghost" onclick="calNav_(-1)" aria-label="Mois précédent"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
-        <p class="cal-title" id="calTitle"></p>
-        <button class="btn sm ghost" onclick="calNav_(1)" aria-label="Mois suivant"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></button>
-        <button class="btn sm" style="margin-left:8px" onclick="calToday_()">Aujourd'hui</button>
-        <span class="cal-legend">
-          <span><i class="cal-dot" style="background:var(--green)"></i>Confirmé</span>
-          <span><i class="cal-dot" style="background:var(--blue)"></i>Nouvelle demande</span>
-          <span><i class="cal-dot" style="background:var(--red)"></i>À répondre</span>
-          <span><i class="cal-dot" style="background:#9a968c"></i>En attente client</span>
-        </span>
-      </div>
-      <div class="cal-grid" id="calGrid"></div>
     </div>
   </div>
 
@@ -1680,7 +1678,6 @@ function renderCurrentView_() {
   if (currentView === 'dashboard') renderDashboard();
   else if (currentView === 'clients') renderClientsTable();
   else if (currentView === 'confirmed') renderConfirmedTab_();
-  else if (currentView === 'calendar') renderCalendar_();
   else if (currentView === 'recon') renderRecon_();
   else if (currentView === 'tasks') renderTasksTab_();
   else if (currentView === 'settings') loadSettingsForms();
@@ -1776,6 +1773,7 @@ function renderDashboard() {
     box.innerHTML = upcoming.slice(0, 6).map(r => eventRow_(r)).join("");
     if (upcoming.length > 6) box.innerHTML += `<p style="font-size:12px;color:var(--ink-3);margin:6px 2px 0;">+ ${upcoming.length - 6} autre${upcoming.length - 6 > 1 ? "s" : ""} à venir</p>`;
   }
+  renderCalendar_();
   renderSuivi_();
 }
 
