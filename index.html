@@ -682,6 +682,10 @@
         </table>
       </div>
       <button class="add-line" onclick="addTaskTplRow()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg> Ajouter une tâche au modèle</button>
+      <div style="margin-top:22px; padding-top:16px; border-top:0.5px solid var(--border);">
+        <p style="font-size:12.5px; color:var(--ink-2); margin:0 0 8px;">Supprime les tâches déjà créées sur toutes les fiches (n'importe leur statut coché/non coché). Ne modifie pas le modèle ci-dessus : les prochaines confirmations en recréeront selon le modèle du moment.</p>
+        <button class="btn sm" onclick="clearAllTasks_()">Supprimer toutes les tâches existantes</button>
+      </div>
     </div>
 
     <div id="set-options" style="display:none">
@@ -2572,6 +2576,18 @@ function saveTaskTemplate() {
   localStorage.setItem('rosarioTaskTpl', JSON.stringify(TASK_TEMPLATE));
   if (SYNC_MODE) pushData_();
   showSaveNote_('taskSaveNote');
+}
+// Vide en une fois les tâches déjà créées sur TOUTES les fiches (contrairement au modèle
+// ci-dessus, qui ne concerne que les futures confirmations) — pour éviter de devoir les retirer
+// une par une sur chaque demande.
+async function clearAllTasks_() {
+  const count = DATA.reduce((s, r) => s + (r.tasks ? r.tasks.length : 0), 0);
+  if (!count) { await uiAlert_("Aucune tâche à supprimer."); return; }
+  if (!(await uiConfirm_("Supprimer les " + count + " tâche(s) existante(s) sur toutes les demandes ? Le modèle de tâches n'est pas touché."))) return;
+  DATA.forEach(r => { r.tasks = []; });
+  saveData();
+  renderCurrentView_();
+  await uiAlert_(count + " tâche(s) supprimée(s).");
 }
 
 function renderMenuForm_() {
