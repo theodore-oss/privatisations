@@ -84,7 +84,18 @@
   .kpi .val { font-size: 23px; font-weight: 600; margin: 6px 0 0; }
   .kpi .sub { font-size: 11.5px; margin: 4px 0 0; color: var(--ink-2); }
 
+  .kpi-groups { display: grid; grid-template-columns: 1fr 1fr; gap: 11px; margin-bottom: 11px; }
+  .kpi-group { background: var(--surface); border: 0.5px solid var(--border); border-radius: 12px; padding: 16px 18px; }
+  .kpi-group .kg-lbl { font-size: 11px; color: var(--ink-3); margin: 0; text-transform: uppercase; letter-spacing: .04em; }
+  .kpi-group .kg-val { font-size: 26px; font-weight: 600; margin: 6px 0 0; }
+  .kpi-group .kg-sub { font-size: 11.5px; margin: 4px 0 0; color: var(--ink-2); }
+  .kg-subrow { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; padding-top: 12px; border-top: 0.5px solid var(--border); }
+  .kg-subitem .kgs-lbl { font-size: 10.5px; color: var(--ink-3); margin: 0; text-transform: uppercase; letter-spacing: .03em; }
+  .kg-subitem .kgs-val { font-size: 16px; font-weight: 600; margin: 4px 0 0; }
+  .kg-subitem .kgs-note { font-size: 10.5px; margin: 2px 0 0; color: var(--ink-3); }
+
   /* ---- Statistiques ---- */
+  .stat-section { margin-bottom: 30px; }
   .stat-block { background: var(--surface); border: 0.5px solid var(--border); border-radius: 16px; padding: 20px; margin-bottom: 14px; }
   .stat-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
   .bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 9px; }
@@ -381,6 +392,7 @@
 
   @media (max-width: 720px) {
     .kpis { grid-template-columns: repeat(2, 1fr); }
+    .kpi-groups { grid-template-columns: 1fr; }
     .compose-grid, .grid2 { grid-template-columns: 1fr; }
     .fin-tiles { grid-template-columns: 1fr; }
     .nav button span.lbl { display: none; }
@@ -428,6 +440,7 @@
     <div class="suivi-block">
       <p class="sec-title"><span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></span> Suivi des demandes <span class="count" id="suiviCount"></span></p>
       <div class="kpi-row" id="suiviChips"></div>
+      <div class="kpi-row" id="suiviOwnerChips" style="margin-top:6px;"></div>
       <div class="toolbar">
         <input type="text" id="suiviSearch" placeholder="Rechercher un client" oninput="onSuiviSearch(this.value)">
         <span class="spacer"></span>
@@ -491,29 +504,41 @@
   <!-- ============ STATISTIQUES ============ -->
   <div class="view" id="view-stats">
     <p class="sec-title"><span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg></span> Statistiques</p>
-    <div class="kpis" style="grid-template-columns: repeat(2, 1fr);">
-      <div class="kpi">
-        <p class="lbl">Taux de conversion</p>
-        <p class="val" id="statConvVal">—</p>
-        <p class="sub" id="statConvSub"></p>
-      </div>
-      <div class="kpi">
-        <p class="lbl">Ticket moyen</p>
-        <p class="val" id="statTicketVal">—</p>
-        <p class="sub" id="statTicketSub"></p>
+
+    <div class="stat-section">
+      <p class="sec-title"><span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10h12"/><path d="M4 14h9"/><path d="M19 6a7.7 7.7 0 0 0-5.2-2A7.9 7.9 0 0 0 6 12a7.9 7.9 0 0 0 7.8 8 7.7 7.7 0 0 0 5.2-2"/></svg></span> Chiffre d'affaires</p>
+      <div id="confKpis"></div>
+      <div class="chart-wrap">
+        <p class="panel-t">Chiffre d'affaires des privatisations par mois (HT, événements passés)</p>
+        <div class="bars" id="histChartStats"></div>
       </div>
     </div>
-    <div class="stat-block">
-      <p class="sec-title" style="margin-bottom:14px;">Répartition des demandes par canal</p>
-      <div id="statCanalBars"></div>
-    </div>
-    <div class="stat-grid2">
-      <div class="stat-block">
-        <p class="sec-title" id="statLostTitle" style="margin-bottom:10px;">Demandes perdues</p>
-        <div id="statLostBreakdown"></div>
+
+    <div class="stat-section">
+      <p class="sec-title"><span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="5" x2="5" y2="19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></svg></span> Conversion</p>
+      <div class="stat-grid2">
+        <div class="kpi">
+          <p class="lbl">Taux de conversion</p>
+          <p class="val" id="statConvVal">—</p>
+          <p class="sub" id="statConvSub"></p>
+        </div>
+        <div class="stat-block">
+          <p class="sec-title" id="statLostTitle" style="margin-bottom:10px;">Demandes perdues</p>
+          <div id="statLostBreakdown"></div>
+        </div>
       </div>
+    </div>
+
+    <div class="stat-section">
+      <p class="sec-title"><span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg></span> Répartition par canal</p>
       <div class="stat-block">
-        <p class="sec-title" style="margin-bottom:14px;">CA par typologie</p>
+        <div id="statCanalBars"></div>
+      </div>
+    </div>
+
+    <div class="stat-section">
+      <p class="sec-title"><span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r=".5" fill="currentColor"/></svg></span> Répartition par typologie</p>
+      <div class="stat-block">
         <div id="statTypeBars"></div>
       </div>
     </div>
@@ -656,7 +681,6 @@
 
   <!-- ============ CONFIRMÉES (à venir + passées) ============ -->
   <div class="view" id="view-confirmed">
-    <div class="kpis" id="histKpis"></div>
     <div class="chart-wrap">
       <p class="panel-t">Chiffre d'affaires des privatisations par mois (HT, événements passés)</p>
       <div class="bars" id="histChart"></div>
@@ -1768,7 +1792,7 @@ function renderCurrentView_() {
   else if (currentView === 'confirmed') renderConfirmedTab_();
   else if (currentView === 'recon') renderRecon_();
   else if (currentView === 'tasks') renderTasksTab_();
-  else if (currentView === 'stats') renderStats_();
+  else if (currentView === 'stats') { renderStats_(); renderConfirmedTab_(); }
   else if (currentView === 'settings') loadSettingsForms();
 }
 
@@ -1821,6 +1845,7 @@ function eventRow_(r) {
 
 /* ---- Suivi des demandes (tableau simple, hors confirmées) ---- */
 let suiviFilter = null; // null | 'new' | 'answer' | 'waiting' | 'relance' | 'archived'
+let suiviOwnerFilter = null; // null | un owner de OWNERS_ | 'none'
 let suiviSearch = "";
 let suiviSort = { key: "event", dir: 1 };
 function sortableVal_(r, key) {
@@ -1857,12 +1882,21 @@ function renderSuivi_() {
     `<span class="kchip ${k} ${suiviFilter === k ? 'on' : ''}" onclick="toggleSuiviFilter('${k}')"><span class="n">${counts[k]}</span>${lbl}</span>`
   ).join("");
 
+  const ownerCounts = { none: 0 };
+  OWNERS_.forEach(o => ownerCounts[o] = 0);
+  all.forEach(r => { const k = (r.owner && OWNERS_.includes(r.owner)) ? r.owner : "none"; ownerCounts[k]++; });
+  const ownerChipDefs = OWNERS_.map(o => [o, o]).concat([["none", "Non assigné"]]);
+  document.getElementById('suiviOwnerChips').innerHTML = ownerChipDefs.map(([k, lbl]) =>
+    `<span class="kchip ${suiviOwnerFilter === k ? 'on' : ''}" onclick="toggleSuiviOwnerFilter('${k}')"><span class="n">${ownerCounts[k]}</span>${lbl}</span>`
+  ).join("");
+
   let rows = all.filter(r => {
     if (suiviFilter === "archived") return r.statut === "Archivée";
     if (suiviFilter === "relance") return r.relance && r.statut !== "Archivée";
     if (suiviFilter) return r.statut === SUIVI_KEY_LABEL[suiviFilter];
     return r.statut !== "Archivée";
   });
+  if (suiviOwnerFilter) rows = rows.filter(r => suiviOwnerFilter === "none" ? !r.owner : r.owner === suiviOwnerFilter);
   if (suiviSearch) { const q = suiviSearch.toLowerCase(); rows = rows.filter(r => (r.client || "").toLowerCase().includes(q) || (r.email || "").toLowerCase().includes(q)); }
   rows.sort((a, b) => (sortableVal_(a, suiviSort.key) - sortableVal_(b, suiviSort.key)) * suiviSort.dir);
   updateSortCarets_('suivi', suiviSort, ['pax', 'demande', 'event']);
@@ -1884,6 +1918,7 @@ function renderSuivi_() {
   document.getElementById('suiviFooterLinks').innerHTML = footer;
 }
 function toggleSuiviFilter(k) { suiviFilter = (suiviFilter === k) ? null : k; renderSuivi_(); }
+function toggleSuiviOwnerFilter(k) { suiviOwnerFilter = (suiviOwnerFilter === k) ? null : k; renderSuivi_(); }
 function onSuiviSearch(v) {
   suiviSearch = v; renderSuivi_();
   const el = document.getElementById('suiviSearch');
@@ -1898,7 +1933,7 @@ function suiviRow_(r) {
     <td>${esc(r.espace || "—")}</td>
     <td><select onclick="event.stopPropagation()" onchange="onSuiviOwnerInline_(${idx}, this.value)" style="border:none; background:transparent; font:inherit; color:inherit; cursor:pointer; padding:0;">${ownerOptsFor_(r.owner)}</select></td>
     <td>${esc(fmtShortFR_(r.dateDemande))}</td>
-    <td><span class="pill ${STAGE_CLASS[r.statut]}">${stageLabel_(r.statut)}</span>${r.relance ? '<span class="tag amber" style="margin-left:6px">à relancer</span>' : ''}</td>
+    <td><select onclick="event.stopPropagation()" onchange="onSuiviStatutInline_(${idx}, this.value)" class="status-select ${STATUT_SELECT_CLASS_[r.statut] || 'waiting'}" style="padding:4px 8px; font-size:11.5px;">${ALL_STATUTS_.map(s => `<option value="${s}" ${s === r.statut ? "selected" : ""}>${s}</option>`).join("")}</select>${r.relance ? '<span class="tag amber" style="margin-left:6px">à relancer</span>' : ''}</td>
     <td>${r.statut === "Archivée"
       ? '<span class="cl-sub">' + esc(r.archiveRaison || "Non renseigné") + '</span>'
       : '<button class="archive-btn" onclick="event.stopPropagation(); archiveFromSuivi_(' + idx + ')" title="Archiver"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>'}</td>
@@ -1948,12 +1983,6 @@ function renderStats_() {
     : "Pas encore de demande clôturée.";
 
   const withFinance = DATA.filter(r => r.finance);
-  const totalCA = withFinance.reduce((s, r) => s + toNumber(r.finance.caCuisineHT) + toNumber(r.finance.caAlcoolsHT), 0);
-  const totalPax = withFinance.reduce((s, r) => s + toNumber(r.pax), 0);
-  document.getElementById('statTicketVal').textContent = totalPax ? fmtEUR(totalCA / totalPax) + " / pers" : "—";
-  document.getElementById('statTicketSub').textContent = totalPax
-    ? "CA HT total (" + fmtEUR(totalCA) + ") ÷ " + totalPax + " pax, sur " + withFinance.length + " privatisations"
-    : "Pas encore de privatisation chiffrée.";
 
   const byCanal = {};
   DATA.forEach(r => { const k = r.canal || "Non renseigné"; byCanal[k] = (byCanal[k] || 0) + 1; });
@@ -2022,6 +2051,10 @@ function renderClientsTable() {
    HISTORIQUE
    ========================================================================= */
 function kpi_(lbl, val, sub) { return `<div class="kpi"><p class="lbl">${lbl}</p><p class="val">${val}</p><p class="sub">${sub}</p></div>`; }
+function kpiGroup_(lbl, val, sub, subs) {
+  const subHtml = subs.map(s => `<div class="kg-subitem"><p class="kgs-lbl">${esc(s.lbl)}</p><p class="kgs-val">${s.val}</p>${s.note ? '<p class="kgs-note">' + esc(s.note) + '</p>' : ''}</div>`).join("");
+  return `<div class="kpi-group"><p class="kg-lbl">${esc(lbl)}</p>${val ? '<p class="kg-val">' + val + '</p>' : ''}${sub ? '<p class="kg-sub">' + esc(sub) + '</p>' : ''}<div class="kg-subrow">${subHtml}</div></div>`;
+}
 
 // CA réalisé HT d'une demande, en retirant la part déjà encaissée directement en caisse
 // (Lightspeed) — sinon ce CA serait compté deux fois entre cet outil et Lightspeed. On convertit
@@ -2068,26 +2101,41 @@ function renderConfirmedTab_() {
   const caFacture = past.reduce((s, r) => s + caRealiseHT_(r), 0);
   const caCaisse = Math.max(0, caTotal - caFacture);
   const panier = past.length ? caTotal / past.length : 0;
+  const totalPax = past.reduce((s, r) => s + toNumber(r.pax), 0);
+  const ticketPax = totalPax ? caTotal / totalPax : 0;
   const enAttente = confirmed.reduce((s, r) => s + Math.max(0, financeTotals(r.finance).totalTTC - paidAmount_(r.finance)), 0);
 
-  document.getElementById('histKpis').innerHTML =
-    kpi_("CA total (HT)", fmtEUR(caTotal), past.length + " événements passés") +
-    kpi_("dont CA sur facture (HT)", fmtEUR(caFacture), "hors caisse") +
-    kpi_("dont CA Caisse Lightspeed (HT)", fmtEUR(caCaisse), "encaissé en caisse") +
-    kpi_("Panier moyen (HT)", fmtEUR(panier), "par privatisation") +
+  const confKpisHtml =
+    '<div class="kpi-groups">' +
+    kpiGroup_("CA total (HT)", fmtEUR(caTotal), past.length + " événements passés", [
+      { lbl: "Sur facture", val: fmtEUR(caFacture), note: "Non tapé dans Lightspeed" },
+      { lbl: "Tapé dans Lightspeed", val: fmtEUR(caCaisse) }
+    ]) +
+    kpiGroup_("Ticket moyen (HT)", "", "", [
+      { lbl: "Par privatisation", val: fmtEUR(panier) },
+      { lbl: "Par personne", val: fmtEUR(ticketPax) }
+    ]) +
+    '</div>' +
+    '<div class="kpis">' +
     kpi_("Événements confirmés", confirmed.length, "au total") +
-    kpi_("Encaissements en attente", fmtEUR(enAttente), "acomptes + soldes dus");
+    kpi_("Encaissements en attente", fmtEUR(enAttente), "acomptes + soldes dus") +
+    '</div>';
+  const confKpisEl = document.getElementById('confKpis');
+  if (confKpisEl) confKpisEl.innerHTML = confKpisHtml;
 
   const byMonth = {};
   past.forEach(r => { const d = parseDate(r.date); if (!d) return; const k = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0"); byMonth[k] = (byMonth[k] || 0) + financeTotals(r.finance).totalHT; });
   const keys = Object.keys(byMonth).sort().slice(-8);
   const max = Math.max(1, ...keys.map(k => byMonth[k]));
-  document.getElementById('histChart').innerHTML = keys.map((k, i) => {
+  const chartHtml = keys.map((k, i) => {
     const isHi = i === keys.length - 1;
     const h = Math.round(byMonth[k] / max * 100);
     const [y, m] = k.split("-");
     return `<div class="bar-col"><span class="bval ${isHi ? 'hi' : ''}">${fmtEURCompact_(byMonth[k])}</span><div class="bcol ${isHi ? 'hi' : ''}" style="height:${Math.max(4, h)}%" title="${fmtEUR(byMonth[k])}"></div><span class="blab">${MOIS_COURT_[Number(m) - 1]}</span></div>`;
   }).join("") || '<span style="font-size:12px;color:var(--ink-3)">Pas encore de données.</span>';
+  document.getElementById('histChart').innerHTML = chartHtml;
+  const histChartStatsEl = document.getElementById('histChartStats');
+  if (histChartStatsEl) histChartStatsEl.innerHTML = chartHtml;
 
   document.getElementById('confUpcomingBody').innerHTML = upcoming.map(r => confRow_(r, 'confirmed')).join("") || '<tr><td colspan="7" style="padding:30px;text-align:center;color:var(--ink-3)">Aucune privatisation confirmée à venir.</td></tr>';
   document.getElementById('histBody').innerHTML = past.map(r => confRow_(r, 'confirmed')).join("") || '<tr><td colspan="7" style="padding:30px;text-align:center;color:var(--ink-3)">Aucun événement passé.</td></tr>';
@@ -2114,6 +2162,23 @@ function onSuiviOwnerInline_(idx, val) {
   const r = DATA[idx]; if (!r) return;
   r.owner = val;
   saveData();
+}
+async function onSuiviStatutInline_(idx, val) {
+  const r = DATA[idx]; if (!r) return;
+  if (val === "Archivée" && r.statut !== "Archivée") {
+    const raison = await uiChoice_('Pourquoi archiver la demande de "' + r.client + '" ?', ARCHIVE_RAISONS_);
+    if (!raison) { renderSuivi_(); return; } // annulé : remet le select tel quel
+    r.archiveRaison = raison;
+  } else if (val !== "Archivée") {
+    r.archiveRaison = "";
+  }
+  r.statut = val;
+  if (val === "Confirmé") {
+    if (!r.finance) r.finance = { service: "Dîner", type: "Privatisation", societe: "", caCuisineHT: 0, caAlcoolsHT: 0, statutPaiement: "En attente d'acompte", paiements: [] };
+    ensureTasks_(r);
+  }
+  saveData();
+  renderDashboard();
 }
 // Canal d'arrivée de la demande : "Formulaire web" est posé automatiquement côté serveur pour
 // tout ce qui vient du formulaire du site (voir send_form.php / push_new_demandes dans Code.gs) ;
