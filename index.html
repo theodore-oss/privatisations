@@ -1160,11 +1160,14 @@ function loadData() {
 // que le navigateur de cesser d'afficher l'avertissement "quitter sans enregistrer ?".
 function loadDataFromCloud_(force) {
   const localFallback = () => ensureIds_(JSON.parse(localStorage.getItem('rosarioData') || 'null') || DATA_DEFAULT.slice());
+  // Capturé AVANT l'envoi de la requête : voir le contrôle `dataVersion_ !== versionAtRequest_`
+  // plus bas, qui couvre un cas que `unsavedChanges_`/`pushInFlight_` seuls ne couvraient pas.
+  const versionAtRequest_ = dataVersion_;
   setSyncBanner_("Connexion au cloud…", 'warn');
   fetch(SCRIPT_URL)
     .then(r => r.json())
     .then(json => {
-      if (!force && (unsavedChanges_ || pushInFlight_)) {
+      if (!force && (unsavedChanges_ || pushInFlight_ || dataVersion_ !== versionAtRequest_)) {
         // Des modifications locales ont été faites (ou sont en train d'être envoyées) pendant que
         // cette requête était encore en vol — le chargement initial vers Apps Script (démarrage à
         // froid) peut prendre plusieurs secondes, largement de quoi modifier une ligne entre-temps.
@@ -1173,6 +1176,12 @@ function loadDataFromCloud_(force) {
         // l'owner d'une ligne puis d'une autre juste après pouvait faire disparaître la 2e modif
         // quand ce chargement initial finissait par répondre). Le push déjà programmé par
         // saveData() se chargera de tout synchroniser correctement.
+        // `dataVersion_ !== versionAtRequest_` couvre en plus le cas où l'envoi déclenché par la
+        // modif a déjà réussi (unsavedChanges_ redevenu false) AVANT que cette requête, partie plus
+        // tôt mais plus lente (démarrage à froid), ne réponde enfin : sans ce contrôle, sa réponse
+        // — potentiellement calculée avant notre modif — écrase quand même la donnée à jour, ce qui
+        // donnait l'impression qu'un statut fraîchement changé "revenait" tout seul à son ancienne
+        // valeur.
         setSyncBanner_("Modification locale en attente d'envoi — chargement initial ignoré pour ne rien écraser.", 'warn');
         return;
       }
@@ -1363,7 +1372,12 @@ function scanGmailInbox() {
 let pushDebounceTimer_ = null;
 let unsavedChanges_ = false;
 let pushInFlight_ = false;
+// Compteur incrémenté à chaque modification locale (voir loadDataFromCloud_) — permet de détecter
+// qu'un chargement cloud parti AVANT cette modif ne doit jamais l'écraser, même s'il répond après
+// coup que le push de cette modif a déjà réussi.
+let dataVersion_ = 0;
 function saveData() {
+  dataVersion_++;
   localStorage.setItem('rosarioData', JSON.stringify(DATA));
   if (!SYNC_MODE) return;
   unsavedChanges_ = true;
