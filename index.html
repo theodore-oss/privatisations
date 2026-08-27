@@ -2846,24 +2846,69 @@ function openMailto() {
     + "&cc=" + encodeURIComponent(cc) + "&su=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(body);
   window.open(url, '_blank');
 }
-// Convertit un texte brut (paragraphes séparés par une ligne vide, lignes "• " = puces) en HTML,
-// pour l'envoyer comme htmlBody d'un brouillon Gmail (vraies puces <ul><li> au lieu de "• ").
+// Détecte le niveau d'une ligne à puce dans les templates texte :
+//   "• texte"        (aucune indentation)        → niveau 1
+//   "  - texte" / "  • texte" (2 espaces ou plus d'indentation) → niveau 2, imbriquée sous
+//                                                                  la puce de niveau 1 juste au-dessus
+// Renvoie null si la ligne n'est pas une puce (paragraphe alors traité comme texte normal).
+function bulletLevel_(line) {
+  let m = line.match(/^•\s+(.*)$/);
+  if (m) return { level: 1, text: m[1] };
+  m = line.match(/^\s{2,}[•-]\s+(.*)$/);
+  if (m) return { level: 2, text: m[1] };
+  return null;
+}
+function buildBulletHtml_(items) {
+  let html = '<ul style="margin:0 0 14px;padding-left:22px;">';
+  let subOpen = false, first = true;
+  items.forEach(it => {
+    if (it.level === 1) {
+      if (subOpen) { html += "</ul>"; subOpen = false; }
+      if (!first) html += "</li>";
+      html += "<li>" + esc(it.text);
+    } else {
+      if (!subOpen) { html += '<ul style="margin:6px 0 0;padding-left:18px;">'; subOpen = true; }
+      html += "<li>" + esc(it.text) + "</li>";
+    }
+    first = false;
+  });
+  if (subOpen) html += "</ul>";
+  html += "</li></ul>";
+  return html;
+}
+// Convertit un texte brut (paragraphes séparés par une ligne vide) en HTML, pour l'envoyer comme
+// htmlBody d'un brouillon Gmail — vraies puces <ul><li> (avec sous-puces imbriquées, voir
+// bulletLevel_) au lieu des caractères "• "/"  - " affichés tels quels en texte brut.
 function toHtmlBody_(text) {
   const paragraphs = String(text || "").split(/\n\n+/);
   return paragraphs.map(p => {
     const lines = p.split("\n").filter(l => l.trim().length);
     if (!lines.length) return "";
-    if (lines.every(l => l.trim().startsWith("• "))) {
-      return '<ul style="margin:0 0 14px;padding-left:22px;">' + lines.map(l => "<li>" + esc(l.trim().replace(/^•\s*/, "")) + "</li>").join("") + "</ul>";
+    const items = lines.map(bulletLevel_);
+    if (items.every(it => it) && items[0].level === 1) {
+      return buildBulletHtml_(items);
     }
     return '<p style="margin:0 0 14px;">' + lines.map(esc).join("<br>") + "</p>";
   }).join("");
+}
+// Signature HTML avec le logo Rosario (hébergé au même endroit que la page, sur GitHub Pages) —
+// la 1ère ligne du template texte (prénom familier, ex. "Théodore") sert déjà d'appel dans le
+// corps du mail, donc on ne reprend ici que les lignes suivantes (nom complet, tél, adresse),
+// dérivées dynamiquement de TEMPLATES.sigTheodore/sigAdrien pour rester à jour si édités dans
+// Paramètres.
+function signatureHtml_(sig) {
+  const text = sig === "theodore" ? TEMPLATES.sigTheodore : TEMPLATES.sigAdrien;
+  const contactLines = String(text).split("\n").filter(l => l.trim().length).slice(1);
+  return '<table style="border-collapse:collapse;margin-top:6px;"><tr>'
+    + '<td style="padding-right:14px;vertical-align:middle;"><img src="https://theodore-oss.github.io/privatisations/logo.png" alt="Rosario" style="height:44px;display:block;"></td>'
+    + '<td style="vertical-align:middle;border-left:2px solid #7a1f2b;padding-left:14px;font-family:Arial,sans-serif;font-size:13px;color:#333;line-height:1.5;">'
+    + contactLines.map((l, i) => i === 0 ? '<div style="font-weight:bold;font-size:14px;color:#111;">' + esc(l) + '</div>' : '<div>' + esc(l) + '</div>').join("")
+    + '</td></tr></table>';
 }
 function buildComposeHtmlBody_() {
   const replyIntro = "Bonjour {prenom},\n\nMerci pour votre retour !\n\n";
   const intro = fillPlaceholders(composeMode === "relance" ? TEMPLATES.relance : (composeMode === "reply" ? replyIntro : TEMPLATES.intro));
   const sig = document.getElementById('composeSignature').value;
-  const signature = sig === "theodore" ? TEMPLATES.sigTheodore : TEMPLATES.sigAdrien;
   const titleWithSchedule = k => OPTION_TITLES[k] + (k === "groupe" ? " — 19h-21h ou 21h15-minuit" : " — toute la soirée");
   const ordered = OPTION_ORDER.filter(k => selectedOptions.includes(k));
   let html = toHtmlBody_(intro);
@@ -2872,7 +2917,7 @@ function buildComposeHtmlBody_() {
   }
   const skipCloture = composeMode !== "proposition" && !ordered.length;
   if (!skipCloture) html += toHtmlBody_(TEMPLATES.cloture);
-  html += toHtmlBody_(signature);
+  html += signatureHtml_(sig);
   return html;
 }
 // Crée un vrai brouillon Gmail (mise en forme HTML : puces réelles, gras) via Code.gs au lieu de
