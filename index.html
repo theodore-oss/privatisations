@@ -2922,13 +2922,12 @@ function toHtmlBody_(text) {
   }).join("");
 }
 // Signature HTML avec le logo Rosario (hébergé au même endroit que la page, sur GitHub Pages) —
-// la 1ère ligne du template texte (prénom familier, ex. "Théodore") sert déjà d'appel dans le
-// corps du mail, donc on ne reprend ici que les lignes suivantes (nom complet, tél, adresse),
-// dérivées dynamiquement de TEMPLATES.sigTheodore/sigAdrien pour rester à jour si édités dans
-// Paramètres.
+// toutes les lignes non vides de TEMPLATES.sigTheodore/sigAdrien sont reprises (1ère ligne =
+// prénom familier "Théodore"/"Adrien", en gras ; le reste — nom complet, tél, adresse — en
+// dessous), dérivées dynamiquement pour rester à jour si édités dans Paramètres.
 function signatureHtml_(sig) {
   const text = sig === "theodore" ? TEMPLATES.sigTheodore : TEMPLATES.sigAdrien;
-  const contactLines = String(text).split("\n").filter(l => l.trim().length).slice(1);
+  const contactLines = String(text).split("\n").filter(l => l.trim().length);
   return '<table style="border-collapse:collapse;margin-top:6px;"><tr>'
     + '<td style="padding-right:14px;vertical-align:middle;"><img src="https://theodore-oss.github.io/privatisations/logo.png" alt="Rosario" style="height:44px;display:block;"></td>'
     + '<td style="vertical-align:middle;border-left:2px solid #7a1f2b;padding-left:14px;font-family:Arial,sans-serif;font-size:13px;color:#333;line-height:1.5;">'
