@@ -665,7 +665,8 @@
             <div class="pv-bar"><span id="pvTo">À : —</span><span id="pvSubj"></span></div>
             <textarea class="pv-body" id="composeBody"></textarea>
             <div class="pv-actions">
-              <button class="btn primary sm" onclick="openMailto()">Ouvrir dans Gmail ↗</button>
+              <button class="btn primary sm" id="draftBtn" onclick="createGmailDraft_()">Créer un brouillon Gmail (mise en forme) ↗</button>
+              <button class="btn sm" onclick="openMailto()">Ouvrir dans Gmail (texte brut) ↗</button>
               <button class="btn sm" onclick="copyCompose()">Copier</button>
               <button class="btn sm" onclick="logSent_()">✓ Marquer envoyé</button>
               <span class="save-note" id="copyNote">Copié.</span>
@@ -1434,10 +1435,10 @@ const DEPOSIT_RATE = 0.5;
 const DEFAULT_TEMPLATES = {
   intro: "Hola {prenom},\n\nMerci beaucoup pour l'intérêt porté à Rosario pour votre événement, nous vous accueillerons avec plaisir !\n\nVoici ce que nous pouvons vous proposer pour {pax} personnes :\n",
   relance: "Bonjour {prenom},\n\nAvez-vous pu prendre connaissance de mon dernier message ?\n\nNous restons naturellement disponibles pour échanger sur les modalités de notre proposition.\n\nJe vous remercie et vous souhaite une excellente journée,\n",
-  salon: "- date : {date}\n- lieu : privatisation du salon privatif, staff dédié pour l'événement, système son dédié, possibilité de décorer le lieu si besoin\n- format : cocktail dînatoire avec assises disponibles également, assortiment de tapas (~3/4 par personne), assortiment de desserts (1 par personne), boissons : forfait à définir ensemble\n- budget : [PRIX]€ TTC",
-  etage: "- date : {date}\n- lieu : privatisation de l'étage, staff dédié pour l'événement, système son dédié, possibilité de décorer le lieu si besoin\n- format : cocktail dînatoire avec assises disponibles également, assortiment de tapas (~3/4 par personne), assortiment de desserts (1 par personne), boissons : forfait à définir ensemble\n- budget : [PRIX]€ TTC",
-  etablissement: "- date : {date}\n- lieu : privatisation entière du restaurant, staff dédié pour l'événement, système son dédié, possibilité de décorer le lieu si besoin\n- format : cocktail dînatoire avec assises disponibles également, assortiment de tapas (~3/4 par personne), assortiment de desserts (1 par personne), boissons : forfait à définir ensemble\n- budget : [PRIX]€ TTC",
-  groupe: "- date : {date}\n- format : menu fixe, assortiment de tapas à partager\n- budget : 45€ TTC par personne (boissons non incluses)",
+  salon: "• date : {date}\n• lieu : privatisation du salon privatif, staff dédié pour l'événement, système son dédié, possibilité de décorer le lieu si besoin\n• format : cocktail dînatoire avec assises disponibles également, assortiment de tapas (~3/4 par personne), assortiment de desserts (1 par personne), boissons : forfait à définir ensemble\n• budget : [PRIX]€ TTC",
+  etage: "• date : {date}\n• lieu : privatisation de l'étage, staff dédié pour l'événement, système son dédié, possibilité de décorer le lieu si besoin\n• format : cocktail dînatoire avec assises disponibles également, assortiment de tapas (~3/4 par personne), assortiment de desserts (1 par personne), boissons : forfait à définir ensemble\n• budget : [PRIX]€ TTC",
+  etablissement: "• date : {date}\n• lieu : privatisation entière du restaurant, staff dédié pour l'événement, système son dédié, possibilité de décorer le lieu si besoin\n• format : cocktail dînatoire avec assises disponibles également, assortiment de tapas (~3/4 par personne), assortiment de desserts (1 par personne), boissons : forfait à définir ensemble\n• budget : [PRIX]€ TTC",
+  groupe: "• date : {date}\n• format : menu fixe, assortiment de tapas à partager\n• budget : 45€ TTC par personne (boissons non incluses)",
   cloture: "\nJe reste à votre disposition si vous avez la moindre question,\n\nMerci encore et très bonne journée,\n",
   sigTheodore: "Théodore\n\nThéodore Ballu\n06 62 70 99 38\nRosario – 96 rue de Richelieu, Paris 02",
   sigAdrien: "Adrien\n\nAdrien DELRUE\nCo-fondateur\n06 86 75 65 66\nRosario – 96 rue de Richelieu, Paris 02"
@@ -2837,7 +2838,75 @@ function openMailto() {
   if (!currentReq) return;
   const subject = mailSubject_(currentReq);
   const body = document.getElementById('composeBody').value;
-  window.location.href = "mailto:" + encodeURIComponent(currentReq.email || "") + "?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(body);
+  const sig = document.getElementById('composeSignature').value;
+  const cc = sig === "adrien" ? "theodore@grupodomingo.io" : "adrien@grupodomingo.io";
+  // URL de compose Gmail directe plutôt que mailto: — garantit l'ouverture dans un nouvel onglet
+  // Gmail web (mailto: dépend du gestionnaire de mail par défaut de l'OS/navigateur).
+  const url = "https://mail.google.com/mail/?view=cm&fs=1&to=" + encodeURIComponent(currentReq.email || "")
+    + "&cc=" + encodeURIComponent(cc) + "&su=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(body);
+  window.open(url, '_blank');
+}
+// Convertit un texte brut (paragraphes séparés par une ligne vide, lignes "• " = puces) en HTML,
+// pour l'envoyer comme htmlBody d'un brouillon Gmail (vraies puces <ul><li> au lieu de "• ").
+function toHtmlBody_(text) {
+  const paragraphs = String(text || "").split(/\n\n+/);
+  return paragraphs.map(p => {
+    const lines = p.split("\n").filter(l => l.trim().length);
+    if (!lines.length) return "";
+    if (lines.every(l => l.trim().startsWith("• "))) {
+      return '<ul style="margin:0 0 14px;padding-left:22px;">' + lines.map(l => "<li>" + esc(l.trim().replace(/^•\s*/, "")) + "</li>").join("") + "</ul>";
+    }
+    return '<p style="margin:0 0 14px;">' + lines.map(esc).join("<br>") + "</p>";
+  }).join("");
+}
+function buildComposeHtmlBody_() {
+  const replyIntro = "Bonjour {prenom},\n\nMerci pour votre retour !\n\n";
+  const intro = fillPlaceholders(composeMode === "relance" ? TEMPLATES.relance : (composeMode === "reply" ? replyIntro : TEMPLATES.intro));
+  const sig = document.getElementById('composeSignature').value;
+  const signature = sig === "theodore" ? TEMPLATES.sigTheodore : TEMPLATES.sigAdrien;
+  const titleWithSchedule = k => OPTION_TITLES[k] + (k === "groupe" ? " — 19h-21h ou 21h15-minuit" : " — toute la soirée");
+  const ordered = OPTION_ORDER.filter(k => selectedOptions.includes(k));
+  let html = toHtmlBody_(intro);
+  if (ordered.length) {
+    html += ordered.map(k => '<p style="margin:0 0 4px;"><strong>' + esc(titleWithSchedule(k)) + '</strong></p>' + toHtmlBody_(fillPlaceholders(TEMPLATES[k]))).join("");
+  }
+  const skipCloture = composeMode !== "proposition" && !ordered.length;
+  if (!skipCloture) html += toHtmlBody_(TEMPLATES.cloture);
+  html += toHtmlBody_(signature);
+  return html;
+}
+// Crée un vrai brouillon Gmail (mise en forme HTML : puces réelles, gras) via Code.gs au lieu de
+// pré-remplir un lien mailto en texte brut. Le brouillon apparaît dans le dossier Brouillons du
+// compte sous lequel le script est déployé — le lien direct vers UN brouillon précis n'est plus
+// fiable côté Gmail (l'ancien format d'URL #drafts?compose=<id> a été désactivé par Google), donc
+// on ouvre la liste des Brouillons : le nouveau brouillon est le premier en haut de la liste.
+function createGmailDraft_() {
+  if (!currentReq) return;
+  const subject = mailSubject_(currentReq);
+  const plainBody = document.getElementById('composeBody').value;
+  const htmlBody = buildComposeHtmlBody_();
+  const sig = document.getElementById('composeSignature').value;
+  const cc = sig === "adrien" ? "theodore@grupodomingo.io" : "adrien@grupodomingo.io";
+  const btn = document.getElementById('draftBtn');
+  if (btn) { btn.disabled = true; btn.textContent = "Création du brouillon…"; }
+  fetch(SCRIPT_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify({ action: 'createDraft', to: currentReq.email || "", cc, subject, plainBody, htmlBody })
+  })
+    .then(r => r.json())
+    .then(json => {
+      if (btn) { btn.disabled = false; btn.textContent = "Créer un brouillon Gmail (mise en forme) ↗"; }
+      if (json.ok) {
+        window.open('https://mail.google.com/mail/u/0/#drafts', '_blank');
+      } else {
+        alert("Erreur lors de la création du brouillon : " + (json.error || "inconnue"));
+      }
+    })
+    .catch(err => {
+      if (btn) { btn.disabled = false; btn.textContent = "Créer un brouillon Gmail (mise en forme) ↗"; }
+      alert("Erreur réseau : " + err.message);
+    });
 }
 function copyCompose() {
   navigator.clipboard.writeText(document.getElementById('composeBody').value).then(() => {
