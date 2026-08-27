@@ -1345,7 +1345,11 @@ function scanGmailInbox() {
     if (oks.length) msg += "Scan terminé — " + oks.map(r => r.who + " : " + (r.count || 0)).join(" · ") + " nouveau(x) échange(s).";
     if (fails.length) msg += (msg ? " — " : "Erreur pendant le scan — ") + fails.map(r => r.who + " (" + (r.error || "échec") + ")").join(" · ");
     setSyncBanner_(msg, fails.length && !oks.length ? 'error' : (fails.length ? 'warn' : 'ok'));
-    if (oks.length) loadData();
+    // Bug trouvé suite à un signalement ("je ne vois jamais le résultat du scan") : loadData()
+    // appelle lui-même setSyncBanner_("Connexion au cloud…") quasi immédiatement, ce qui effaçait
+    // ce message AVANT même que le navigateur ait eu le temps de l'afficher à l'écran — le nombre
+    // d'échanges trouvés n'était donc jamais visible. On laisse maintenant le temps de le lire.
+    if (oks.length) setTimeout(loadData, 2500);
   });
 }
 
