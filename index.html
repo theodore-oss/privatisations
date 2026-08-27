@@ -741,7 +741,7 @@
     </div>
 
     <div id="set-templates">
-      <p style="font-size:12.5px; color:var(--ink-2); margin:0 0 14px;">Ces blocs composent les réponses. <span class="hl">{prenom}</span>, <span class="hl">{date}</span>, <span class="hl">{pax}</span> sont remplacés automatiquement.
+      <p style="font-size:12.5px; color:var(--ink-2); margin:0 0 14px;">Ces blocs composent les réponses. <span class="hl">{prenom}</span>, <span class="hl">{date}</span>, <span class="hl">{pax}</span> sont remplacés automatiquement. Mise en forme (brouillon Gmail uniquement) : une ligne commençant par <span class="hl">• </span> = puce, indentée de 2 espaces + <span class="hl">- </span> = sous-puce, et <span class="hl">**texte**</span> = texte en gras.
         <button class="btn sm primary" style="float:right" onclick="saveTemplates()">Enregistrer</button><span class="save-note" id="tplSaveNote">Enregistré.</span></p>
       <div class="tpl-card"><p class="name">Introduction</p><textarea id="tplIntro" rows="4"></textarea></div>
       <div class="tpl-card"><p class="name">Réponse au client (après sa réponse)</p><textarea id="tplReply" rows="3"></textarea></div>
@@ -2832,7 +2832,7 @@ function rebuildComposeBody() {
   if (ordered.length) optionsText = ordered.map(k => titleWithSchedule(k) + "\n" + fillPlaceholders(TEMPLATES[k])).join("\n\n");
   const skipCloture = composeMode !== "proposition" && !optionsText;
   const body = optionsText ? intro + "\n" + optionsText + "\n" : intro;
-  document.getElementById('composeBody').value = body + (skipCloture ? "" : TEMPLATES.cloture) + "\n" + signature;
+  document.getElementById('composeBody').value = stripBold_(body + (skipCloture ? "" : TEMPLATES.cloture) + "\n" + signature);
 }
 function openMailto() {
   if (!currentReq) return;
@@ -2858,6 +2858,17 @@ function bulletLevel_(line) {
   if (m) return { level: 2, text: m[1] };
   return null;
 }
+// Texte en **gras** dans un template → <strong>gras</strong> dans le brouillon HTML. Appliqué
+// après esc() (les astérisques ne sont pas affectés par l'échappement HTML, donc l'ordre ne
+// pose pas de problème pour repérer les marqueurs, seul le contenu entre eux doit être échappé).
+function boldify_(escapedText) {
+  return escapedText.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+}
+// Retire les marqueurs **...** (ne garde que le texte) pour la version texte brut du mail
+// (aperçu, bouton "texte brut", copier) — pas de gras possible hors HTML.
+function stripBold_(text) {
+  return String(text || "").replace(/\*\*(.+?)\*\*/g, "$1");
+}
 function buildBulletHtml_(items) {
   let html = '<ul style="margin:0 0 14px;padding-left:22px;">';
   let subOpen = false, first = true;
@@ -2865,10 +2876,10 @@ function buildBulletHtml_(items) {
     if (it.level === 1) {
       if (subOpen) { html += "</ul>"; subOpen = false; }
       if (!first) html += "</li>";
-      html += "<li>" + esc(it.text);
+      html += "<li>" + boldify_(esc(it.text));
     } else {
       if (!subOpen) { html += '<ul style="margin:6px 0 0;padding-left:18px;">'; subOpen = true; }
-      html += "<li>" + esc(it.text) + "</li>";
+      html += "<li>" + boldify_(esc(it.text)) + "</li>";
     }
     first = false;
   });
@@ -2878,7 +2889,7 @@ function buildBulletHtml_(items) {
 }
 // Convertit un texte brut (paragraphes séparés par une ligne vide) en HTML, pour l'envoyer comme
 // htmlBody d'un brouillon Gmail — vraies puces <ul><li> (avec sous-puces imbriquées, voir
-// bulletLevel_) au lieu des caractères "• "/"  - " affichés tels quels en texte brut.
+// bulletLevel_) et **gras** → <strong>, au lieu des caractères bruts affichés tels quels.
 function toHtmlBody_(text) {
   const paragraphs = String(text || "").split(/\n\n+/);
   return paragraphs.map(p => {
@@ -2888,7 +2899,7 @@ function toHtmlBody_(text) {
     if (items.every(it => it) && items[0].level === 1) {
       return buildBulletHtml_(items);
     }
-    return '<p style="margin:0 0 14px;">' + lines.map(esc).join("<br>") + "</p>";
+    return '<p style="margin:0 0 14px;">' + lines.map(l => boldify_(esc(l))).join("<br>") + "</p>";
   }).join("");
 }
 // Signature HTML avec le logo Rosario (hébergé au même endroit que la page, sur GitHub Pages) —
