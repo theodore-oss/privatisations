@@ -772,11 +772,22 @@
     <div id="set-options" style="display:none">
       <p style="font-size:12.5px; color:var(--ink-2); margin:0 0 14px;">Descriptions des espaces et formules proposés dans les propositions commerciales.
         <button class="btn sm primary" style="float:right" onclick="saveTemplates()">Enregistrer</button></p>
-      <div class="tpl-card"><p class="name">Salon privatif (20 pers)</p><textarea id="tplSalon" rows="4"></textarea></div>
-      <div class="tpl-card"><p class="name">Étage (45 pers)</p><textarea id="tplEtage" rows="4"></textarea></div>
-      <div class="tpl-card"><p class="name">Établissement entier (100 pers)</p><textarea id="tplEtablissement" rows="4"></textarea></div>
+      <div class="tpl-card"><p class="name">Salon privatif (20 pers)</p>
+        <label class="k" style="margin:0 0 4px; display:block;">Titre affiché dans le mail</label>
+        <input id="tplTitleSalon" style="width:100%; margin-bottom:8px;">
+        <textarea id="tplSalon" rows="4"></textarea></div>
+      <div class="tpl-card"><p class="name">Étage (45 pers)</p>
+        <label class="k" style="margin:0 0 4px; display:block;">Titre affiché dans le mail</label>
+        <input id="tplTitleEtage" style="width:100%; margin-bottom:8px;">
+        <textarea id="tplEtage" rows="4"></textarea></div>
+      <div class="tpl-card"><p class="name">Établissement entier (100 pers)</p>
+        <label class="k" style="margin:0 0 4px; display:block;">Titre affiché dans le mail</label>
+        <input id="tplTitleEtablissement" style="width:100%; margin-bottom:8px;">
+        <textarea id="tplEtablissement" rows="4"></textarea></div>
       <div class="tpl-card">
         <p class="name">Formule groupe</p>
+        <label class="k" style="margin:0 0 4px; display:block;">Titre affiché dans le mail</label>
+        <input id="tplTitleGroupe" style="width:100%; margin-bottom:8px;">
         <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
           <label class="k" style="margin:0;">Tarif (€ TTC / pers, nourriture uniquement)</label>
           <input id="tarifGroupeInput" type="number" style="width:90px">
@@ -1439,6 +1450,10 @@ const DEFAULT_TEMPLATES = {
   etage: "• date : {date}\n• lieu : privatisation de l'étage, staff dédié pour l'événement, système son dédié, possibilité de décorer le lieu si besoin\n• format : cocktail dînatoire avec assises disponibles également, assortiment de tapas (~3/4 par personne), assortiment de desserts (1 par personne), boissons : forfait à définir ensemble\n• budget : [PRIX]€ TTC",
   etablissement: "• date : {date}\n• lieu : privatisation entière du restaurant, staff dédié pour l'événement, système son dédié, possibilité de décorer le lieu si besoin\n• format : cocktail dînatoire avec assises disponibles également, assortiment de tapas (~3/4 par personne), assortiment de desserts (1 par personne), boissons : forfait à définir ensemble\n• budget : [PRIX]€ TTC",
   groupe: "• date : {date}\n• format : menu fixe, assortiment de tapas à partager\n• budget : 45€ TTC par personne (boissons non incluses)",
+  titleSalon: "Privatisation du salon — toute la soirée",
+  titleEtage: "Privatisation de l'étage — toute la soirée",
+  titleEtablissement: "Privatisation de l'établissement — toute la soirée",
+  titleGroupe: "Formule groupe — 19h-21h ou 21h15-minuit",
   cloture: "\nJe reste à votre disposition si vous avez la moindre question,\n\nMerci encore et très bonne journée,\n",
   sigTheodore: "Théodore\n\nThéodore Ballu\n06 62 70 99 38\nRosario – 96 rue de Richelieu, Paris 02",
   sigAdrien: "Adrien\n\nAdrien DELRUE\nCo-fondateur\n06 86 75 65 66\nRosario – 96 rue de Richelieu, Paris 02"
@@ -1484,6 +1499,10 @@ const OPTION_TITLES = {
   etablissement: "Privatisation de l'établissement",
   groupe: "Formule groupe"
 };
+// Titre complet affiché au-dessus de chaque bloc dans le mail (ex. "Privatisation du salon —
+// toute la soirée") — éditable dans Paramètres > Espaces & formules, stocké dans TEMPLATES comme
+// les autres blocs plutôt que codé en dur.
+const TITLE_FIELD_ = { salon: "titleSalon", etage: "titleEtage", etablissement: "titleEtablissement", groupe: "titleGroupe" };
 
 /* ---- Dates ---- */
 function parseDate(str) {
@@ -2826,7 +2845,7 @@ function rebuildComposeBody() {
   const intro = fillPlaceholders(composeMode === "relance" ? TEMPLATES.relance : (composeMode === "reply" ? replyIntro : TEMPLATES.intro));
   const sig = document.getElementById('composeSignature').value;
   const signature = sig === "theodore" ? TEMPLATES.sigTheodore : TEMPLATES.sigAdrien;
-  const titleWithSchedule = k => OPTION_TITLES[k] + (k === "groupe" ? " — 19h-21h ou 21h15-minuit" : " — toute la soirée");
+  const titleWithSchedule = k => TEMPLATES[TITLE_FIELD_[k]] || OPTION_TITLES[k];
   let optionsText = "";
   const ordered = OPTION_ORDER.filter(k => selectedOptions.includes(k));
   if (ordered.length) optionsText = ordered.map(k => titleWithSchedule(k) + "\n" + fillPlaceholders(TEMPLATES[k])).join("\n\n");
@@ -2920,7 +2939,7 @@ function buildComposeHtmlBody_() {
   const replyIntro = "Bonjour {prenom},\n\nMerci pour votre retour !\n\n";
   const intro = fillPlaceholders(composeMode === "relance" ? TEMPLATES.relance : (composeMode === "reply" ? replyIntro : TEMPLATES.intro));
   const sig = document.getElementById('composeSignature').value;
-  const titleWithSchedule = k => OPTION_TITLES[k] + (k === "groupe" ? " — 19h-21h ou 21h15-minuit" : " — toute la soirée");
+  const titleWithSchedule = k => TEMPLATES[TITLE_FIELD_[k]] || OPTION_TITLES[k];
   const ordered = OPTION_ORDER.filter(k => selectedOptions.includes(k));
   let html = toHtmlBody_(intro);
   if (ordered.length) {
@@ -3059,6 +3078,8 @@ function loadSettingsForms() {
   g('tplRelance').value = TEMPLATES.relance; g('tplCloture').value = TEMPLATES.cloture;
   g('tplSigTheodore').value = TEMPLATES.sigTheodore; g('tplSigAdrien').value = TEMPLATES.sigAdrien;
   g('tplSalon').value = TEMPLATES.salon; g('tplEtage').value = TEMPLATES.etage; g('tplEtablissement').value = TEMPLATES.etablissement; g('tplGroupe').value = TEMPLATES.groupe;
+  g('tplTitleSalon').value = TEMPLATES.titleSalon; g('tplTitleEtage').value = TEMPLATES.titleEtage;
+  g('tplTitleEtablissement').value = TEMPLATES.titleEtablissement; g('tplTitleGroupe').value = TEMPLATES.titleGroupe;
   g('tarifGroupeInput').value = TARIF_GROUPE;
   renderTaskTplForm();
 }
@@ -3067,7 +3088,8 @@ function saveTemplates() {
   TEMPLATES = Object.assign({}, TEMPLATES, {
     intro: g('tplIntro'), reply: g('tplReply'), relance: g('tplRelance'), cloture: g('tplCloture'),
     sigTheodore: g('tplSigTheodore'), sigAdrien: g('tplSigAdrien'),
-    salon: g('tplSalon'), etage: g('tplEtage'), etablissement: g('tplEtablissement'), groupe: g('tplGroupe')
+    salon: g('tplSalon'), etage: g('tplEtage'), etablissement: g('tplEtablissement'), groupe: g('tplGroupe'),
+    titleSalon: g('tplTitleSalon'), titleEtage: g('tplTitleEtage'), titleEtablissement: g('tplTitleEtablissement'), titleGroupe: g('tplTitleGroupe')
   });
   localStorage.setItem('rosarioTemplates', JSON.stringify(TEMPLATES));
   TARIF_GROUPE = Number(g('tarifGroupeInput')) || 45;
