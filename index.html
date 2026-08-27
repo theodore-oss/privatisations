@@ -503,7 +503,7 @@
 
   <!-- ============ STATISTIQUES ============ -->
   <div class="view" id="view-stats">
-    <p class="sec-title"><span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg></span> Statistiques</p>
+    <div class="kpi-row" id="statsRangeChips" style="margin-bottom:18px;"></div>
 
     <div class="stat-section">
       <p class="sec-title"><span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10h12"/><path d="M4 14h9"/><path d="M19 6a7.7 7.7 0 0 0-5.2-2A7.9 7.9 0 0 0 6 12a7.9 7.9 0 0 0 7.8 8 7.7 7.7 0 0 0 5.2-2"/></svg></span> Chiffre d'affaires</p>
@@ -1324,7 +1324,7 @@ function scanGmailInbox() {
   const calls = [
     fetch(SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'scan' }) })
       .then(r => r.json())
-      .then(json => ({ who: "toi", ok: !!json.ok, count: json.newMessages, error: json.error, debug: json.debug }))
+      .then(json => ({ who: "toi", ok: !!json.ok, count: json.newMessages, error: json.error }))
       .catch(err => ({ who: "toi", ok: false, error: err.message }))
   ];
   if (ADRIEN_SCRIPT_URL) {
@@ -1345,12 +1345,6 @@ function scanGmailInbox() {
     if (oks.length) msg += "Scan terminé — " + oks.map(r => r.who + " : " + (r.count || 0)).join(" · ") + " nouveau(x) échange(s).";
     if (fails.length) msg += (msg ? " — " : "Erreur pendant le scan — ") + fails.map(r => r.who + " (" + (r.error || "échec") + ")").join(" · ");
     setSyncBanner_(msg, fails.length && !oks.length ? 'error' : (fails.length ? 'warn' : 'ok'));
-    // Diagnostic temporaire (suite à un signalement : le scan trouve 0 échange partout) — affiche
-    // directement le détail (email par email : nb de threads Gmail trouvés, ou l'erreur) renvoyé
-    // par scanGmail_, pour éviter d'avoir à fouiller les journaux Apps Script. À retirer une fois
-    // le problème identifié.
-    const debugLines = results.filter(r => r.debug && r.debug.length).map(r => r.who + " :\n" + r.debug.join("\n")).join("\n\n");
-    if (debugLines) alert("Détail du scan :\n\n" + debugLines);
     // Bug trouvé suite à un signalement ("je ne vois jamais le résultat du scan") : loadData()
     // appelle lui-même setSyncBanner_("Connexion au cloud…") quasi immédiatement, ce qui effaçait
     // ce message AVANT même que le navigateur ait eu le temps de l'afficher à l'écran — le nombre
@@ -1821,7 +1815,7 @@ function renderCurrentView_() {
   else if (currentView === 'confirmed') renderConfirmedTab_();
   else if (currentView === 'recon') renderRecon_();
   else if (currentView === 'tasks') renderTasksTab_();
-  else if (currentView === 'stats') { renderStats_(); renderConfirmedTab_(); }
+  else if (currentView === 'stats') renderStats_();
   else if (currentView === 'settings') loadSettingsForms();
 }
 
@@ -2001,20 +1995,40 @@ function statBarsHtml_(entries, colorMap) {
   }).join("");
 }
 
+// Filtre temporel de l'onglet Statistiques, indépendant de celui des autres onglets (Confirmées
+// n'est jamais affecté) — se base sur la date de l'ÉVÉNEMENT (r.date), pas la date de la demande.
+let statsRange = 'all'; // 'all' | '30' | '90' | '180' | '365'
+const STATS_RANGES_ = [["all", "Tout"], ["30", "30 derniers jours"], ["90", "90 derniers jours"], ["180", "180 derniers jours"], ["365", "Dernière année"]];
+function statsFilteredRows_() {
+  if (statsRange === 'all') return DATA;
+  const days = Number(statsRange);
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const cutoff = new Date(today); cutoff.setDate(cutoff.getDate() - days);
+  return DATA.filter(r => { const d = parseDate(r.date); return d && d >= cutoff && d <= today; });
+}
+function setStatsRange_(k) { statsRange = k; renderStats_(); }
+
 function renderStats_() {
-  const closed = DATA.filter(r => r.statut === "Confirmé" || r.statut === "Archivée");
-  const confirmedCount = DATA.filter(r => r.statut === "Confirmé").length;
-  const archived = DATA.filter(r => r.statut === "Archivée");
+  document.getElementById('statsRangeChips').innerHTML = STATS_RANGES_.map(([k, lbl]) =>
+    `<span class="kchip ${statsRange === k ? 'on' : ''}" style="padding:7px 14px;" onclick="setStatsRange_('${k}')">${lbl}</span>`
+  ).join("");
+
+  const rows = statsFilteredRows_();
+  renderStatsCA_(rows);
+
+  const closed = rows.filter(r => r.statut === "Confirmé" || r.statut === "Archivée");
+  const confirmedCount = rows.filter(r => r.statut === "Confirmé").length;
+  const archived = rows.filter(r => r.statut === "Archivée");
 
   document.getElementById('statConvVal').textContent = closed.length ? Math.round((confirmedCount / closed.length) * 100) + "%" : "—";
   document.getElementById('statConvSub').textContent = closed.length
     ? confirmedCount + " confirmées sur " + closed.length + " demandes clôturées (confirmées + archivées)"
-    : "Pas encore de demande clôturée.";
+    : "Pas encore de demande clôturée sur cette période.";
 
-  const withFinance = DATA.filter(r => r.finance);
+  const withFinance = rows.filter(r => r.finance);
 
   const byCanal = {};
-  DATA.forEach(r => { const k = r.canal || "Non renseigné"; byCanal[k] = (byCanal[k] || 0) + 1; });
+  rows.forEach(r => { const k = r.canal || "Non renseigné"; byCanal[k] = (byCanal[k] || 0) + 1; });
   const canalEntries = Object.keys(byCanal).sort((a, b) => byCanal[b] - byCanal[a]).map(k => [k, byCanal[k]]);
   document.getElementById('statCanalBars').innerHTML = statBarsHtml_(canalEntries, CANAL_COLOR_);
 
@@ -2024,7 +2038,7 @@ function renderStats_() {
   const raisonKeys = Object.keys(byRaison).sort((a, b) => byRaison[b] - byRaison[a]);
   document.getElementById('statLostBreakdown').innerHTML = raisonKeys.length
     ? raisonKeys.map(k => `<div class="lost-row"><span>${esc(k)}</span><span>${byRaison[k]}</span></div>`).join("")
-    : '<p style="font-size:12.5px; color:var(--ink-3);">Aucune demande archivée pour l\'instant.</p>';
+    : '<p style="font-size:12.5px; color:var(--ink-3);">Aucune demande archivée sur cette période.</p>';
 
   const byType = {};
   withFinance.forEach(r => {
@@ -2033,6 +2047,48 @@ function renderStats_() {
   });
   const typeEntries = Object.keys(byType).sort((a, b) => byType[b] - byType[a]).map(k => [k, Math.round(byType[k])]);
   document.getElementById('statTypeBars').innerHTML = statBarsHtml_(typeEntries, TYPE_COLOR_);
+}
+
+// Bloc CA de l'onglet Statistiques (kpi-groups + graphique mensuel) — calculé séparément du CA
+// affiché dans l'onglet Confirmées (renderConfirmedTab_, non filtré) pour que le filtre temporel
+// ci-dessus n'affecte jamais la page Confirmées.
+function renderStatsCA_(rows) {
+  const confirmed = rows.filter(r => r.statut === "Confirmé" && r.finance);
+  const past = confirmed.filter(r => isPastDate(r.date));
+  const caTotal = past.reduce((s, r) => s + financeTotals(r.finance).totalHT, 0);
+  const caFacture = past.reduce((s, r) => s + caRealiseHT_(r), 0);
+  const caCaisse = Math.max(0, caTotal - caFacture);
+  const panier = past.length ? caTotal / past.length : 0;
+  const totalPax = past.reduce((s, r) => s + toNumber(r.pax), 0);
+  const ticketPax = totalPax ? caTotal / totalPax : 0;
+  const enAttente = confirmed.reduce((s, r) => s + Math.max(0, financeTotals(r.finance).totalTTC - paidAmount_(r.finance)), 0);
+
+  document.getElementById('confKpis').innerHTML =
+    '<div class="kpi-groups">' +
+    kpiGroup_("CA total (HT)", fmtEUR(caTotal), past.length + " événements passés", [
+      { lbl: "Sur facture", val: fmtEUR(caFacture), note: "Non tapé dans Lightspeed" },
+      { lbl: "Tapé dans Lightspeed", val: fmtEUR(caCaisse) }
+    ]) +
+    kpiGroup_("Ticket moyen (HT)", "", "", [
+      { lbl: "Par privatisation", val: fmtEUR(panier) },
+      { lbl: "Par personne", val: fmtEUR(ticketPax) }
+    ]) +
+    '</div>' +
+    '<div class="kpis">' +
+    kpi_("Événements confirmés", confirmed.length, "au total") +
+    kpi_("Encaissements en attente", fmtEUR(enAttente), "acomptes + soldes dus") +
+    '</div>';
+
+  const byMonth = {};
+  past.forEach(r => { const d = parseDate(r.date); if (!d) return; const k = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0"); byMonth[k] = (byMonth[k] || 0) + financeTotals(r.finance).totalHT; });
+  const keys = Object.keys(byMonth).sort().slice(-8);
+  const max = Math.max(1, ...keys.map(k => byMonth[k]));
+  document.getElementById('histChartStats').innerHTML = keys.map((k, i) => {
+    const isHi = i === keys.length - 1;
+    const h = Math.round(byMonth[k] / max * 100);
+    const [y, m] = k.split("-");
+    return `<div class="bar-col"><span class="bval ${isHi ? 'hi' : ''}">${fmtEURCompact_(byMonth[k])}</span><div class="bcol ${isHi ? 'hi' : ''}" style="height:${Math.max(4, h)}%" title="${fmtEUR(byMonth[k])}"></div><span class="blab">${MOIS_COURT_[Number(m) - 1]}</span></div>`;
+  }).join("") || '<span style="font-size:12px;color:var(--ink-3)">Pas encore de données.</span>';
 }
 
 /* =========================================================================
@@ -2126,45 +2182,20 @@ function renderConfirmedTab_() {
   past.sort(sortCmp); upcoming.sort(sortCmp);
   updateSortCarets_('confup', confSort, ['pax', 'event']);
   updateSortCarets_('confpast', confSort, ['pax', 'event']);
-  const caTotal = past.reduce((s, r) => s + financeTotals(r.finance).totalHT, 0);
-  const caFacture = past.reduce((s, r) => s + caRealiseHT_(r), 0);
-  const caCaisse = Math.max(0, caTotal - caFacture);
-  const panier = past.length ? caTotal / past.length : 0;
-  const totalPax = past.reduce((s, r) => s + toNumber(r.pax), 0);
-  const ticketPax = totalPax ? caTotal / totalPax : 0;
-  const enAttente = confirmed.reduce((s, r) => s + Math.max(0, financeTotals(r.finance).totalTTC - paidAmount_(r.finance)), 0);
 
-  const confKpisHtml =
-    '<div class="kpi-groups">' +
-    kpiGroup_("CA total (HT)", fmtEUR(caTotal), past.length + " événements passés", [
-      { lbl: "Sur facture", val: fmtEUR(caFacture), note: "Non tapé dans Lightspeed" },
-      { lbl: "Tapé dans Lightspeed", val: fmtEUR(caCaisse) }
-    ]) +
-    kpiGroup_("Ticket moyen (HT)", "", "", [
-      { lbl: "Par privatisation", val: fmtEUR(panier) },
-      { lbl: "Par personne", val: fmtEUR(ticketPax) }
-    ]) +
-    '</div>' +
-    '<div class="kpis">' +
-    kpi_("Événements confirmés", confirmed.length, "au total") +
-    kpi_("Encaissements en attente", fmtEUR(enAttente), "acomptes + soldes dus") +
-    '</div>';
-  const confKpisEl = document.getElementById('confKpis');
-  if (confKpisEl) confKpisEl.innerHTML = confKpisHtml;
-
+  // Le CA (kpi-groups + graphique) est affiché dans l'onglet Statistiques (renderStatsCA_), pas
+  // ici — cet onglet Confirmées n'a plus de KPI CA propre, seulement les tableaux ci-dessous. Le
+  // graphique mensuel de cet onglet reste néanmoins affiché (histChart), non filtré dans le temps.
   const byMonth = {};
   past.forEach(r => { const d = parseDate(r.date); if (!d) return; const k = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0"); byMonth[k] = (byMonth[k] || 0) + financeTotals(r.finance).totalHT; });
   const keys = Object.keys(byMonth).sort().slice(-8);
   const max = Math.max(1, ...keys.map(k => byMonth[k]));
-  const chartHtml = keys.map((k, i) => {
+  document.getElementById('histChart').innerHTML = keys.map((k, i) => {
     const isHi = i === keys.length - 1;
     const h = Math.round(byMonth[k] / max * 100);
     const [y, m] = k.split("-");
     return `<div class="bar-col"><span class="bval ${isHi ? 'hi' : ''}">${fmtEURCompact_(byMonth[k])}</span><div class="bcol ${isHi ? 'hi' : ''}" style="height:${Math.max(4, h)}%" title="${fmtEUR(byMonth[k])}"></div><span class="blab">${MOIS_COURT_[Number(m) - 1]}</span></div>`;
   }).join("") || '<span style="font-size:12px;color:var(--ink-3)">Pas encore de données.</span>';
-  document.getElementById('histChart').innerHTML = chartHtml;
-  const histChartStatsEl = document.getElementById('histChartStats');
-  if (histChartStatsEl) histChartStatsEl.innerHTML = chartHtml;
 
   document.getElementById('confUpcomingBody').innerHTML = upcoming.map(r => confRow_(r, 'confirmed')).join("") || '<tr><td colspan="7" style="padding:30px;text-align:center;color:var(--ink-3)">Aucune privatisation confirmée à venir.</td></tr>';
   document.getElementById('histBody').innerHTML = past.map(r => confRow_(r, 'confirmed')).join("") || '<tr><td colspan="7" style="padding:30px;text-align:center;color:var(--ink-3)">Aucun événement passé.</td></tr>';
