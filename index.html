@@ -1572,7 +1572,12 @@ function computeAutoArchive_(r) {
 function refreshStatuses_() {
   let changed = false;
   DATA.forEach(r => {
-    if (r.statut !== "Confirmé" && r.statut !== "Archivée") {
+    // Bug trouvé suite à un signalement : un statut choisi à la main (ex. "En attente client" sur
+    // une demande sans échange sortant récent) était systématiquement écrasé par ce recalcul
+    // automatique au chargement suivant, ce qui donnait l'impression que le statut "revenait tout
+    // seul" à "Nouvelle demande". `statutManuel` (posé par setStatut_/onSuiviStatutInline_) protège
+    // désormais tout choix manuel de ce recalcul, comme "Confirmé"/"Archivée" l'étaient déjà.
+    if (!r.statutManuel && r.statut !== "Confirmé" && r.statut !== "Archivée") {
       const a = computeAutoStatut_(r);
       if (r.statut !== a) { r.statut = a; changed = true; }
     }
@@ -2187,6 +2192,10 @@ async function onSuiviStatutInline_(idx, val) {
     r.archiveRaison = "";
   }
   r.statut = val;
+  // Choisi à la main : ne doit plus jamais être recalculé/écrasé par refreshStatuses_() au
+  // prochain chargement (voir computeAutoStatut_ — sinon un statut mis à jour ici pouvait
+  // "revenir" tout seul dès la page rechargée).
+  r.statutManuel = true;
   if (val === "Confirmé") {
     if (!r.finance) r.finance = { service: "Dîner", type: "Privatisation", societe: "", caCuisineHT: 0, caAlcoolsHT: 0, statutPaiement: "En attente d'acompte", paiements: [] };
     ensureTasks_(r);
@@ -2547,6 +2556,10 @@ async function setStatut_(val) {
     currentReq.archiveRaison = "";
   }
   currentReq.statut = val;
+  // Choisi à la main : ne doit plus jamais être recalculé/écrasé par refreshStatuses_() au
+  // prochain chargement (voir computeAutoStatut_ — sinon un statut mis à jour ici pouvait
+  // "revenir" tout seul dès la page rechargée).
+  currentReq.statutManuel = true;
   if (val === "Confirmé") {
     if (!currentReq.finance) currentReq.finance = { service: "Dîner", type: "Privatisation", societe: "", caCuisineHT: 0, caAlcoolsHT: 0, statutPaiement: "En attente d'acompte", paiements: [] };
     ensureTasks_(currentReq);
