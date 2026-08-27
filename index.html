@@ -1324,7 +1324,7 @@ function scanGmailInbox() {
   const calls = [
     fetch(SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'scan' }) })
       .then(r => r.json())
-      .then(json => ({ who: "toi", ok: !!json.ok, count: json.newMessages, error: json.error }))
+      .then(json => ({ who: "toi", ok: !!json.ok, count: json.newMessages, error: json.error, debug: json.debug }))
       .catch(err => ({ who: "toi", ok: false, error: err.message }))
   ];
   if (ADRIEN_SCRIPT_URL) {
@@ -1345,6 +1345,12 @@ function scanGmailInbox() {
     if (oks.length) msg += "Scan terminé — " + oks.map(r => r.who + " : " + (r.count || 0)).join(" · ") + " nouveau(x) échange(s).";
     if (fails.length) msg += (msg ? " — " : "Erreur pendant le scan — ") + fails.map(r => r.who + " (" + (r.error || "échec") + ")").join(" · ");
     setSyncBanner_(msg, fails.length && !oks.length ? 'error' : (fails.length ? 'warn' : 'ok'));
+    // Diagnostic temporaire (suite à un signalement : le scan trouve 0 échange partout) — affiche
+    // directement le détail (email par email : nb de threads Gmail trouvés, ou l'erreur) renvoyé
+    // par scanGmail_, pour éviter d'avoir à fouiller les journaux Apps Script. À retirer une fois
+    // le problème identifié.
+    const debugLines = results.filter(r => r.debug && r.debug.length).map(r => r.who + " :\n" + r.debug.join("\n")).join("\n\n");
+    if (debugLines) alert("Détail du scan :\n\n" + debugLines);
     // Bug trouvé suite à un signalement ("je ne vois jamais le résultat du scan") : loadData()
     // appelle lui-même setSyncBanner_("Connexion au cloud…") quasi immédiatement, ce qui effaçait
     // ce message AVANT même que le navigateur ait eu le temps de l'afficher à l'écran — le nombre
