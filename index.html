@@ -2767,6 +2767,10 @@ function fillPlaceholders(text) {
   if (!currentReq) return text;
   return String(text).replace(/{prenom}/g, firstName(currentReq.client)).replace(/{date}/g, currentReq.date || "").replace(/{pax}/g, currentReq.pax || "");
 }
+function mailSubject_(r) {
+  if (!r) return "";
+  return "Privatisation Rosario - " + String(r.date || "").replace(/\//g, "") + " - " + (r.pax || "") + "pax";
+}
 function lastExchangeInfo_(r) {
   const tl = r.timeline || [], last = tl.length ? tl[tl.length - 1] : null;
   const d = last ? timelineEntryDate_(last) : null, since = d ? daysSince_(d) : null;
@@ -2779,7 +2783,7 @@ function resetCompose() {
     : currentReq.statut === "À répondre" ? "reply" : "proposition";
 
   document.getElementById('pvTo').textContent = "À : " + (currentReq && currentReq.email ? currentReq.email : "—");
-  document.getElementById('pvSubj').textContent = "Rosario — Privatisation le " + (currentReq ? currentReq.date : "");
+  document.getElementById('pvSubj').textContent = mailSubject_(currentReq);
 
   const ctx = document.getElementById('composeCtx');
   const { since, ago } = currentReq ? lastExchangeInfo_(currentReq) : { since: null, ago: "" };
@@ -2831,7 +2835,7 @@ function rebuildComposeBody() {
 }
 function openMailto() {
   if (!currentReq) return;
-  const subject = "Rosario - Privatisation le " + currentReq.date;
+  const subject = mailSubject_(currentReq);
   const body = document.getElementById('composeBody').value;
   window.location.href = "mailto:" + encodeURIComponent(currentReq.email || "") + "?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(body);
 }
