@@ -374,6 +374,15 @@
   .tpl-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: 11px; padding: 14px 16px; margin-bottom: 12px; }
   .tpl-card .name { font-size: 13px; font-weight: 500; margin: 0 0 9px; }
 
+  /* ---- Bouton flottant "Valider" (sauvegarde manuelle) ---- */
+  /* position: fixed + right/bottom ancrés à la fenêtre, pas à la page : reste au même endroit à
+     l'écran quel que soit le défilement, et au-dessus de tout (z-index élevé) sauf les modales. */
+  .validate-fab { position: fixed; right: 26px; bottom: 26px; z-index: 90; display: none; align-items: center; gap: 9px; background: var(--bordeaux); color: #fff; border: none; border-radius: 999px; padding: 14px 22px; font-size: 14px; font-weight: 600; font-family: inherit; box-shadow: 0 8px 24px rgba(42,38,34,.28); cursor: pointer; transition: background .12s, transform .12s; }
+  .validate-fab.on { display: inline-flex; }
+  .validate-fab:hover { background: var(--bordeaux-dark); transform: translateY(-1px); }
+  .validate-fab:disabled { opacity: .65; cursor: default; transform: none; }
+  .validate-fab .dot { width: 7px; height: 7px; border-radius: 50%; background: #fff; opacity: .85; flex-shrink: 0; }
+
   /* ---- Modal (Nouvelle demande) ---- */
   .modal-backdrop { position: fixed; inset: 0; background: rgba(42,38,34,.45); display: none; align-items: center; justify-content: center; z-index: 100; padding: 20px; }
   .modal-backdrop.on { display: flex; }
@@ -699,9 +708,9 @@
     <div class="tbl-wrap" style="margin-bottom:26px">
       <table class="pipe fixed-cols">
         <thead><tr>
-          <th class="sortable-th" style="width:60px">Date<span class="sort-carets"><span class="care" id="care-confup-event-up" onclick="confSetSort_('event',1)">⌃</span><span class="care" id="care-confup-event-down" onclick="confSetSort_('event',-1)">⌄</span></span></th>
+          <th class="sortable-th" style="width:60px">Date<span class="sort-carets"><span class="care" id="care-confup-event-up" onclick="confSetSort_('up','event',1)">⌃</span><span class="care" id="care-confup-event-down" onclick="confSetSort_('up','event',-1)">⌄</span></span></th>
           <th style="width:20%">Client</th>
-          <th class="sortable-th" style="width:50px">Pax<span class="sort-carets"><span class="care" id="care-confup-pax-up" onclick="confSetSort_('pax',1)">⌃</span><span class="care" id="care-confup-pax-down" onclick="confSetSort_('pax',-1)">⌄</span></span></th>
+          <th class="sortable-th" style="width:50px">Pax<span class="sort-carets"><span class="care" id="care-confup-pax-up" onclick="confSetSort_('up','pax',1)">⌃</span><span class="care" id="care-confup-pax-down" onclick="confSetSort_('up','pax',-1)">⌄</span></span></th>
           <th style="width:15%">Espace</th>
           <th style="width:14%">Type</th><th style="width:12%; text-align:right">Total HT</th><th style="width:20%">Paiement</th>
         </tr></thead>
@@ -712,9 +721,9 @@
     <div class="tbl-wrap">
       <table class="pipe fixed-cols">
         <thead><tr>
-          <th class="sortable-th" style="width:60px">Date<span class="sort-carets"><span class="care" id="care-confpast-event-up" onclick="confSetSort_('event',1)">⌃</span><span class="care" id="care-confpast-event-down" onclick="confSetSort_('event',-1)">⌄</span></span></th>
+          <th class="sortable-th" style="width:60px">Date<span class="sort-carets"><span class="care" id="care-confpast-event-up" onclick="confSetSort_('past','event',1)">⌃</span><span class="care" id="care-confpast-event-down" onclick="confSetSort_('past','event',-1)">⌄</span></span></th>
           <th style="width:20%">Client</th>
-          <th class="sortable-th" style="width:50px">Pax<span class="sort-carets"><span class="care" id="care-confpast-pax-up" onclick="confSetSort_('pax',1)">⌃</span><span class="care" id="care-confpast-pax-down" onclick="confSetSort_('pax',-1)">⌄</span></span></th>
+          <th class="sortable-th" style="width:50px">Pax<span class="sort-carets"><span class="care" id="care-confpast-pax-up" onclick="confSetSort_('past','pax',1)">⌃</span><span class="care" id="care-confpast-pax-down" onclick="confSetSort_('past','pax',-1)">⌄</span></span></th>
           <th style="width:15%">Espace</th>
           <th style="width:14%">Type</th><th style="width:12%; text-align:right">Total HT</th><th style="width:20%">Paiement</th>
         </tr></thead>
@@ -725,6 +734,11 @@
 
   <!-- ============ RÉCONCILIATION QONTO ============ -->
   <div class="view" id="view-recon">
+    <div class="upcoming-block">
+      <p class="sec-title"><span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 17V7a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1a2 2 0 0 1 2-2h14"/></svg></span> Résumé comptable</p>
+      <p style="font-size:12.5px; color:var(--ink-2); margin:0 0 12px;">Génère (ou régénère) l'onglet "Résumé comptable" dans le Google Sheet : une ligne par privatisation confirmée avec client/société, date de l'événement, origine du règlement (Facture / Caisse / Mixte), montant HT, TVA, montant TTC, numéro de facture Qonto si liée, et statut de paiement. À partager directement depuis le Sheet avec le comptable.</p>
+      <button class="btn sm primary" onclick="doBuildComptaSummary_()">Régénérer le résumé comptable</button>
+    </div>
     <div class="upcoming-block">
       <p class="sec-title"><span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/></svg></span> Soldes en attente <span class="count" id="reconSoldesCount"></span></p>
       <div class="tbl-wrap">
@@ -737,6 +751,10 @@
     <div class="section-divider"><span>Transactions Qonto non liées</span></div>
     <p style="font-size:12.5px; color:var(--ink-2); margin:0 0 14px;">Choisis à quelle demande correspond chaque transaction reçue sur le compte Qonto de Rosario, puis clique "Lier" — ça crée le paiement correspondant dans la fiche. Rien n'est jamais lié automatiquement.</p>
     <div id="reconTxBox"><div class="empty-box">Chargement…</div></div>
+
+    <div class="section-divider"><span>Factures Qonto non liées</span></div>
+    <p style="font-size:12.5px; color:var(--ink-2); margin:0 0 14px;">Sert à vérifier que toutes les privatisations réglées "Facture - Hors LS" ont bien leur facture Qonto en face, et inversement. Choisis à quelle demande correspond chaque facture, puis clique "Lier" — ça crée le paiement correspondant dans la fiche. Rien n'est jamais lié automatiquement.</p>
+    <div id="reconInvBox"><div class="empty-box">Chargement…</div></div>
   </div>
 
   <!-- ============ SETTINGS ============ -->
@@ -949,6 +967,14 @@
     </div>
   </div>
 </div>
+
+<!-- Bouton flottant "Valider" — apparaît dès qu'une modif locale n'a pas encore été envoyée au
+     cloud, reste ancré en bas à droite quel que soit le défilement. Rien n'est envoyé tant que
+     Théo ne clique pas dessus : c'est lui qui décide quand une page est prête, pas un debounce
+     automatique. -->
+<button class="validate-fab" id="validateFab" onclick="validateChanges_()">
+  <span class="dot"></span><span id="validateFabLabel">Valider les modifications</span>
+</button>
 
 <!-- Boîte de dialogue générique (remplace alert()/confirm() natifs du navigateur, aux couleurs de l'outil) -->
 <div class="modal-backdrop" id="uiDialogBackdrop" onclick="if(event.target===this) uiCloseDialog_(null)">
@@ -1323,22 +1349,30 @@ function pushData_(onDone, skipRevCheck) {
         localStorage.removeItem('rosarioDirty');
         if (json.rev !== undefined) CURRENT_REV = json.rev;
         setSyncBanner_("Connecté au cloud — modifications enregistrées.", 'ok');
+        showValidateFab_();
         // Diagnostic temporaire (mise en place de l'événement Calendar à la confirmation) —
         // à retirer une fois le premier événement confirmé comme fonctionnel.
         if (json.calendarErrors && json.calendarErrors.length) alert("Erreur création événement Calendar :\n" + json.calendarErrors.join("\n"));
       } else if (json.error === 'conflict') {
         // Une autre session a sauvegardé entre-temps : on refuse d'écraser silencieusement, on
-        // recharge la dernière version du Sheet à la place. La modif en cours reste dans DATA/
-        // localStorage (rosarioDirty toujours posé) le temps que le rechargement se termine.
+        // recharge la dernière version du Sheet à la place. Ce rechargement forcé (loadDataFromCloud_
+        // avec force=true) remplace DATA par cette version fraîche, donc la modif qu'on essayait
+        // d'envoyer ne tient déjà plus — on lève le flag AVANT ce rechargement pour que le bouton
+        // "Valider" ne reste pas affiché à tort sur une modif qui n'existe déjà plus dans DATA.
+        unsavedChanges_ = false;
+        localStorage.removeItem('rosarioDirty');
+        showValidateFab_();
         setSyncBanner_("Des données ont été modifiées ailleurs entre-temps — rechargement de la dernière version pour ne rien écraser…", 'error');
         loadDataFromCloud_(true);
       }
-      else { setSyncBanner_("Erreur de synchronisation : " + json.error, 'error'); }
+      else { setSyncBanner_("Erreur de synchronisation : " + json.error, 'error'); showValidateFab_(); }
       if (onDone) onDone();
     })
     .catch(err => {
       pushInFlight_ = false;
       setSyncBanner_("Erreur de synchronisation (" + err.message + ") — modification gardée en local seulement.", 'error');
+      showValidateFab_();
+      if (onDone) onDone();
     });
 }
 
@@ -1387,18 +1421,24 @@ function scanGmailInbox() {
   });
 }
 
-// saveData() est appelée à chaque frappe clavier sur pas mal de champs (finance, tâches...).
-// La copie locale (localStorage) est écrite tout de suite à chaque appel — aucun risque, c'est
-// instantané et propre à ce navigateur. L'envoi au cloud, lui, est regroupé (debounce) : on
-// attend une courte pause dans la frappe avant de renvoyer tout le Sheet, plutôt que de le
-// réécrire en entier à chaque touche. Ça évite d'écraser en boucle une donnée que le scan Gmail
-// (côté serveur) aurait pu ajouter entre deux frappes, et ça réduit fortement le nombre de
-// requêtes envoyées.
+// saveData() est appelée à chaque frappe clavier sur pas mal de champs (finance, tâches...). La
+// copie locale (localStorage) est écrite tout de suite à chaque appel — aucun risque, c'est
+// instantané et propre à ce navigateur. L'envoi au cloud, lui, N'EST PLUS automatique : on
+// affiche seulement le bouton flottant "Valider" (voir showValidateFab_/validateChanges_ plus
+// bas) et on attend que Théo clique dessus quand il a fini de modifier la page — c'est lui qui
+// décide du moment, pas un debounce. Avant ce changement, un envoi partait automatiquement 800ms
+// après chaque pause de frappe : avec deux personnes qui modifient en parallèle, ça multipliait
+// les allers-retours vers le Sheet et donc les occasions de tomber sur un conflit de révision (cf.
+// pushData_ ci-dessus : en cas de conflit, la modif en cours est remplacée par la dernière version
+// du Sheet, jamais fusionnée avec elle — c'était la cause la plus probable des écrasements
+// remontés). Un seul envoi déclenché à la volonté de l'utilisateur, une fois toutes ses modifs
+// faites sur une fiche, réduit fortement cette fenêtre de conflit.
 //
-// Le point délicat : si l'onglet se ferme (ou se recharge) pendant cette pause, un fetch()
-// classique lancé depuis beforeunload peut être interrompu par le navigateur avant d'arriver à
-// destination — la modif reste alors uniquement sur cet ordinateur, jamais sur le Sheet partagé.
-// Trois filets de sécurité contre ça :
+// Le point délicat : si l'onglet se ferme (ou se recharge) avant que Théo ait cliqué "Valider",
+// un fetch() classique lancé depuis beforeunload peut être interrompu par le navigateur avant
+// d'arriver à destination — la modif resterait alors uniquement sur cet ordinateur, jamais sur le
+// Sheet partagé. Trois filets de sécurité contre ça, INCHANGÉS par ce passage en validation
+// manuelle :
 //  1. sendBeacon (conçu pour survivre à la fermeture d'un onglet, contrairement à fetch) sur
 //     beforeunload/pagehide/changement de visibilité — bien plus fiable qu'un fetch normal.
 //  2. Un flag 'rosarioDirty' persistant : tant qu'un envoi n'a pas été confirmé réussi, il reste
@@ -1406,8 +1446,7 @@ function scanGmailInbox() {
 //     repousse d'abord ces données avant de faire confiance au cloud — jamais un écrasement
 //     silencieux d'une modif non confirmée.
 //  3. Une confirmation native du navigateur ("quitter sans enregistrer ?") si on tente de fermer
-//     l'onglet pendant qu'un envoi est encore en attente ou en cours.
-let pushDebounceTimer_ = null;
+//     l'onglet alors qu'une modif n'a pas encore été validée (ou est en cours d'envoi).
 let unsavedChanges_ = false;
 let pushInFlight_ = false;
 // Compteur incrémenté à chaque modification locale (voir loadDataFromCloud_) — permet de détecter
@@ -1420,11 +1459,29 @@ function saveData() {
   if (!SYNC_MODE) return;
   unsavedChanges_ = true;
   localStorage.setItem('rosarioDirty', '1');
-  clearTimeout(pushDebounceTimer_);
-  pushDebounceTimer_ = setTimeout(() => { pushDebounceTimer_ = null; pushData_(); }, 800);
+  showValidateFab_();
+}
+// Affiche/masque le bouton flottant "Valider" selon qu'il reste ou non une modif locale non
+// envoyée — appelé après chaque saveData() et à la fin de chaque envoi (succès, conflit ou erreur).
+function showValidateFab_() {
+  const btn = document.getElementById('validateFab');
+  if (btn) btn.classList.toggle('on', unsavedChanges_);
+}
+// Déclenché par le clic sur le bouton flottant : c'est désormais le SEUL moment où les
+// modifications partent réellement vers le Sheet partagé (voir commentaire au-dessus de saveData).
+function validateChanges_() {
+  if (!unsavedChanges_ || pushInFlight_) return;
+  const btn = document.getElementById('validateFab');
+  const label = document.getElementById('validateFabLabel');
+  if (btn) btn.disabled = true;
+  if (label) label.textContent = "Envoi en cours…";
+  pushData_(() => {
+    if (btn) btn.disabled = false;
+    if (label) label.textContent = "Valider les modifications";
+    showValidateFab_();
+  });
 }
 function flushPendingSave_() {
-  clearTimeout(pushDebounceTimer_); pushDebounceTimer_ = null;
   if (!SYNC_MODE || !unsavedChanges_) return;
   localStorage.setItem('rosarioData', JSON.stringify(DATA));
   const body = JSON.stringify({ data: DATA, rev: CURRENT_REV, config: { templates: TEMPLATES, menu: MENU, taskTpl: TASK_TEMPLATE, tarifGroupe: TARIF_GROUPE } });
@@ -1700,6 +1757,7 @@ function renderTasksFinanceSection_() {
    Toute la logique de calcul de solde reste ici (financeTotals/paidAmount_, déjà utilisés
    partout ailleurs) — le serveur ne fait que renvoyer les transactions Qonto brutes. */
 let RECON_TX = [];
+let RECON_INV = [];
 
 function pendingSoldes_() {
   return DATA.filter(r => r.statut === "Confirmé" && r.finance).map(r => {
@@ -1712,6 +1770,17 @@ function pendingSoldes_() {
 function renderRecon_() {
   renderReconSoldes_();
   loadReconTransactions_();
+  loadReconInvoices_();
+}
+
+// Candidats pour lier une facture Qonto : toutes les demandes confirmées avec chiffrage (peu
+// importe leur statut de paiement, contrairement à pendingSoldes_ qui ne garde que les soldes
+// encore ouverts — une facture Qonto peut très bien correspondre à un acompte déjà réglé).
+function confirmedForFactureRecon_() {
+  return DATA.filter(r => r.statut === "Confirmé" && r.finance).map(r => {
+    const tot = financeTotals(r.finance);
+    return { r, totalTTC: tot.totalTTC };
+  }).sort((a, b) => (a.r.date && b.r.date) ? parseDate(b.r.date) - parseDate(a.r.date) : 0);
 }
 
 function renderReconSoldes_() {
@@ -1784,6 +1853,77 @@ async function doLinkQonto_(txId) {
       if (!json.ok) { uiAlert_("Erreur : " + json.error); return; }
       RECON_TX = RECON_TX.filter(t => t.txId !== txId);
       loadData();
+    })
+    .catch(err => uiAlert_("Erreur : " + err.message));
+}
+
+function loadReconInvoices_() {
+  const box = document.getElementById('reconInvBox');
+  if (!box) return;
+  if (!SYNC_MODE) { box.innerHTML = '<div class="empty-box">Connecte le cloud (SCRIPT_URL) pour voir les factures Qonto.</div>'; return; }
+  box.innerHTML = '<div class="empty-box">Chargement des factures Qonto…</div>';
+  fetch(SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'facture_suggestions' }) })
+    .then(r => r.json())
+    .then(json => {
+      if (!json.ok) { box.innerHTML = '<div class="empty-box">Erreur Qonto : ' + esc(json.error || 'inconnue') + '</div>'; return; }
+      if (!json.configured) {
+        box.innerHTML = '<div class="empty-box">Qonto n\'est pas encore configuré pour cet outil.<br>Dans Apps Script (Extensions&nbsp;›&nbsp;Apps Script&nbsp;›&nbsp;⚙️ Paramètres du projet&nbsp;›&nbsp;Propriétés du script), ajoute <b>qontoLogin</b>, <b>qontoSecretKey</b> et <b>qontoIban</b>.</div>';
+        return;
+      }
+      RECON_INV = json.invoices || [];
+      renderReconInv_();
+    })
+    .catch(err => { box.innerHTML = '<div class="empty-box">Erreur de connexion à Qonto (' + esc(err.message) + ').</div>'; });
+}
+
+const QONTO_INVOICE_STATUS_LABEL_ = { draft: "Brouillon", unpaid: "Non payée", paid: "Payée", canceled: "Annulée" };
+
+function renderReconInv_() {
+  const box = document.getElementById('reconInvBox');
+  if (!box) return;
+  if (!RECON_INV.length) { box.innerHTML = '<div class="empty-box">Aucune facture Qonto non liée.</div>'; return; }
+  const items = confirmedForFactureRecon_();
+  const rows = RECON_INV.map(inv => {
+    const options = items.map(({ r, totalTTC }) => {
+      const match = Math.abs(totalTTC - inv.montant) < 2 ? ' selected' : '';
+      return `<option value="${esc(r.id)}"${match}>${esc(r.client)} — total ${fmtEUR(totalTTC)}</option>`;
+    }).join("");
+    const statusLabel = QONTO_INVOICE_STATUS_LABEL_[inv.status] || inv.status;
+    return `<tr>
+      <td>${esc(inv.date)}</td>
+      <td>${esc(inv.number)}${inv.url ? ' <a href="' + esc(inv.url) + '" target="_blank" rel="noopener">↗</a>' : ''}<div class="cl-sub">${esc(inv.clientName)} — ${esc(statusLabel)}</div></td>
+      <td style="text-align:right"><b>${fmtEUR(inv.montant)}</b></td>
+      <td><select id="reconInvSel_${esc(inv.invoiceId)}"><option value="">— choisir la demande —</option>${options}</select></td>
+      <td><button class="btn sm" onclick="doLinkQontoInvoice_('${esc(inv.invoiceId)}')">Lier</button></td>
+    </tr>`;
+  }).join("");
+  box.innerHTML = '<div class="tbl-wrap"><table class="pipe"><thead><tr><th>Date</th><th>N° facture</th><th style="text-align:right">Montant</th><th>Lier à</th><th></th></tr></thead><tbody>' + rows + '</tbody></table></div>';
+}
+
+async function doLinkQontoInvoice_(invoiceId) {
+  const sel = document.getElementById('reconInvSel_' + invoiceId);
+  const id = sel ? sel.value : '';
+  if (!id) { uiAlert_("Choisis d'abord à quelle demande lier cette facture."); return; }
+  const inv = RECON_INV.find(i => i.invoiceId === invoiceId);
+  if (!inv) return;
+  if (!(await uiConfirm_("Lier la facture Qonto " + inv.number + " (" + fmtEUR(inv.montant) + ") à cette demande comme paiement ? Cette facture ne sera plus proposée ensuite."))) return;
+  fetch(SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'link_qonto_invoice', id: id, invoiceId: inv.invoiceId, montant: inv.montant, date: inv.date }) })
+    .then(r => r.json())
+    .then(json => {
+      if (!json.ok) { uiAlert_("Erreur : " + json.error); return; }
+      RECON_INV = RECON_INV.filter(i => i.invoiceId !== invoiceId);
+      loadData();
+    })
+    .catch(err => uiAlert_("Erreur : " + err.message));
+}
+
+function doBuildComptaSummary_() {
+  if (!SYNC_MODE) { uiAlert_("Connecte le cloud (SCRIPT_URL) pour générer le résumé comptable."); return; }
+  fetch(SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'build_compta_summary' }) })
+    .then(r => r.json())
+    .then(json => {
+      if (!json.ok) { uiAlert_("Erreur : " + (json.error || "inconnue")); return; }
+      uiAlert_("Résumé comptable régénéré (" + json.count + " privatisation" + (json.count > 1 ? "s" : "") + ") — onglet \"Résumé comptable\" dans le Google Sheet.");
     })
     .catch(err => uiAlert_("Erreur : " + err.message));
 }
@@ -2213,8 +2353,16 @@ function confRow_(r, origin) {
   </tr>`;
 }
 
-let confSort = { key: "event", dir: -1 };
-function confSetSort_(key, dir) { confSort = { key, dir }; renderConfirmedTab_(); }
+// Deux états de tri indépendants : "à venir" trié par défaut du plus proche au plus lointain
+// (dir 1 = date croissante), "passées" trié par défaut du plus récent au plus ancien (dir -1) —
+// ce sont deux tableaux distincts avec des attentes de tri par défaut opposées, donc un seul état
+// partagé (comme avant) forçait le même ordre sur les deux.
+let confSortUp = { key: "event", dir: 1 };
+let confSortPast = { key: "event", dir: -1 };
+function confSetSort_(table, key, dir) {
+  if (table === 'up') confSortUp = { key, dir }; else confSortPast = { key, dir };
+  renderConfirmedTab_();
+}
 let confSearch = "";
 function onConfSearch(v) {
   confSearch = v; renderConfirmedTab_();
@@ -2233,10 +2381,11 @@ function renderConfirmedTab_() {
     ((r.finance && r.finance.societe) || "").toLowerCase().includes(q) || (r.email || "").toLowerCase().includes(q);
   const past = pastAll.filter(matchesSearch_);
   const upcoming = confirmed.filter(r => { const d = parseDate(r.date); return d && d >= today; }).filter(matchesSearch_);
-  const sortCmp = (a, b) => (sortableVal_(a, confSort.key) - sortableVal_(b, confSort.key)) * confSort.dir;
-  past.sort(sortCmp); upcoming.sort(sortCmp);
-  updateSortCarets_('confup', confSort, ['pax', 'event']);
-  updateSortCarets_('confpast', confSort, ['pax', 'event']);
+  const sortCmpUp = (a, b) => (sortableVal_(a, confSortUp.key) - sortableVal_(b, confSortUp.key)) * confSortUp.dir;
+  const sortCmpPast = (a, b) => (sortableVal_(a, confSortPast.key) - sortableVal_(b, confSortPast.key)) * confSortPast.dir;
+  upcoming.sort(sortCmpUp); past.sort(sortCmpPast);
+  updateSortCarets_('confup', confSortUp, ['pax', 'event']);
+  updateSortCarets_('confpast', confSortPast, ['pax', 'event']);
 
   // Le CA (kpi-groups + graphique) est affiché dans l'onglet Statistiques (renderStatsCA_), pas
   // ici — cet onglet Confirmées n'a plus de KPI CA propre, seulement les tableaux ci-dessous. Le
