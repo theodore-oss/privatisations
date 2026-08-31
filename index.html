@@ -1437,16 +1437,20 @@ function scanGmailInbox() {
 // Le point délicat : si l'onglet se ferme (ou se recharge) avant que Théo ait cliqué "Valider",
 // un fetch() classique lancé depuis beforeunload peut être interrompu par le navigateur avant
 // d'arriver à destination — la modif resterait alors uniquement sur cet ordinateur, jamais sur le
-// Sheet partagé. Trois filets de sécurité contre ça, INCHANGÉS par ce passage en validation
-// manuelle :
+// Sheet partagé. Deux filets de sécurité contre ça, qui ne se déclenchent QUE quand la page est
+// réellement en train de se fermer/recharger — jamais sur un simple changement d'onglet ou
+// d'appli (voir plus bas : le déclenchement sur "changement de visibilité" a été retiré, il
+// envoyait une sauvegarde à chaque fois qu'on quittait l'onglet des yeux, ce qui allait
+// directement à l'encontre du bouton "Valider" — bug remonté par Théo : une modif s'est retrouvée
+// dans le Sheet sans qu'il ait cliqué "Valider") :
 //  1. sendBeacon (conçu pour survivre à la fermeture d'un onglet, contrairement à fetch) sur
-//     beforeunload/pagehide/changement de visibilité — bien plus fiable qu'un fetch normal.
+//     pagehide/beforeunload — bien plus fiable qu'un fetch normal.
 //  2. Un flag 'rosarioDirty' persistant : tant qu'un envoi n'a pas été confirmé réussi, il reste
 //     posé. Au prochain chargement (même après un crash ou un sendBeacon qui aurait échoué), on
 //     repousse d'abord ces données avant de faire confiance au cloud — jamais un écrasement
 //     silencieux d'une modif non confirmée.
-//  3. Une confirmation native du navigateur ("quitter sans enregistrer ?") si on tente de fermer
-//     l'onglet alors qu'une modif n'a pas encore été validée (ou est en cours d'envoi).
+// À quoi s'ajoute une confirmation native du navigateur ("quitter sans enregistrer ?") si on tente
+// de fermer l'onglet alors qu'une modif n'a pas encore été validée (ou est en cours d'envoi).
 let unsavedChanges_ = false;
 let pushInFlight_ = false;
 // Compteur incrémenté à chaque modification locale (voir loadDataFromCloud_) — permet de détecter
@@ -1495,7 +1499,6 @@ function flushPendingSave_() {
   // prochain chargement de la page, réussi ou non.
 }
 window.addEventListener('pagehide', flushPendingSave_);
-document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flushPendingSave_(); });
 window.addEventListener('beforeunload', (e) => {
   flushPendingSave_();
   if (unsavedChanges_ || pushInFlight_) {
