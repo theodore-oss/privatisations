@@ -1380,7 +1380,7 @@ function pushData_(onDone, skipRevCheck) {
 // d'Adrien — le seul moyen pour un script de lire sa boîte, Google ne permet pas à un script
 // autorisé sous un compte d'accéder à la boîte d'un autre). Laisser vide tant qu'Adrien ne l'a
 // pas déployé : le scan se limite alors à ta propre boîte, sans erreur ni blocage.
-const ADRIEN_SCRIPT_URL = "";
+const ADRIEN_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz71CiJkrDMhr4r6zLaIOR8vTi076ju760QLlL42UGohQWFq7nnU_kDp_jkH349edyM/exec";
 
 function scanGmailInbox() {
   if (!SYNC_MODE) { setSyncBanner_("Connecte d'abord SCRIPT_URL pour pouvoir scanner tes emails.", 'error'); return; }
@@ -3153,9 +3153,19 @@ function createGmailDraft_() {
   const htmlBody = buildComposeHtmlBody_();
   const sig = document.getElementById('composeSignature').value;
   const cc = sig === "adrien" ? "theodore@grupodomingo.io" : "adrien@grupodomingo.io";
+  // Un Apps Script Web App déployé "Exécuter en tant que : Moi" exécute TOUJOURS le code sous le
+  // compte qui l'a déployé, peu importe qui appelle l'URL — donc si c'est Adrien qui signe, il
+  // faut appeler SON PROPRE script (ADRIEN_SCRIPT_URL, le même que celui utilisé pour le scan de
+  // sa boîte, voir plus haut), sinon le brouillon est créé chez Théo au lieu de chez Adrien (bug
+  // remonté : "ça ouvre bien sa page Brouillons mais le brouillon n'apparaît pas" — il se créait
+  // bien, mais dans les brouillons de Théo).
+  const draftScriptUrl = (sig === "adrien" && ADRIEN_SCRIPT_URL) ? ADRIEN_SCRIPT_URL : SCRIPT_URL;
+  if (sig === "adrien" && !ADRIEN_SCRIPT_URL) {
+    alert("Le script Gmail d'Adrien n'est pas encore configuré (ADRIEN_SCRIPT_URL vide) — le brouillon va être créé dans les brouillons de Théo à la place.");
+  }
   const btn = document.getElementById('draftBtn');
   if (btn) { btn.disabled = true; btn.textContent = "Création du brouillon…"; }
-  fetch(SCRIPT_URL, {
+  fetch(draftScriptUrl, {
     method: 'POST',
     headers: { 'Content-Type': 'text/plain' },
     body: JSON.stringify({ action: 'createDraft', to: currentReq.email || "", cc, subject, plainBody, htmlBody })
