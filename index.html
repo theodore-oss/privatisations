@@ -407,9 +407,39 @@
     .nav button span.lbl { display: none; }
     .ev-prog { display: none; }
   }
+
+  /* ---- Porte d'authentification (Firebase Auth / Google Sign-In) ---- */
+  /* Recouvre toute la page tant qu'on n'a pas confirmé une session Google valide sur le domaine
+     autorisé — la page applicative en dessous (#appRoot) reste cachée jusque-là, voir showAuthGate_. */
+  .auth-gate { position: fixed; inset: 0; background: var(--bg); display: flex; align-items: center; justify-content: center; z-index: 200; padding: 20px; }
+  .auth-card { background: var(--surface); border-radius: 18px; width: 100%; max-width: 380px; padding: 36px 30px; box-shadow: 0 24px 70px rgba(42,38,34,.16); text-align: center; }
+  .auth-card .brand-ic { width: 46px; height: 46px; border-radius: 12px; background: var(--bordeaux); color: #fff; display: flex; align-items: center; justify-content: center; margin: 0 auto 18px; font-family: 'Fraunces', serif; font-weight: 600; font-size: 20px; }
+  .auth-card h2 { font-family: 'Fraunces', serif; font-weight: 600; font-size: 19px; color: var(--bordeaux-dark); margin: 0 0 8px; }
+  .auth-card p.sub { font-size: 13px; color: var(--ink-2); margin: 0 0 24px; line-height: 1.5; }
+  .auth-btn { width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 10px; background: var(--surface); color: var(--ink); border: 0.5px solid var(--border-strong); border-radius: 10px; padding: 12px 18px; font-size: 14px; font-weight: 500; font-family: inherit; cursor: pointer; transition: background .12s, border-color .12s; }
+  .auth-btn:hover { background: var(--surface-2); border-color: var(--bordeaux-300); }
+  .auth-btn:disabled { opacity: .6; cursor: default; }
+  .auth-err { font-size: 12px; color: var(--red-d); background: var(--red-bg); border-radius: 8px; padding: 8px 12px; margin-top: 16px; display: none; }
+  .auth-err.on { display: block; }
 </style>
 </head>
 <body>
+
+<!-- Porte d'authentification — recouvre tout tant qu'aucune session Google valide (domaine
+     grupodomingo.io) n'est confirmée. Voir showAuthGate_/signInWithGoogle_ dans le script. -->
+<div class="auth-gate" id="authGate">
+  <div class="auth-card">
+    <div class="brand-ic">R</div>
+    <h2>Privatisations Rosario</h2>
+    <p class="sub">Connecte-toi avec ton compte Google @grupodomingo.io pour accéder à l'outil.</p>
+    <button class="auth-btn" id="authBtn" onclick="signInWithGoogle_()">
+      <svg width="16" height="16" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.6 6.1 29.6 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.9 18.9 13 24 13c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.6 6.1 29.6 4 24 4 16.3 4 9.6 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.5 0 10.4-1.9 14.2-5.1l-6.6-5.4C29.6 35.4 27 36 24 36c-5.3 0-9.6-3.3-11.3-7.9l-6.6 5.1C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.3-4.2 5.7l6.6 5.4C41.9 35.6 44 30.2 44 24c0-1.3-.1-2.7-.4-3.5z"/></svg>
+      Se connecter avec Google
+    </button>
+    <p class="auth-err" id="authError"></p>
+  </div>
+</div>
+
 <div class="topbar">
   <div class="topbar-in">
     <img src="logo.png" alt="Rosario" class="brand-mark">
@@ -769,7 +799,7 @@
 
     <div id="set-templates">
       <p style="font-size:12.5px; color:var(--ink-2); margin:0 0 14px;">Ces blocs composent les réponses. <span class="hl">{prenom}</span>, <span class="hl">{date}</span>, <span class="hl">{pax}</span> sont remplacés automatiquement. Mise en forme (brouillon Gmail uniquement) : une ligne commençant par <span class="hl">• </span> = puce, indentée de 2 espaces + <span class="hl">- </span> = sous-puce, et <span class="hl">**texte**</span> = texte en gras.
-        <button class="btn sm primary" style="float:right" onclick="saveTemplates()">Enregistrer</button><span class="save-note" id="tplSaveNote">Enregistré.</span></p>
+        <button class="btn sm primary" style="float:right" onclick="saveTemplates()">Enregistrer</button><span class="save-note" id="tplSaveNote">Enregistré localement — clique "Valider" en bas à droite pour envoyer.</span></p>
       <div class="tpl-card"><p class="name">Introduction</p><textarea id="tplIntro" rows="4"></textarea></div>
       <div class="tpl-card"><p class="name">Réponse au client (après sa réponse)</p><textarea id="tplReply" rows="3"></textarea></div>
       <div class="tpl-card"><p class="name">Relance (sans réponse du client)</p><textarea id="tplRelance" rows="5"></textarea></div>
@@ -782,7 +812,7 @@
 
     <div id="set-tasks" style="display:none">
       <p style="font-size:12.5px; color:var(--ink-2); margin:0 0 14px;">Tâches créées automatiquement quand une demande passe en <b>Confirmée</b>. L'échéance est calculée en jours avant l'événement (J-x).
-        <button class="btn sm primary" style="float:right" onclick="saveTaskTemplate()">Enregistrer</button><span class="save-note" id="taskSaveNote">Enregistré.</span></p>
+        <button class="btn sm primary" style="float:right" onclick="saveTaskTemplate()">Enregistrer</button><span class="save-note" id="taskSaveNote">Enregistré localement — clique "Valider" en bas à droite pour envoyer.</span></p>
       <div class="tbl-wrap">
         <table class="pipe">
           <thead><tr><th>Tâche</th><th style="width:120px">Échéance</th><th style="width:120px">Responsable</th><th style="width:90px">Bloquant</th><th style="width:60px"></th></tr></thead>
@@ -825,7 +855,7 @@
 
     <div id="set-menu" style="display:none">
       <p style="font-size:12.5px; color:var(--ink-2); margin:0 0 14px;">Coche les plats à inclure dans le calcul « Quantités à préparer » de chaque fiche confirmée. Prix et totaux ci-dessous sont indicatifs, calculés pour le nombre de personnes de référence.
-        <button class="btn sm primary" style="float:right" onclick="saveMenu_()">Enregistrer</button><span class="save-note" id="menuSaveNote">Enregistré.</span></p>
+        <button class="btn sm primary" style="float:right" onclick="saveMenu_()">Enregistrer</button><span class="save-note" id="menuSaveNote">Enregistré localement — clique "Valider" en bas à droite pour envoyer.</span></p>
       <div class="panel" style="margin-bottom:16px;">
         <div class="fin-tiles" style="grid-template-columns:repeat(4,1fr)">
           <div class="itile center"><p class="k">Total tapas / personne</p><p class="v" id="menuSumPerPerson">—</p></div>
@@ -851,8 +881,8 @@
       </div>
       <div class="panel">
         <p class="panel-t">Historique — réimport</p>
-        <p style="font-size:12.5px; color:var(--ink-2); margin:0 0 10px;">Réinstalle les 34 privatisations historiques (chiffrage + paiements) comme base de vérité dans le Sheet. Attention : ceci réinitialise ces lignes précises à ces valeurs de référence, en écrasant toute modification faite depuis sur CES lignes-là (les autres demandes ne sont jamais touchées). Une fois réimportées, ce sont tes modifications depuis la page qui font foi.</p>
-        <button class="btn" id="importHistoriqueBtn" onclick="importHistoriqueIntoSheet()">Réimporter l'historique dans le Sheet</button>
+        <p style="font-size:12.5px; color:var(--ink-2); margin:0 0 10px;">Réinstalle les 34 privatisations historiques (chiffrage + paiements) comme base de vérité dans Firestore. Attention : ceci réinitialise ces fiches précises à ces valeurs de référence, en écrasant toute modification faite depuis sur CES fiches-là (les autres demandes ne sont jamais touchées).</p>
+        <button class="btn" id="importHistoriqueBtn" onclick="importHistoriqueIntoSheet()">Réimporter l'historique dans Firestore</button>
       </div>
     </div>
   </div>
@@ -986,10 +1016,75 @@
   </div>
 </div>
 
+<!-- SDK Firebase (compat, via CDN) — l'appli reste un simple fichier HTML sans étape de build,
+     donc on utilise les scripts globaux "compat" plutôt que la version ES modules/npm. -->
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
+
 <script>
 // Colle ici l'URL de ton Apps Script déployé en Application Web (se termine par /exec).
 // Laisse vide pour rester en mode local (données stockées uniquement dans ce navigateur).
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyQgo921nZ8HRMm2LY3GFsfq23FiCNQ6OLkTa0XqW_Zgwy6go1CZVPLWy1Y0h5jVno1/exec";
+
+// ---- Firebase (auth + Firestore) ----
+const firebaseConfig = {
+  apiKey: "AIzaSyDKoXXRnfUSS2wnj8U4-WIUQ3zPcE6J-UY",
+  authDomain: "rosario-privatisations.firebaseapp.com",
+  projectId: "rosario-privatisations",
+  storageBucket: "rosario-privatisations.firebasestorage.app",
+  messagingSenderId: "350141197678",
+  appId: "1:350141197678:web:db1dcaa0f889e28f6e657f"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+const ALLOWED_DOMAIN_ = "grupodomingo.io";
+
+function signInWithGoogle_() {
+  const btn = document.getElementById('authBtn');
+  const err = document.getElementById('authError');
+  if (err) { err.classList.remove('on'); err.textContent = ""; }
+  if (btn) btn.disabled = true;
+  const provider = new firebase.auth.GoogleAuthProvider();
+  provider.setCustomParameters({ hd: ALLOWED_DOMAIN_ });
+  auth.signInWithPopup(provider).catch(function (e) {
+    if (btn) btn.disabled = false;
+    if (err) {
+      err.textContent = "Connexion impossible : " + (e && e.message ? e.message : e);
+      err.classList.add('on');
+    }
+  });
+}
+
+function signOut_() {
+  auth.signOut();
+}
+
+// Porte d'accès : tant qu'aucune session Google @grupodomingo.io confirmée, l'app reste cachée
+// derrière #authGate. Dès qu'une session valide est détectée, on lance loadData() (le vrai
+// démarrage de l'appli) — remplace l'ancien appel direct à loadData() en bas du fichier.
+auth.onAuthStateChanged(function (user) {
+  const gate = document.getElementById('authGate');
+  const err = document.getElementById('authError');
+  const btn = document.getElementById('authBtn');
+  if (!user) {
+    if (gate) gate.style.display = 'flex';
+    return;
+  }
+  const email = (user.email || "").toLowerCase();
+  if (!email.endsWith("@" + ALLOWED_DOMAIN_)) {
+    if (err) {
+      err.textContent = "Ce compte (" + user.email + ") n'appartient pas au domaine " + ALLOWED_DOMAIN_ + ". Connecte-toi avec ton compte @" + ALLOWED_DOMAIN_ + ".";
+      err.classList.add('on');
+    }
+    if (btn) btn.disabled = false;
+    auth.signOut();
+    return;
+  }
+  if (gate) gate.style.display = 'none';
+  loadData();
+});
 
 const DATA_DEFAULT = [
   { client: "Alison Nassiri", email: "alison_nassiri@hotmail.com", espace: "Restaurant entier", date: "11/07/2026", dateDemande: "01/07/2026", pax: 15, statut: "En attente client",
@@ -1056,9 +1151,9 @@ const HISTORIQUE_CONFIRMES = [
   ["Condé Nast", "24/03/2026", "Dîner", 40, 4000, 0, "Paiement effectué", [{ canal: "Qonto", montant: 4400 }]],
   ["Advancy", "23/04/2026", "Dîner", 50, 3500, 2224, "Paiement effectué", [{ canal: "Qonto", montant: 6519 }]],
   ["Coty / Tharsana", "23/04/2026", "Dîner", 52, 3332, 917, "Paiement effectué", [{ canal: "Qonto", montant: 4773 }]],
-  // Julien Benattar retiré de cet historique : c'est une demande déjà suivie en direct par l'outil
-  // (visible dans le Sheet), pas un événement d'avant l'outil — la laisser ici aurait créé un
-  // doublon (avec en plus un chiffrage périmé) au moment de l'import.
+  // Julien Benattar retiré de cet historique : c'est une demande déjà suivie en direct par l'outil,
+  // pas un événement d'avant l'outil — la laisser ici aurait créé un doublon (avec en plus un
+  // chiffrage périmé) au moment de l'import.
   ["Eric Pizigo", "06/06/2026", "Déjeuner", 25, 1100, 129, "Paiement effectué", [{ canal: "Lien Sunday", montant: 563 }, { canal: "CB", montant: 803 }]],
   ["Joia Silva", "13/06/2026", "Dîner", 9, 607, 200, "Paiement effectué", [{ canal: "Lien Sunday", montant: 450 }, { canal: "CB", montant: 458 }]],
   ["Rosalie", "27/05/2026", "Dîner", 17, 765, 0, "Paiement effectué", [{ canal: "Lien Sunday", montant: 383 }]],
@@ -1086,10 +1181,10 @@ const HISTORIQUE_SOCIETES = {
 
 // Ces 34 lignes sont la base de vérité des privatisations confirmées avant la mise en place de
 // l'outil (Julien Benattar exclu : suivi en direct, pas un événement historique). Elles ne sont
-// PAS fusionnées automatiquement à l'affichage : il faut les (ré)installer dans le Sheet via
-// Paramètres > Historique > "Réimporter l'historique dans le Sheet", après quoi ce sont des
-// demandes confirmées normales, éditables depuis la page comme directement dans le Sheet. L'id
-// stable ("hist_N") sert de clé : chaque réimport réinitialise ces lignes précises à ces valeurs.
+// PAS fusionnées automatiquement à l'affichage : il faut les (ré)installer dans Firestore via
+// Paramètres > Historique > "Réimporter l'historique dans Firestore", après quoi ce sont des
+// demandes confirmées normales, éditables depuis la page. L'id stable ("hist_N") sert de clé :
+// chaque réimport réinitialise ces fiches précises à ces valeurs.
 const DATA_HISTORIQUE = HISTORIQUE_CONFIRMES.map(([client, date, service, pax, caCuisineHT, caAlcoolsHT, statutPaiement, paiements], i) => ({
   id: "hist_" + i,
   client, email: HISTORIQUE_EMAILS[client] || "", espace: pax > 20 ? "Restaurant entier" : "Salon privatif", date, pax, statut: "Confirmé",
@@ -1098,8 +1193,11 @@ const DATA_HISTORIQUE = HISTORIQUE_CONFIRMES.map(([client, date, service, pax, c
 }));
 
 let DATA = [];
+// SYNC_MODE ne concerne plus que les actions dépendant d'Apps Script (Gmail, Calendar, Qonto) —
+// voir plus bas. Les demandes elles-mêmes vivent désormais dans Firestore, toujours disponible,
+// voir FIRESTORE_MODE et loadData()/pushData_() plus bas.
 let SYNC_MODE = !!SCRIPT_URL;
-let CURRENT_REV = 0; // compteur de révision du Sheet — sert à détecter un écrasement par une session obsolète
+const FIRESTORE_MODE = true;
 
 function esc(v) {
   return String(v == null ? "" : v)
@@ -1158,145 +1256,116 @@ function setSyncBanner_(text, tone) {
   el.style.color = tone === 'error' ? '#a32d2d' : (tone === 'ok' ? '#14603c' : '#6b6862');
 }
 
+// Désabonnement de l'écoute temps réel Firestore — gardé au niveau module pour ne jamais
+// l'attacher deux fois si loadData() est rappelée (ex. par scanGmailInbox ou resetDemoData).
+let demandesUnsub_ = null;
+// Dernière version connue de Firestore, un id → JSON stringifié par fiche. Sert de référence à
+// pushData_() pour ne jamais renvoyer TOUT le tableau (l'ancien mécanisme Sheet réécrivait les 3
+// onglets en entier à chaque validation — c'était la cause structurelle des conflits "à deux en
+// même temps" : la moindre validation, où que ce soit, écrasait tout). Avec Firestore, chaque
+// fiche est un document séparé ; on ne pousse que celles qui ont réellement changé depuis cette
+// référence, en un seul batch atomique — voir pushData_().
+let lastServerSnapshot_ = new Map();
+
 function loadData() {
+  if (demandesUnsub_) return; // écoute déjà active, rien à refaire (ex. double appel accidentel)
   const localFallback = () => ensureIds_(JSON.parse(localStorage.getItem('rosarioData') || 'null') || DATA_DEFAULT.slice());
 
-  if (!SYNC_MODE) {
-    DATA = localFallback();
-    setSyncBanner_("Mode local — non connecté au cloud. Configure SCRIPT_URL en haut du script pour synchroniser en ligne.", 'warn');
-    afterDataLoaded_();
-    return;
-  }
+  // BUG CORRIGÉ (a écrasé des données de Théo le 30/08, du temps du Sheet) : ne JAMAIS renvoyer
+  // automatiquement une copie locale non validée au chargement, même repérée via 'rosarioDirty' —
+  // elle peut être bien plus ancienne que ce qui existe déjà côté serveur. On la garde affichée le
+  // temps de demander explicitement à Théo s'il veut la récupérer (voir plus bas) ; jamais imposée.
+  const hadPendingLocal = localStorage.getItem('rosarioDirty') === '1';
+  const pendingLocalSnapshot_ = hadPendingLocal ? JSON.parse(localStorage.getItem('rosarioData') || 'null') : null;
 
-  // Des modifications de la session précédente n'ont peut-être jamais été confirmées envoyées
-  // (fermeture/rechargement juste après une frappe, réseau coupé...). On ne fait jamais confiance
-  // au cloud avant d'avoir d'abord repoussé ces données locales — sinon on écraserait
-  // silencieusement une saisie jamais synchronisée par une version plus ancienne du Sheet.
-  if (localStorage.getItem('rosarioDirty') === '1') {
-    DATA = localFallback();
-    unsavedChanges_ = true;
-    setSyncBanner_("Des modifications précédentes n'avaient pas été confirmées envoyées — nouvel essai en cours…", 'warn');
-    renderCurrentView_(); // affichage immédiat du cache pendant l'envoi, voir commentaire ci-dessous
-    pushData_(() => loadDataFromCloud_(true), true); // skipRevCheck: voir commentaire sur pushData_ —
-    // CURRENT_REV n'a pas encore de vraie valeur à ce stade. force: ce rechargement est un maillon voulu de la
-    // récupération après un envoi resté en attente, pas une requête de fond qui pourrait croiser
-    // une modif en cours — voir le paramètre `force` de loadDataFromCloud_ plus bas.
-    return;
-  }
-
-  // Affiche tout de suite les dernières données connues (cache local) pendant que la version à
-  // jour arrive du cloud — l'appel réseau vers Apps Script (démarrage à froid + lecture du Sheet)
-  // prend souvent plusieurs secondes, ce n'est pas le rendu de la page qui est lent. La page
-  // n'est donc plus vide tout ce temps ; l'affichage se met à jour silencieusement dès que le
-  // cloud répond. Rendu brut seulement ici (pas refreshStatuses_/saveData, réservé au chargement
-  // cloud confirmé dans afterDataLoaded_) pour ne jamais déclencher un envoi avec une révision
-  // pas encore à jour.
+  // Affiche tout de suite les dernières données connues (cache local) pendant que Firestore répond
+  // — la toute première connexion après ouverture de la page peut prendre une seconde ou deux.
   const cached = JSON.parse(localStorage.getItem('rosarioData') || 'null');
-  if (cached && cached.length) {
-    DATA = ensureIds_(cached);
-    renderCurrentView_();
-  }
-  loadDataFromCloud_();
-}
-// force = true : ignore la protection anti-écrasement ci-dessous et recharge quoi qu'il arrive.
-// Utilisé uniquement par les deux enchaînements volontaires de récupération (relance d'un envoi
-// resté en attente, résolution d'un conflit de révision) : à ce stade on VEUT remplacer les
-// données locales par la version serveur, ce n'est pas une requête de fond qui pourrait croiser
-// une modification en cours. Sans ce paramètre, ces deux enchaînements restaient bloqués
-// indéfiniment (le drapeau "modification en attente" ne se levait jamais), ce qui empêchait aussi
-// bien la page de jamais aller rechercher une donnée ajoutée ailleurs (ex. le formulaire du site)
-// que le navigateur de cesser d'afficher l'avertissement "quitter sans enregistrer ?".
-function loadDataFromCloud_(force) {
-  const localFallback = () => ensureIds_(JSON.parse(localStorage.getItem('rosarioData') || 'null') || DATA_DEFAULT.slice());
-  // Capturé AVANT l'envoi de la requête : voir le contrôle `dataVersion_ !== versionAtRequest_`
-  // plus bas, qui couvre un cas que `unsavedChanges_`/`pushInFlight_` seuls ne couvraient pas.
-  const versionAtRequest_ = dataVersion_;
-  setSyncBanner_("Connexion au cloud…", 'warn');
-  fetch(SCRIPT_URL)
-    .then(r => r.json())
-    .then(json => {
-      if (!force && (unsavedChanges_ || pushInFlight_ || dataVersion_ !== versionAtRequest_)) {
-        // Des modifications locales ont été faites (ou sont en train d'être envoyées) pendant que
-        // cette requête était encore en vol — le chargement initial vers Apps Script (démarrage à
-        // froid) peut prendre plusieurs secondes, largement de quoi modifier une ligne entre-temps.
-        // On ne touche jamais à DATA dans ce cas : cet instantané cloud pourrait être antérieur à
-        // nos modifications et les écraserait silencieusement (c'est le bug remonté : modifier
-        // l'owner d'une ligne puis d'une autre juste après pouvait faire disparaître la 2e modif
-        // quand ce chargement initial finissait par répondre). Le push déjà programmé par
-        // saveData() se chargera de tout synchroniser correctement.
-        // `dataVersion_ !== versionAtRequest_` couvre en plus le cas où l'envoi déclenché par la
-        // modif a déjà réussi (unsavedChanges_ redevenu false) AVANT que cette requête, partie plus
-        // tôt mais plus lente (démarrage à froid), ne réponde enfin : sans ce contrôle, sa réponse
-        // — potentiellement calculée avant notre modif — écrase quand même la donnée à jour, ce qui
-        // donnait l'impression qu'un statut fraîchement changé "revenait" tout seul à son ancienne
-        // valeur.
-        setSyncBanner_("Modification locale en attente d'envoi — chargement initial ignoré pour ne rien écraser.", 'warn');
-        return;
-      }
-      // Trouvé pendant l'audit : une réponse d'erreur serveur (ex. Apps Script momentanément
-      // indisponible, exception) est un objet SANS `data` du tout, pas un tableau vide. L'ancien
-      // test (`json.data && json.data.length > 0`) traitait ces deux cas pareil ("Sheet vide") et
-      // amorçait avec les données de démo — donc PUSHAIT ces données de démo à la place des vraies,
-      // sur la seule foi d'une réponse malformée. On distingue maintenant explicitement : tableau
-      // vide (`[]`, Sheet réellement jamais initialisé) → amorçage légitime ; tout le reste (erreur,
-      // réponse inattendue) → on ne touche à rien et on affiche l'erreur.
-      if (json.error) {
-        setSyncBanner_("Erreur du serveur (" + json.error + ") — synchronisation ignorée, rien n'a été modifié.", 'error');
-        return;
-      }
-      if (!Array.isArray(json.data)) {
-        setSyncBanner_("Réponse inattendue du serveur — synchronisation ignorée, rien n'a été modifié.", 'error');
-        return;
-      }
-      CURRENT_REV = json.rev || 0;
-      if (json.data.length > 0) {
-        DATA = ensureIds_(json.data);
+  if (cached && cached.length) { DATA = ensureIds_(cached); renderCurrentView_(); }
+  if (hadPendingLocal) { unsavedChanges_ = true; showValidateFab_(); }
+  setSyncBanner_("Connexion à Firestore…", 'warn');
+
+  db.collection('config').doc('main').get().then(doc => {
+    if (doc.exists) applyCloudConfig_(doc.data());
+  }).catch(() => {});
+
+  // Écoute temps réel : toute modification validée (par toi, par Adrien, ou faite ailleurs)
+  // apparaît ici automatiquement en ~1s, sans recharger la page — ça règle le "trop lent à être
+  // pris en compte" remonté par Théo. Tant qu'une modif locale n'a pas encore été validée (ou est
+  // en cours d'envoi), on ignore ces mises à jour pour ne rien écraser sous ses yeux pendant qu'il
+  // modifie une fiche ; le clic sur "Valider" repart alors d'une lecture fraîche (voir pushData_).
+  let firstSnapshot_ = true;
+  demandesUnsub_ = db.collection('demandes').onSnapshot(async snapshot => {
+    const rows = [];
+    snapshot.forEach(doc => rows.push(Object.assign({ id: doc.id }, doc.data())));
+    lastServerSnapshot_ = new Map(rows.map(r => [r.id, JSON.stringify(r)]));
+
+    if (firstSnapshot_ && hadPendingLocal) {
+      firstSnapshot_ = false;
+      unsavedChanges_ = false; // le temps de poser la question ; remis à true si Théo confirme vouloir la garder
+      const wantsResume = await uiConfirm_("Une modification locale non envoyée d'une session précédente a été retrouvée sur cet ordinateur. Elle n'a PAS été envoyée automatiquement, pour éviter d'écraser des données plus récentes. Veux-tu la récupérer pour la vérifier et cliquer \"Valider\" toi-même ?");
+      if (wantsResume && pendingLocalSnapshot_ && pendingLocalSnapshot_.length) {
+        DATA = ensureIds_(pendingLocalSnapshot_);
+        unsavedChanges_ = true;
         localStorage.setItem('rosarioData', JSON.stringify(DATA));
-        applyCloudConfig_(json.config);
-        setSyncBanner_("Connecté au cloud — données partagées, à jour.", 'ok');
+        showValidateFab_();
+        setSyncBanner_("Modification précédente récupérée — vérifie puis clique \"Valider\" pour l'envoyer.", 'warn');
         afterDataLoaded_();
-      } else {
-        // Sheet vraiment vide (tableau [] confirmé, pas une erreur) : on amorce avec les données de
-        // démo locales.
-        DATA = ensureIds_(DATA_DEFAULT.slice());
-        pushData_(() => setSyncBanner_("Connecté au cloud — données initiales envoyées.", 'ok'));
-        afterDataLoaded_();
+        return;
       }
-    })
-    .catch(err => {
-      DATA = localFallback();
-      setSyncBanner_("Impossible de joindre le cloud (" + err.message + ") — mode local de secours.", 'error');
-      afterDataLoaded_();
-    });
+      localStorage.removeItem('rosarioDirty');
+      showValidateFab_();
+      // On continue plus bas : la version Firestore s'applique normalement.
+    }
+    firstSnapshot_ = false;
+
+    if (unsavedChanges_ || pushInFlight_) return; // une modif locale en cours prime toujours
+
+    if (rows.length === 0 && DATA.length === 0) {
+      // Collection Firestore réellement vide : amorçage avec les données de démo locales, mais
+      // jamais poussé automatiquement (même règle que partout ailleurs depuis l'incident du
+      // 30/08) — c'est à Théo de vérifier puis de cliquer "Valider" lui-même.
+      DATA = ensureIds_(DATA_DEFAULT.slice());
+      unsavedChanges_ = true;
+      localStorage.setItem('rosarioData', JSON.stringify(DATA));
+      localStorage.setItem('rosarioDirty', '1');
+      showValidateFab_();
+      setSyncBanner_("Firestore semble vide — données de démonstration chargées localement. Si c'est bien une toute première installation, clique \"Valider\" pour les envoyer ; sinon, vérifie plutôt pourquoi la base est vide avant de valider quoi que ce soit.", 'warn');
+    } else {
+      DATA = ensureIds_(rows);
+      localStorage.setItem('rosarioData', JSON.stringify(DATA));
+      setSyncBanner_("Connecté — données partagées en temps réel.", 'ok');
+    }
+    afterDataLoaded_();
+  }, err => {
+    DATA = localFallback();
+    setSyncBanner_("Impossible de joindre Firestore (" + err.message + ") — mode local de secours.", 'error');
+    afterDataLoaded_();
+  });
 }
 
 // Réimport : (ré)installe les privatisations historiques (données fournies en dur, avec leur
-// chiffrage et leurs paiements) comme base de vérité dans le Sheet — après quoi ce sont des
-// demandes confirmées normales, éditables depuis la page ou directement dans le Sheet. ATTENTION :
-// contrairement à un simple import, ceci RÉINITIALISE ces lignes précises (préfixe "hist_") à ces
-// valeurs de référence à chaque appel, en écrasant toute modification faite depuis dessus — c'est
-// volontaire, pour repartir d'une base garantie propre plutôt que de rapiécer des lignes
-// potentiellement corrompues. Les autres demandes ne sont jamais touchées.
+// chiffrage et leurs paiements) comme base de vérité dans Firestore — après quoi ce sont des
+// demandes confirmées normales, éditables depuis la page. ATTENTION : contrairement à un simple
+// import, ceci RÉINITIALISE ces fiches précises (préfixe "hist_") à ces valeurs de référence à
+// chaque appel, en écrasant toute modification faite depuis dessus — c'est volontaire, pour
+// repartir d'une base garantie propre plutôt que de rapiécer des fiches potentiellement
+// corrompues. Les autres demandes ne sont jamais touchées. Écrit directement dans Firestore
+// (plus besoin de passer par Apps Script/le Sheet depuis la migration).
 async function importHistoriqueIntoSheet() {
-  if (!SYNC_MODE) { setSyncBanner_("Connecte d'abord SCRIPT_URL pour importer l'historique.", 'error'); return; }
-  if (!(await uiConfirm_("Réinitialiser les " + DATA_HISTORIQUE.length + " privatisations historiques dans le Sheet avec ces valeurs de référence ? Toute modification faite depuis sur CES lignes précises sera remplacée (les autres demandes ne sont pas touchées). Une fois fait, ce sont tes modifications depuis la page qui font foi."))) return;
+  if (!(await uiConfirm_("Réinitialiser les " + DATA_HISTORIQUE.length + " privatisations historiques dans Firestore avec ces valeurs de référence ? Toute modification faite depuis sur CES fiches précises sera remplacée (les autres demandes ne sont pas touchées)."))) return;
   const btn = document.getElementById('importHistoriqueBtn');
   btn.disabled = true;
   setSyncBanner_("Réimport de l'historique en cours…", 'warn');
-  fetch(SCRIPT_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'text/plain' },
-    body: JSON.stringify({ action: 'push_historique', entries: DATA_HISTORIQUE })
-  })
-    .then(r => r.json())
-    .then(json => {
+  const batch = db.batch();
+  DATA_HISTORIQUE.forEach(rec => {
+    const { id, ...fields } = rec;
+    batch.set(db.collection('demandes').doc(id), fields);
+  });
+  batch.commit()
+    .then(() => {
       btn.disabled = false;
-      if (json.ok) {
-        setSyncBanner_(json.reimported + " privatisation(s) historique(s) réinstallée(s) comme base de vérité.", 'ok');
-        loadData();
-      } else {
-        setSyncBanner_("Erreur pendant l'import : " + json.error, 'error');
-      }
+      setSyncBanner_(DATA_HISTORIQUE.length + " privatisation(s) historique(s) réinstallée(s) comme base de vérité.", 'ok');
     })
     .catch(err => {
       btn.disabled = false;
@@ -1323,49 +1392,75 @@ function afterDataLoaded_() {
   renderCurrentView_();
 }
 
-// skipRevCheck : utilisé uniquement par la reprise après rechargement (voir loadData()) quand
-// 'rosarioDirty' est posé — à ce stade CURRENT_REV vaut encore sa valeur par défaut (0), pas la
-// vraie révision du Sheet (le premier fetch cloud de cette page n'a pas encore eu lieu). Envoyer
-// ce 0 comme rev déclenchait presque systématiquement un faux conflit côté serveur (0 ne
-// correspond presque jamais à la révision réelle), ce qui annulait la modif qu'on essayait
-// justement de sauver — l'exact inverse du but de ce mécanisme de reprise. Bug remonté par Théo :
-// une modif faite juste avant un rechargement de page était systématiquement écrasée.
-function pushData_(onDone, skipRevCheck) {
+// Depuis la migration vers Firestore : n'écrit plus JAMAIS la collection entière (c'était la
+// cause structurelle des conflits "à deux en même temps" avec le Sheet — la moindre validation, où
+// que ce soit, réécrivait tout). On compare DATA à lastServerSnapshot_ (dernière lecture connue de
+// Firestore, tenue à jour par l'écoute temps réel de loadData()) et on n'envoie QUE les fiches
+// réellement ajoutées/modifiées/supprimées, en un seul batch atomique. Deux personnes qui valident
+// des fiches différentes en même temps ne se marchent donc plus jamais dessus ; seule une
+// modification de la MÊME fiche à quelques secondes d'intervalle peut encore, en théorie, se faire
+// écraser par la seconde validation (Firestore ne fait pas de fusion champ à champ) — un risque
+// résiduel très réduit par rapport à l'ancien tout-ou-rien, et qu'on pourra affiner plus tard si ça
+// arrive en pratique.
+function pushData_(onDone) {
   localStorage.setItem('rosarioData', JSON.stringify(DATA));
-  if (!SYNC_MODE) return;
   pushInFlight_ = true;
-  const payload = { data: DATA, config: { templates: TEMPLATES, menu: MENU, taskTpl: TASK_TEMPLATE, tarifGroupe: TARIF_GROUPE } };
-  if (!skipRevCheck) payload.rev = CURRENT_REV;
-  fetch(SCRIPT_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'text/plain' }, // évite le preflight CORS, Apps Script ne le gère pas
-    body: JSON.stringify(payload)
-  })
-    .then(r => r.json())
-    .then(json => {
+  const batch = db.batch();
+  let changedCount = 0;
+  const seenIds = new Set();
+  const newlyConfirmed_ = []; // fiches dont le statut vient de passer à "Confirmé" — voir plus bas
+
+  DATA.forEach(rec => {
+    seenIds.add(rec.id);
+    const json = JSON.stringify(rec);
+    const prevJson = lastServerSnapshot_.get(rec.id);
+    if (prevJson === json) return; // inchangée depuis la dernière lecture, rien à envoyer
+    // JSON.parse(json) plutôt qu'un simple spread : contrairement à JSON.stringify (utilisé plus
+    // haut pour comparer), le SDK Firestore REFUSE tout champ valant littéralement `undefined`
+    // (erreur "Unsupported field value: undefined") au lieu de l'ignorer silencieusement comme le
+    // faisait le transport JSON vers Apps Script avant la migration. Ce aller-retour JSON supprime
+    // ces `undefined` exactement comme avant, sans changer le comportement pour tout le reste.
+    const fields = JSON.parse(json);
+    delete fields.id;
+    batch.set(db.collection('demandes').doc(rec.id), fields);
+    changedCount++;
+    const prevStatut = prevJson ? JSON.parse(prevJson).statut : null;
+    if (rec.statut === "Confirmé" && prevStatut !== "Confirmé") newlyConfirmed_.push(rec);
+  });
+  lastServerSnapshot_.forEach((_, id) => {
+    if (!seenIds.has(id)) { batch.delete(db.collection('demandes').doc(id)); changedCount++; }
+  });
+  batch.set(db.collection('config').doc('main'), { templates: TEMPLATES, menu: MENU, taskTpl: TASK_TEMPLATE, tarifGroupe: TARIF_GROUPE });
+
+  batch.commit()
+    .then(() => {
       pushInFlight_ = false;
-      if (json.ok) {
-        unsavedChanges_ = false;
-        localStorage.removeItem('rosarioDirty');
-        if (json.rev !== undefined) CURRENT_REV = json.rev;
-        setSyncBanner_("Connecté au cloud — modifications enregistrées.", 'ok');
-        showValidateFab_();
-        // Diagnostic temporaire (mise en place de l'événement Calendar à la confirmation) —
-        // à retirer une fois le premier événement confirmé comme fonctionnel.
-        if (json.calendarErrors && json.calendarErrors.length) alert("Erreur création événement Calendar :\n" + json.calendarErrors.join("\n"));
-      } else if (json.error === 'conflict') {
-        // Une autre session a sauvegardé entre-temps : on refuse d'écraser silencieusement, on
-        // recharge la dernière version du Sheet à la place. Ce rechargement forcé (loadDataFromCloud_
-        // avec force=true) remplace DATA par cette version fraîche, donc la modif qu'on essayait
-        // d'envoyer ne tient déjà plus — on lève le flag AVANT ce rechargement pour que le bouton
-        // "Valider" ne reste pas affiché à tort sur une modif qui n'existe déjà plus dans DATA.
-        unsavedChanges_ = false;
-        localStorage.removeItem('rosarioDirty');
-        showValidateFab_();
-        setSyncBanner_("Des données ont été modifiées ailleurs entre-temps — rechargement de la dernière version pour ne rien écraser…", 'error');
-        loadDataFromCloud_(true);
-      }
-      else { setSyncBanner_("Erreur de synchronisation : " + json.error, 'error'); showValidateFab_(); }
+      unsavedChanges_ = false;
+      localStorage.removeItem('rosarioDirty');
+      setSyncBanner_(changedCount ? (changedCount + " fiche(s) enregistrée(s).") : "Connecté — modifications enregistrées.", 'ok');
+      showValidateFab_();
+      // Événement Google Calendar à la confirmation : côté Firestore il n'y a plus de handler
+      // serveur qui voit passer chaque écriture (contrairement à l'ancien doPost du Sheet), donc
+      // c'est ici, juste après une validation réussie, qu'on détecte les fiches nouvellement
+      // confirmées et qu'on demande à Code.gs (seul capable de parler à Google Calendar) de créer
+      // l'événement. Un échec ici n'affecte jamais la donnée déjà enregistrée dans Firestore.
+      newlyConfirmed_.forEach(rec => {
+        if (!SYNC_MODE) return;
+        fetch(SCRIPT_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain' },
+          body: JSON.stringify({ action: 'create_calendar_event', demande: rec })
+        })
+          .then(r => r.json())
+          .then(json => {
+            if (!json.ok) { alert("Erreur création événement Calendar (" + rec.client + ") :\n" + json.error); return; }
+            // Repose l'id de l'événement créé sur la fiche (patch ciblé, ne touche à rien d'autre)
+            // — purement informatif pour l'instant (annulation/mise à jour de l'événement pas
+            // encore branchées), mais évite de perdre la référence.
+            if (json.eventId) db.collection('demandes').doc(rec.id).set({ calendarEventId: json.eventId }, { merge: true }).catch(() => {});
+          })
+          .catch(err => alert("Erreur création événement Calendar (" + rec.client + ") :\n" + err.message));
+      });
       if (onDone) onDone();
     })
     .catch(err => {
@@ -1413,54 +1508,35 @@ function scanGmailInbox() {
     if (oks.length) msg += "Scan terminé — " + oks.map(r => r.who + " : " + (r.count || 0)).join(" · ") + " nouveau(x) échange(s).";
     if (fails.length) msg += (msg ? " — " : "Erreur pendant le scan — ") + fails.map(r => r.who + " (" + (r.error || "échec") + ")").join(" · ");
     setSyncBanner_(msg, fails.length && !oks.length ? 'error' : (fails.length ? 'warn' : 'ok'));
-    // Bug trouvé suite à un signalement ("je ne vois jamais le résultat du scan") : loadData()
-    // appelle lui-même setSyncBanner_("Connexion au cloud…") quasi immédiatement, ce qui effaçait
-    // ce message AVANT même que le navigateur ait eu le temps de l'afficher à l'écran — le nombre
-    // d'échanges trouvés n'était donc jamais visible. On laisse maintenant le temps de le lire.
-    if (oks.length) setTimeout(loadData, 2500);
+    // Plus besoin de recharger manuellement ici : Code.gs (et AdrienScan.gs via Code.gs) écrit
+    // désormais les nouveaux échanges directement dans Firestore, que l'écoute temps réel de
+    // loadData() répercute toute seule sur la page en ~1s — sauf si une modif locale est en
+    // attente de validation, auquel cas elle prime, comme partout ailleurs (voir loadData()).
   });
 }
 
-// saveData() est appelée à chaque frappe clavier sur pas mal de champs (finance, tâches...). La
-// copie locale (localStorage) est écrite tout de suite à chaque appel — aucun risque, c'est
-// instantané et propre à ce navigateur. L'envoi au cloud, lui, N'EST PLUS automatique : on
-// affiche seulement le bouton flottant "Valider" (voir showValidateFab_/validateChanges_ plus
-// bas) et on attend que Théo clique dessus quand il a fini de modifier la page — c'est lui qui
-// décide du moment, pas un debounce. Avant ce changement, un envoi partait automatiquement 800ms
-// après chaque pause de frappe : avec deux personnes qui modifient en parallèle, ça multipliait
-// les allers-retours vers le Sheet et donc les occasions de tomber sur un conflit de révision (cf.
-// pushData_ ci-dessus : en cas de conflit, la modif en cours est remplacée par la dernière version
-// du Sheet, jamais fusionnée avec elle — c'était la cause la plus probable des écrasements
-// remontés). Un seul envoi déclenché à la volonté de l'utilisateur, une fois toutes ses modifs
-// faites sur une fiche, réduit fortement cette fenêtre de conflit.
-//
-// Le point délicat : si l'onglet se ferme (ou se recharge) avant que Théo ait cliqué "Valider",
-// un fetch() classique lancé depuis beforeunload peut être interrompu par le navigateur avant
-// d'arriver à destination — la modif resterait alors uniquement sur cet ordinateur, jamais sur le
-// Sheet partagé. Deux filets de sécurité contre ça, qui ne se déclenchent QUE quand la page est
-// réellement en train de se fermer/recharger — jamais sur un simple changement d'onglet ou
-// d'appli (voir plus bas : le déclenchement sur "changement de visibilité" a été retiré, il
-// envoyait une sauvegarde à chaque fois qu'on quittait l'onglet des yeux, ce qui allait
-// directement à l'encontre du bouton "Valider" — bug remonté par Théo : une modif s'est retrouvée
-// dans le Sheet sans qu'il ait cliqué "Valider") :
-//  1. sendBeacon (conçu pour survivre à la fermeture d'un onglet, contrairement à fetch) sur
-//     pagehide/beforeunload — bien plus fiable qu'un fetch normal.
-//  2. Un flag 'rosarioDirty' persistant : tant qu'un envoi n'a pas été confirmé réussi, il reste
-//     posé. Au prochain chargement (même après un crash ou un sendBeacon qui aurait échoué), on
-//     repousse d'abord ces données avant de faire confiance au cloud — jamais un écrasement
-//     silencieux d'une modif non confirmée.
-// À quoi s'ajoute une confirmation native du navigateur ("quitter sans enregistrer ?") si on tente
-// de fermer l'onglet alors qu'une modif n'a pas encore été validée (ou est en cours d'envoi).
+// saveData() est appelée à chaque frappe clavier sur pas mal de champs (finance, tâches...), et
+// par tous les autres écrans de l'outil (Paramètres compris — voir saveTemplates/saveTaskTemplate/
+// saveMenu_, qui appellent désormais saveData() au lieu de pousser directement). La copie locale
+// (localStorage) est écrite tout de suite à chaque appel — aucun risque, c'est instantané et propre
+// à ce navigateur. L'envoi vers Firestore, lui, N'EST JAMAIS automatique, dans AUCUN cas : la seule
+// façon d'envoyer une modification vers la base partagée est de cliquer sur le bouton flottant
+// "Valider" (voir showValidateFab_/validateChanges_ plus bas). C'est une règle absolue de l'outil
+// depuis le 30/08 (bug remonté à l'époque du Sheet : une modif s'est retrouvée écrasée par un envoi
+// automatique déclenché au rechargement de la page ; plusieurs autres envois automatiques ont été
+// retirés dans la foulée, ex. un ancien debounce de 800ms après chaque frappe, et un déclenchement
+// sur simple changement d'onglet). Y compris à la fermeture de l'onglet : PLUS AUCUN envoi de
+// secours (sendBeacon) n'est tenté — si Théo ferme l'onglet sans avoir cliqué "Valider", rien n'est
+// envoyé, un point c'est tout. La seule protection restante est une confirmation native du
+// navigateur ("quitter sans enregistrer ?") si on tente de fermer l'onglet alors qu'une modif n'a
+// pas encore été validée (ou est en cours d'envoi) — elle prévient, elle n'envoie rien elle-même.
+// La copie locale (localStorage 'rosarioData'/'rosarioDirty') reste disponible pour retrouver cette
+// modif au prochain chargement de la page, MAIS n'est plus jamais renvoyée sans une confirmation
+// explicite (voir loadData(), qui la PROPOSE seulement, sans jamais l'imposer).
 let unsavedChanges_ = false;
 let pushInFlight_ = false;
-// Compteur incrémenté à chaque modification locale (voir loadDataFromCloud_) — permet de détecter
-// qu'un chargement cloud parti AVANT cette modif ne doit jamais l'écraser, même s'il répond après
-// coup que le push de cette modif a déjà réussi.
-let dataVersion_ = 0;
 function saveData() {
-  dataVersion_++;
   localStorage.setItem('rosarioData', JSON.stringify(DATA));
-  if (!SYNC_MODE) return;
   unsavedChanges_ = true;
   localStorage.setItem('rosarioDirty', '1');
   showValidateFab_();
@@ -1472,7 +1548,7 @@ function showValidateFab_() {
   if (btn) btn.classList.toggle('on', unsavedChanges_);
 }
 // Déclenché par le clic sur le bouton flottant : c'est désormais le SEUL moment où les
-// modifications partent réellement vers le Sheet partagé (voir commentaire au-dessus de saveData).
+// modifications partent réellement vers Firestore (voir commentaire au-dessus de saveData).
 function validateChanges_() {
   if (!unsavedChanges_ || pushInFlight_) return;
   const btn = document.getElementById('validateFab');
@@ -1485,22 +1561,14 @@ function validateChanges_() {
     showValidateFab_();
   });
 }
-function flushPendingSave_() {
-  if (!SYNC_MODE || !unsavedChanges_) return;
-  localStorage.setItem('rosarioData', JSON.stringify(DATA));
-  const body = JSON.stringify({ data: DATA, rev: CURRENT_REV, config: { templates: TEMPLATES, menu: MENU, taskTpl: TASK_TEMPLATE, tarifGroupe: TARIF_GROUPE } });
-  if (navigator.sendBeacon) {
-    navigator.sendBeacon(SCRIPT_URL, new Blob([body], { type: 'text/plain' }));
-  } else {
-    fetch(SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body, keepalive: true });
-  }
-  // On ne peut pas attendre la réponse ici (l'onglet est en train de se fermer) donc on ne peut
-  // pas confirmer que ça a marché — le flag 'rosarioDirty' reste posé et sera vérifié/rejoué au
-  // prochain chargement de la page, réussi ou non.
-}
-window.addEventListener('pagehide', flushPendingSave_);
+// Avertit seulement — n'envoie plus jamais rien (voir le commentaire au-dessus de saveData() pour
+// le pourquoi). Avant, cette page tentait un envoi de secours via sendBeacon à la fermeture de
+// l'onglet ; supprimé sur demande explicite de Théo après l'incident du 30/08 : aucun envoi ne doit
+// jamais avoir lieu sans un clic explicite sur "Valider", même comme filet de sécurité de dernier
+// recours. Si Théo ferme l'onglet sans valider, la modif reste seulement dans localStorage
+// ('rosarioData'/'rosarioDirty') — récupérable manuellement au prochain chargement (voir loadData(),
+// qui la PROPOSE seulement), jamais renvoyée toute seule.
 window.addEventListener('beforeunload', (e) => {
-  flushPendingSave_();
   if (unsavedChanges_ || pushInFlight_) {
     e.preventDefault();
     e.returnValue = '';
@@ -1508,8 +1576,8 @@ window.addEventListener('beforeunload', (e) => {
 });
 
 async function resetDemoData() {
-  const msg = SYNC_MODE
-    ? "Réinitialiser ton cache local ? Cela ne touche pas les données partagées dans le cloud, seulement la copie de secours de ce navigateur."
+  const msg = FIRESTORE_MODE
+    ? "Réinitialiser ton cache local ? Cela ne touche pas les données partagées dans Firestore, seulement la copie de secours de ce navigateur."
     : "Réinitialiser toutes les données de démonstration ? Tes modifications locales (statuts, paiements) seront effacées.";
   if (await uiConfirm_(msg)) {
     localStorage.removeItem('rosarioData');
@@ -1601,6 +1669,16 @@ function daysSince_(d) { return Math.floor((Date.now() - d.getTime()) / 86400000
 const JOURS_COURT_ = ["dim.", "lun.", "mar.", "mer.", "jeu.", "ven.", "sam."];
 const JOURS_LONG_ = ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
 const MOIS_COURT_ = ["janv", "févr", "mars", "avr", "mai", "juin", "juil", "août", "sept", "oct", "nov", "déc"];
+// S'assure que le mois en cours apparaît toujours comme dernière barre des graphiques CA
+// (histChart / histChartStats), même à 0€ si aucun événement passé n'y est encore comptabilisé.
+// Sans ça, le mois en cours restait invisible jusqu'au premier événement déjà passé dans ce
+// mois-là (les graphiques ne comptent que le CA réalisé, pas le CA à venir) — en tout début de
+// mois, la barre la plus récente affichée pouvait donc être celle du mois précédent.
+function ensureCurrentMonthKey_(byMonth) {
+  const now = new Date();
+  const k = now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, "0");
+  if (!(k in byMonth)) byMonth[k] = 0;
+}
 const MOIS_LONG_ = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"];
 function fmtDateLong_(str) { const d = parseDate(str); if (!d) return str || "date à définir"; return JOURS_LONG_[d.getDay()] + " " + d.getDate() + " " + MOIS_LONG_[d.getMonth()] + " " + d.getFullYear(); }
 function fmtShort_(str) { const d = parseDate(str); return d ? d.getDate() + " " + MOIS_COURT_[d.getMonth()] : str; }
@@ -1843,21 +1921,26 @@ function renderReconTx_() {
   box.innerHTML = '<div class="tbl-wrap"><table class="pipe"><thead><tr><th>Date</th><th>Libellé Qonto</th><th style="text-align:right">Montant</th><th>Lier à</th><th></th></tr></thead><tbody>' + rows + '</tbody></table></div>';
 }
 
+// Depuis la migration vers Firestore, le lien lui-même se fait directement en local (ajoute une
+// ligne de paiement normale sur la fiche, comme le ferait Théo depuis l'onglet Chiffrage) — plus
+// besoin de repasser par Code.gs pour ça. Comme toute autre modification, ça reste en attente
+// tant que "Valider" n'a pas été cliqué.
 async function doLinkQonto_(txId) {
   const sel = document.getElementById('reconSel_' + txId);
   const id = sel ? sel.value : '';
   if (!id) { uiAlert_("Choisis d'abord à quelle demande lier cette transaction."); return; }
   const tx = RECON_TX.find(t => t.txId === txId);
   if (!tx) return;
-  if (!(await uiConfirm_("Lier cette transaction Qonto de " + fmtEUR(tx.montant) + " à cette demande comme paiement ? Cette transaction ne sera plus proposée ensuite."))) return;
-  fetch(SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'link_qonto_payment', id: id, txId: tx.txId, montant: tx.montant, date: tx.date }) })
-    .then(r => r.json())
-    .then(json => {
-      if (!json.ok) { uiAlert_("Erreur : " + json.error); return; }
-      RECON_TX = RECON_TX.filter(t => t.txId !== txId);
-      loadData();
-    })
-    .catch(err => uiAlert_("Erreur : " + err.message));
+  const rec = DATA.find(r => r.id === id);
+  if (!rec) { uiAlert_("Demande introuvable."); return; }
+  if (!(await uiConfirm_("Lier cette transaction Qonto de " + fmtEUR(tx.montant) + " à cette demande comme paiement ? Cette transaction ne sera plus proposée ensuite (une fois validé)."))) return;
+  rec.finance = rec.finance || {};
+  rec.finance.paiements = rec.finance.paiements || [];
+  rec.finance.paiements.push({ canal: "Qonto", montant: tx.montant, date: tx.date, origine: "Facture", qontoTxId: tx.txId });
+  RECON_TX = RECON_TX.filter(t => t.txId !== txId);
+  renderReconTx_();
+  saveData();
+  uiAlert_("Paiement ajouté à la fiche — clique \"Valider\" en bas à droite pour l'enregistrer.");
 }
 
 function loadReconInvoices_() {
@@ -1903,21 +1986,24 @@ function renderReconInv_() {
   box.innerHTML = '<div class="tbl-wrap"><table class="pipe"><thead><tr><th>Date</th><th>N° facture</th><th style="text-align:right">Montant</th><th>Lier à</th><th></th></tr></thead><tbody>' + rows + '</tbody></table></div>';
 }
 
+// Même principe que doLinkQonto_ ci-dessus : lien fait directement en local, plus d'appel à
+// Code.gs pour ça.
 async function doLinkQontoInvoice_(invoiceId) {
   const sel = document.getElementById('reconInvSel_' + invoiceId);
   const id = sel ? sel.value : '';
   if (!id) { uiAlert_("Choisis d'abord à quelle demande lier cette facture."); return; }
   const inv = RECON_INV.find(i => i.invoiceId === invoiceId);
   if (!inv) return;
-  if (!(await uiConfirm_("Lier la facture Qonto " + inv.number + " (" + fmtEUR(inv.montant) + ") à cette demande comme paiement ? Cette facture ne sera plus proposée ensuite."))) return;
-  fetch(SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'link_qonto_invoice', id: id, invoiceId: inv.invoiceId, montant: inv.montant, date: inv.date }) })
-    .then(r => r.json())
-    .then(json => {
-      if (!json.ok) { uiAlert_("Erreur : " + json.error); return; }
-      RECON_INV = RECON_INV.filter(i => i.invoiceId !== invoiceId);
-      loadData();
-    })
-    .catch(err => uiAlert_("Erreur : " + err.message));
+  const rec = DATA.find(r => r.id === id);
+  if (!rec) { uiAlert_("Demande introuvable."); return; }
+  if (!(await uiConfirm_("Lier la facture Qonto " + inv.number + " (" + fmtEUR(inv.montant) + ") à cette demande comme paiement ? Cette facture ne sera plus proposée ensuite (une fois validé)."))) return;
+  rec.finance = rec.finance || {};
+  rec.finance.paiements = rec.finance.paiements || [];
+  rec.finance.paiements.push({ canal: "Qonto", montant: inv.montant, date: inv.date, origine: "Facture", qontoInvoiceId: inv.invoiceId });
+  RECON_INV = RECON_INV.filter(i => i.invoiceId !== invoiceId);
+  renderReconInv_();
+  saveData();
+  uiAlert_("Paiement ajouté à la fiche — clique \"Valider\" en bas à droite pour l'enregistrer.");
 }
 
 function doBuildComptaSummary_() {
@@ -2266,6 +2352,7 @@ function renderStatsCA_(rows) {
 
   const byMonth = {};
   past.forEach(r => { const d = parseDate(r.date); if (!d) return; const k = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0"); byMonth[k] = (byMonth[k] || 0) + financeTotals(r.finance).totalHT; });
+  ensureCurrentMonthKey_(byMonth);
   const keys = Object.keys(byMonth).sort().slice(-8);
   const max = Math.max(1, ...keys.map(k => byMonth[k]));
   document.getElementById('histChartStats').innerHTML = keys.map((k, i) => {
@@ -2396,6 +2483,7 @@ function renderConfirmedTab_() {
   // (ni par la recherche, ni par une plage de dates — voir pastAll ci-dessus).
   const byMonth = {};
   pastAll.forEach(r => { const d = parseDate(r.date); if (!d) return; const k = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0"); byMonth[k] = (byMonth[k] || 0) + financeTotals(r.finance).totalHT; });
+  ensureCurrentMonthKey_(byMonth);
   const keys = Object.keys(byMonth).sort().slice(-8);
   const max = Math.max(1, ...keys.map(k => byMonth[k]));
   document.getElementById('histChart').innerHTML = keys.map((k, i) => {
@@ -3269,9 +3357,9 @@ function showSettingsSub(name) {
   document.querySelectorAll('.settings-sub .tab').forEach(b => b.classList.toggle('on', b.dataset.sub === name));
   if (name === 'tasks') renderTaskTplForm();
   if (name === 'menu') renderMenuForm_();
-  if (name === 'data') document.getElementById('setSyncInfo').textContent = SYNC_MODE
-    ? "Connecté au cloud — données partagées avec Adrien, synchronisées via Google Sheets."
-    : "Mode local — non connecté au cloud. Configure SCRIPT_URL en haut du script pour synchroniser en ligne.";
+  if (name === 'data') document.getElementById('setSyncInfo').textContent = FIRESTORE_MODE
+    ? "Connecté à Firestore — données partagées avec Adrien, synchronisées en temps réel."
+    : "Mode local — non connecté au cloud.";
 }
 function loadSettingsForms() {
   const g = id => document.getElementById(id);
@@ -3295,7 +3383,10 @@ function saveTemplates() {
   localStorage.setItem('rosarioTemplates', JSON.stringify(TEMPLATES));
   TARIF_GROUPE = Number(g('tarifGroupeInput')) || 45;
   localStorage.setItem('rosarioTarifGroupe', TARIF_GROUPE);
-  if (SYNC_MODE) pushData_();
+  // Ne pousse plus directement vers le Sheet — passe par le même mécanisme que toute autre modif
+  // (marque "non envoyé", affiche le bouton flottant "Valider") pour qu'il n'existe qu'UN SEUL
+  // chemin d'envoi dans tout l'outil, plus simple à auditer et à faire confiance.
+  saveData();
   showSaveNote_('tplSaveNote');
 }
 function showSaveNote_(id) { const n = document.getElementById(id); if (!n) return; n.style.display = "inline"; setTimeout(() => n.style.display = "none", 1500); }
@@ -3314,7 +3405,7 @@ function addTaskTplRow() { TASK_TEMPLATE.push({ label: "Nouvelle tâche", offset
 function removeTaskTplRow(i) { TASK_TEMPLATE.splice(i, 1); renderTaskTplForm(); }
 function saveTaskTemplate() {
   localStorage.setItem('rosarioTaskTpl', JSON.stringify(TASK_TEMPLATE));
-  if (SYNC_MODE) pushData_();
+  saveData(); // même mécanisme d'envoi que partout ailleurs — voir commentaire dans saveTemplates()
   showSaveNote_('taskSaveNote');
 }
 // Vide en une fois les tâches déjà créées sur TOUTES les fiches (contrairement au modèle
@@ -3363,7 +3454,7 @@ function updateMenuSummary_() {
 function addMenuRow_() { MENU.push({ nom: "Nouveau plat", included: true, qtePerPers: 0.5, prixUnitaire: 0 }); renderMenuForm_(); }
 function saveMenu_() {
   localStorage.setItem('rosarioMenu', JSON.stringify(MENU));
-  if (SYNC_MODE) pushData_();
+  saveData(); // même mécanisme d'envoi que partout ailleurs — voir commentaire dans saveTemplates()
   showSaveNote_('menuSaveNote');
 }
 
@@ -3462,7 +3553,10 @@ async function resetDemandeMenuToStandard_() {
 /* =========================================================================
    BOOT
    ========================================================================= */
-loadData();
+// loadData() n'est plus appelé directement ici : il est déclenché par
+// auth.onAuthStateChanged() une fois qu'une session Google @grupodomingo.io valide est
+// confirmée (voir plus haut). Tant qu'aucune session n'est confirmée, #authGate reste affiché
+// par-dessus toute l'appli et rien ne charge.
 </script>
 
 </body>
