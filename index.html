@@ -390,7 +390,7 @@
   .modal-row label .req { color: var(--bordeaux); margin-left: 2px; }
   .modal-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
   .modal-err { font-size: 12px; color: var(--red-d); background: var(--red-bg); border-radius: 8px; padding: 8px 12px; margin: 0 0 14px; display: none; }
-  .modal-foot { display: flex; justify-content: flex-end; gap: 10px; padding: 12px 24px 22px; }
+  .modal-foot { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; padding: 12px 24px 22px; }
 
   @media (max-width: 720px) {
     .kpis { grid-template-columns: repeat(2, 1fr); }
@@ -994,7 +994,7 @@
 
 <!-- Boîte de dialogue générique (remplace alert()/confirm() natifs du navigateur, aux couleurs de l'outil) -->
 <div class="modal-backdrop" id="uiDialogBackdrop" onclick="if(event.target===this) uiCloseDialog_(null)">
-  <div class="modal-card" style="max-width:420px">
+  <div class="modal-card" style="max-width:540px">
     <div class="modal-body" style="padding-top:24px; padding-bottom:4px;">
       <p id="uiDialogMsg" style="font-size:14px; line-height:1.6; margin:0; white-space:pre-line;"></p>
     </div>
@@ -2214,7 +2214,7 @@ const ARCHIVE_RAISONS_ = [
 // d'archivage" au sens de l'endroit où elle apparaît, même si l'action elle-même est différente.
 const DELETE_SENTINEL_ = "__DELETE__";
 function archiveChoicesWithDelete_() {
-  return ARCHIVE_RAISONS_.concat([{ label: "Supprimer définitivement (pas archiver)", value: DELETE_SENTINEL_, danger: true }]);
+  return ARCHIVE_RAISONS_.concat([{ label: "Supprimer", value: DELETE_SENTINEL_, danger: true }]);
 }
 // Suppression complète (≠ archiver, qui garde la fiche avec statut "Archivée") : confirmation forte
 // vu le caractère irréversible et l'envoi automatique (voir saveData()). Ne fait QUE retirer la
