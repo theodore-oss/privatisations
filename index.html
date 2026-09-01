@@ -75,6 +75,8 @@
   .btn.sm { font-size: 12px; padding: 6px 12px; }
   .btn.ghost { border-color: transparent; background: transparent; color: var(--ink-2); }
   .btn.ghost:hover { background: var(--surface-2); }
+  .btn.danger { border-color: var(--red-bg); color: var(--red-d); background: var(--red-bg); }
+  .btn.danger:hover { background: var(--red); color: #fff; border-color: var(--red); }
   .btn:disabled { opacity: .5; cursor: default; }
 
   /* ---- KPI cards (Historique) ---- */
@@ -1218,7 +1220,7 @@ function uiConfirm_(message) {
   return uiOpenDialog_(message, '<button class="btn ghost" onclick="uiCloseDialog_(false)">Annuler</button><button class="btn primary" onclick="uiCloseDialog_(true)">Confirmer</button>');
 }
 function uiChoice_(message, options) {
-  const buttons = options.map(o => `<button class="btn" onclick='uiCloseDialog_(${JSON.stringify(o.value)})'>${esc(o.label)}</button>`).join("")
+  const buttons = options.map(o => `<button class="btn${o.danger ? ' danger' : ''}" onclick='uiCloseDialog_(${JSON.stringify(o.value)})'>${esc(o.label)}</button>`).join("")
     + '<button class="btn ghost" onclick="uiCloseDialog_(null)">Annuler</button>';
   return uiOpenDialog_(message, buttons);
 }
@@ -2206,10 +2208,34 @@ const ARCHIVE_RAISONS_ = [
   { label: "Annulé", value: "Annulé" },
   { label: "Autre", value: "Autre" }
 ];
+// Valeur spéciale reconnue par les 3 points d'entrée de l'archivage (ici, onSuiviStatutInline_,
+// setStatut_) : proposée dans la même boîte de dialogue "Pourquoi archiver ?" que les vrais motifs,
+// mais route vers une suppression complète plutôt qu'un archivage — c'est bien "une option
+// d'archivage" au sens de l'endroit où elle apparaît, même si l'action elle-même est différente.
+const DELETE_SENTINEL_ = "__DELETE__";
+function archiveChoicesWithDelete_() {
+  return ARCHIVE_RAISONS_.concat([{ label: "Supprimer définitivement (pas archiver)", value: DELETE_SENTINEL_, danger: true }]);
+}
+// Suppression complète (≠ archiver, qui garde la fiche avec statut "Archivée") : confirmation forte
+// vu le caractère irréversible et l'envoi automatique (voir saveData()). Ne fait QUE retirer la
+// fiche de DATA et déclencher l'envoi ; c'est à l'appelant de rafraîchir sa propre vue ensuite (les
+// 3 points d'entrée n'affichent pas la même chose après coup).
+async function confirmAndDeleteDemande_(r) {
+  if (!r) return false;
+  const client = r.client || "cette demande";
+  if (!(await uiConfirm_('Supprimer DÉFINITIVEMENT la demande de "' + client + '" ?\n\nContrairement à l\'archivage, cette action retire la fiche (et sa timeline, ses paiements) pour de bon — l\'envoi est automatique, il n\'y a pas de retour en arrière possible depuis l\'outil une fois confirmé.'))) return false;
+  const idx = DATA.indexOf(r);
+  if (idx === -1) return false;
+  DATA.splice(idx, 1);
+  if (currentReq === r) currentReq = null;
+  saveData();
+  return true;
+}
 async function archiveFromSuivi_(idx) {
   const r = DATA[idx]; if (!r) return;
-  const raison = await uiChoice_('Pourquoi archiver la demande de "' + r.client + '" ?', ARCHIVE_RAISONS_);
+  const raison = await uiChoice_('Pourquoi archiver la demande de "' + r.client + '" ?', archiveChoicesWithDelete_());
   if (!raison) return;
+  if (raison === DELETE_SENTINEL_) { if (await confirmAndDeleteDemande_(r)) renderDashboard(); return; }
   r.statut = "Archivée"; r.archiveRaison = raison; saveData(); renderDashboard();
 }
 
@@ -2486,8 +2512,9 @@ function onSuiviOwnerInline_(idx, val) {
 async function onSuiviStatutInline_(idx, val) {
   const r = DATA[idx]; if (!r) return;
   if (val === "Archivée" && r.statut !== "Archivée") {
-    const raison = await uiChoice_('Pourquoi archiver la demande de "' + r.client + '" ?', ARCHIVE_RAISONS_);
+    const raison = await uiChoice_('Pourquoi archiver la demande de "' + r.client + '" ?', archiveChoicesWithDelete_());
     if (!raison) { renderSuivi_(); return; } // annulé : remet le select tel quel
+    if (raison === DELETE_SENTINEL_) { await confirmAndDeleteDemande_(r); renderSuivi_(); return; }
     r.archiveRaison = raison;
   } else if (val !== "Archivée") {
     r.archiveRaison = "";
@@ -2851,8 +2878,9 @@ function renderDetActions_(r) {
 async function setStatut_(val) {
   if (!currentReq) return;
   if (val === "Archivée" && currentReq.statut !== "Archivée") {
-    const raison = await uiChoice_('Pourquoi archiver la demande de "' + currentReq.client + '" ?', ARCHIVE_RAISONS_);
+    const raison = await uiChoice_('Pourquoi archiver la demande de "' + currentReq.client + '" ?', archiveChoicesWithDelete_());
     if (!raison) { openDetail(DATA.indexOf(currentReq), backTarget); return; } // annulé : remet le select tel quel
+    if (raison === DELETE_SENTINEL_) { if (await confirmAndDeleteDemande_(currentReq)) showView(backTarget || 'dashboard'); else openDetail(DATA.indexOf(currentReq), backTarget); return; }
     currentReq.archiveRaison = raison;
   } else if (val !== "Archivée") {
     currentReq.archiveRaison = "";
@@ -2870,21 +2898,12 @@ async function setStatut_(val) {
   openDetail(DATA.indexOf(currentReq), backTarget);
 }
 
-// Différent d'archiver : l'archivage garde la fiche (statut "Archivée", visible dans les
-// archives, compté dans les stats) — ceci la retire complètement de DATA. Avec l'autosave,
-// l'envoi vers Firestore part automatiquement quelques centaines de ms après (voir saveData()) :
-// pas de fenêtre où revenir en arrière depuis l'outil une fois confirmé ici, d'où la confirmation
-// appuyée (nom du client redemandé) vu le caractère définitif.
+// Raccourci depuis l'en-tête de la fiche (icône poubelle à côté du statut) — même logique que
+// l'option "Supprimer définitivement" proposée dans la boîte de dialogue d'archivage (voir
+// confirmAndDeleteDemande_/DELETE_SENTINEL_ plus haut), juste un accès plus direct.
 async function deleteCurrentDemande_() {
   if (!currentReq) return;
-  const client = currentReq.client || "cette demande";
-  if (!(await uiConfirm_('Supprimer DÉFINITIVEMENT la demande de "' + client + '" ?\n\nContrairement à l\'archivage, cette action retire la fiche (et sa timeline, ses paiements) pour de bon — l\'envoi est automatique, il n\'y a pas de retour en arrière possible depuis l\'outil une fois confirmé.\n\nSi tu veux juste la sortir du suivi actif en gardant une trace, utilise plutôt "Archivée" dans le statut.'))) return;
-  const idx = DATA.indexOf(currentReq);
-  if (idx === -1) return;
-  DATA.splice(idx, 1);
-  currentReq = null;
-  saveData();
-  showView(backTarget || 'dashboard');
+  if (await confirmAndDeleteDemande_(currentReq)) showView(backTarget || 'dashboard');
 }
 /* ---- Édition directe des infos restantes (email, citation du client) au clic ---- */
 function startInlineEditEmail_() {
