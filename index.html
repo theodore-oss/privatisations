@@ -374,15 +374,6 @@
   .tpl-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: 11px; padding: 14px 16px; margin-bottom: 12px; }
   .tpl-card .name { font-size: 13px; font-weight: 500; margin: 0 0 9px; }
 
-  /* ---- Bouton flottant "Valider" (sauvegarde manuelle) ---- */
-  /* position: fixed + right/bottom ancrés à la fenêtre, pas à la page : reste au même endroit à
-     l'écran quel que soit le défilement, et au-dessus de tout (z-index élevé) sauf les modales. */
-  .validate-fab { position: fixed; right: 26px; bottom: 26px; z-index: 90; display: none; align-items: center; gap: 9px; background: var(--bordeaux); color: #fff; border: none; border-radius: 999px; padding: 14px 22px; font-size: 14px; font-weight: 600; font-family: inherit; box-shadow: 0 8px 24px rgba(42,38,34,.28); cursor: pointer; transition: background .12s, transform .12s; }
-  .validate-fab.on { display: inline-flex; }
-  .validate-fab:hover { background: var(--bordeaux-dark); transform: translateY(-1px); }
-  .validate-fab:disabled { opacity: .65; cursor: default; transform: none; }
-  .validate-fab .dot { width: 7px; height: 7px; border-radius: 50%; background: #fff; opacity: .85; flex-shrink: 0; }
-
   /* ---- Modal (Nouvelle demande) ---- */
   .modal-backdrop { position: fixed; inset: 0; background: rgba(42,38,34,.45); display: none; align-items: center; justify-content: center; z-index: 100; padding: 20px; }
   .modal-backdrop.on { display: flex; }
@@ -799,7 +790,7 @@
 
     <div id="set-templates">
       <p style="font-size:12.5px; color:var(--ink-2); margin:0 0 14px;">Ces blocs composent les réponses. <span class="hl">{prenom}</span>, <span class="hl">{date}</span>, <span class="hl">{pax}</span> sont remplacés automatiquement. Mise en forme (brouillon Gmail uniquement) : une ligne commençant par <span class="hl">• </span> = puce, indentée de 2 espaces + <span class="hl">- </span> = sous-puce, et <span class="hl">**texte**</span> = texte en gras.
-        <button class="btn sm primary" style="float:right" onclick="saveTemplates()">Enregistrer</button><span class="save-note" id="tplSaveNote">Enregistré localement — clique "Valider" en bas à droite pour envoyer.</span></p>
+        <button class="btn sm primary" style="float:right" onclick="saveTemplates()">Enregistrer</button><span class="save-note" id="tplSaveNote">Enregistré.</span></p>
       <div class="tpl-card"><p class="name">Introduction</p><textarea id="tplIntro" rows="4"></textarea></div>
       <div class="tpl-card"><p class="name">Réponse au client (après sa réponse)</p><textarea id="tplReply" rows="3"></textarea></div>
       <div class="tpl-card"><p class="name">Relance (sans réponse du client)</p><textarea id="tplRelance" rows="5"></textarea></div>
@@ -812,7 +803,7 @@
 
     <div id="set-tasks" style="display:none">
       <p style="font-size:12.5px; color:var(--ink-2); margin:0 0 14px;">Tâches créées automatiquement quand une demande passe en <b>Confirmée</b>. L'échéance est calculée en jours avant l'événement (J-x).
-        <button class="btn sm primary" style="float:right" onclick="saveTaskTemplate()">Enregistrer</button><span class="save-note" id="taskSaveNote">Enregistré localement — clique "Valider" en bas à droite pour envoyer.</span></p>
+        <button class="btn sm primary" style="float:right" onclick="saveTaskTemplate()">Enregistrer</button><span class="save-note" id="taskSaveNote">Enregistré.</span></p>
       <div class="tbl-wrap">
         <table class="pipe">
           <thead><tr><th>Tâche</th><th style="width:120px">Échéance</th><th style="width:120px">Responsable</th><th style="width:90px">Bloquant</th><th style="width:60px"></th></tr></thead>
@@ -855,7 +846,7 @@
 
     <div id="set-menu" style="display:none">
       <p style="font-size:12.5px; color:var(--ink-2); margin:0 0 14px;">Coche les plats à inclure dans le calcul « Quantités à préparer » de chaque fiche confirmée. Prix et totaux ci-dessous sont indicatifs, calculés pour le nombre de personnes de référence.
-        <button class="btn sm primary" style="float:right" onclick="saveMenu_()">Enregistrer</button><span class="save-note" id="menuSaveNote">Enregistré localement — clique "Valider" en bas à droite pour envoyer.</span></p>
+        <button class="btn sm primary" style="float:right" onclick="saveMenu_()">Enregistrer</button><span class="save-note" id="menuSaveNote">Enregistré.</span></p>
       <div class="panel" style="margin-bottom:16px;">
         <div class="fin-tiles" style="grid-template-columns:repeat(4,1fr)">
           <div class="itile center"><p class="k">Total tapas / personne</p><p class="v" id="menuSumPerPerson">—</p></div>
@@ -998,13 +989,6 @@
   </div>
 </div>
 
-<!-- Bouton flottant "Valider" — apparaît dès qu'une modif locale n'a pas encore été envoyée au
-     cloud, reste ancré en bas à droite quel que soit le défilement. Rien n'est envoyé tant que
-     Théo ne clique pas dessus : c'est lui qui décide quand une page est prête, pas un debounce
-     automatique. -->
-<button class="validate-fab" id="validateFab" onclick="validateChanges_()">
-  <span class="dot"></span><span id="validateFabLabel">Valider les modifications</span>
-</button>
 
 <!-- Boîte de dialogue générique (remplace alert()/confirm() natifs du navigateur, aux couleurs de l'outil) -->
 <div class="modal-backdrop" id="uiDialogBackdrop" onclick="if(event.target===this) uiCloseDialog_(null)">
@@ -1271,10 +1255,16 @@ function loadData() {
   if (demandesUnsub_) return; // écoute déjà active, rien à refaire (ex. double appel accidentel)
   const localFallback = () => ensureIds_(JSON.parse(localStorage.getItem('rosarioData') || 'null') || DATA_DEFAULT.slice());
 
-  // BUG CORRIGÉ (a écrasé des données de Théo le 30/08, du temps du Sheet) : ne JAMAIS renvoyer
-  // automatiquement une copie locale non validée au chargement, même repérée via 'rosarioDirty' —
-  // elle peut être bien plus ancienne que ce qui existe déjà côté serveur. On la garde affichée le
-  // temps de demander explicitement à Théo s'il veut la récupérer (voir plus bas) ; jamais imposée.
+  // Depuis le retour à la sauvegarde automatique (sur demande de Théo, une fois Firestore en place
+  // — le risque d'oublier de cliquer "Valider" et de perdre une modif pesait plus lourd que le
+  // bénéfice du contrôle manuel) : une copie locale marquée "non envoyée" ('rosarioDirty') ne peut
+  // plus rester en attente bien longtemps — saveData() la pousse elle-même quelques centaines de ms
+  // après la dernière frappe. Si elle est quand même encore là au chargement (fermeture d'onglet ou
+  // crash pile dans cette fenêtre, ou hors-ligne), on la renvoie directement, sans redemander : ce
+  // n'est plus un envoi "surprise" puisque c'est désormais le comportement normal de l'outil à
+  // chaque modification, pas une exception. pushData_() ne pousse de toute façon jamais que les
+  // fiches réellement différentes de la dernière lecture Firestore (voir lastServerSnapshot_), donc
+  // aucun risque d'écraser du travail fait ailleurs entre-temps.
   const hadPendingLocal = localStorage.getItem('rosarioDirty') === '1';
   const pendingLocalSnapshot_ = hadPendingLocal ? JSON.parse(localStorage.getItem('rosarioData') || 'null') : null;
 
@@ -1282,55 +1272,44 @@ function loadData() {
   // — la toute première connexion après ouverture de la page peut prendre une seconde ou deux.
   const cached = JSON.parse(localStorage.getItem('rosarioData') || 'null');
   if (cached && cached.length) { DATA = ensureIds_(cached); renderCurrentView_(); }
-  if (hadPendingLocal) { unsavedChanges_ = true; showValidateFab_(); }
   setSyncBanner_("Connexion à Firestore…", 'warn');
 
   db.collection('config').doc('main').get().then(doc => {
     if (doc.exists) applyCloudConfig_(doc.data());
   }).catch(() => {});
 
-  // Écoute temps réel : toute modification validée (par toi, par Adrien, ou faite ailleurs)
-  // apparaît ici automatiquement en ~1s, sans recharger la page — ça règle le "trop lent à être
-  // pris en compte" remonté par Théo. Tant qu'une modif locale n'a pas encore été validée (ou est
-  // en cours d'envoi), on ignore ces mises à jour pour ne rien écraser sous ses yeux pendant qu'il
-  // modifie une fiche ; le clic sur "Valider" repart alors d'une lecture fraîche (voir pushData_).
+  // Écoute temps réel : toute modification (par toi, par Adrien, ou faite ailleurs) apparaît ici
+  // automatiquement en ~1s, sans recharger la page. Tant qu'une modif locale n'a pas encore fini de
+  // partir (debounce en cours ou envoi en vol), on ignore ces mises à jour pour ne rien écraser sous
+  // les yeux de Théo pendant qu'il modifie une fiche ; saveData() reprendra une lecture fraîche une
+  // fois l'envoi terminé.
   let firstSnapshot_ = true;
-  demandesUnsub_ = db.collection('demandes').onSnapshot(async snapshot => {
+  demandesUnsub_ = db.collection('demandes').onSnapshot(snapshot => {
     const rows = [];
     snapshot.forEach(doc => rows.push(Object.assign({ id: doc.id }, doc.data())));
     lastServerSnapshot_ = new Map(rows.map(r => [r.id, JSON.stringify(r)]));
 
-    if (firstSnapshot_ && hadPendingLocal) {
+    if (firstSnapshot_ && hadPendingLocal && pendingLocalSnapshot_ && pendingLocalSnapshot_.length) {
       firstSnapshot_ = false;
-      unsavedChanges_ = false; // le temps de poser la question ; remis à true si Théo confirme vouloir la garder
-      const wantsResume = await uiConfirm_("Une modification locale non envoyée d'une session précédente a été retrouvée sur cet ordinateur. Elle n'a PAS été envoyée automatiquement, pour éviter d'écraser des données plus récentes. Veux-tu la récupérer pour la vérifier et cliquer \"Valider\" toi-même ?");
-      if (wantsResume && pendingLocalSnapshot_ && pendingLocalSnapshot_.length) {
-        DATA = ensureIds_(pendingLocalSnapshot_);
-        unsavedChanges_ = true;
-        localStorage.setItem('rosarioData', JSON.stringify(DATA));
-        showValidateFab_();
-        setSyncBanner_("Modification précédente récupérée — vérifie puis clique \"Valider\" pour l'envoyer.", 'warn');
-        afterDataLoaded_();
-        return;
-      }
-      localStorage.removeItem('rosarioDirty');
-      showValidateFab_();
-      // On continue plus bas : la version Firestore s'applique normalement.
+      DATA = ensureIds_(pendingLocalSnapshot_);
+      setSyncBanner_("Reprise d'une modification non envoyée (fermeture précédente)…", 'warn');
+      afterDataLoaded_();
+      saveData(); // relance l'envoi automatique habituel
+      return;
     }
     firstSnapshot_ = false;
 
     if (unsavedChanges_ || pushInFlight_) return; // une modif locale en cours prime toujours
 
     if (rows.length === 0 && DATA.length === 0) {
-      // Collection Firestore réellement vide : amorçage avec les données de démo locales, mais
-      // jamais poussé automatiquement (même règle que partout ailleurs depuis l'incident du
-      // 30/08) — c'est à Théo de vérifier puis de cliquer "Valider" lui-même.
+      // Collection Firestore réellement vide : amorçage avec les données de démo locales — comme
+      // toute autre modification désormais, ça part automatiquement vers Firestore après le
+      // debounce habituel (voir saveData()), pas besoin d'action supplémentaire.
       DATA = ensureIds_(DATA_DEFAULT.slice());
-      unsavedChanges_ = true;
-      localStorage.setItem('rosarioData', JSON.stringify(DATA));
-      localStorage.setItem('rosarioDirty', '1');
-      showValidateFab_();
-      setSyncBanner_("Firestore semble vide — données de démonstration chargées localement. Si c'est bien une toute première installation, clique \"Valider\" pour les envoyer ; sinon, vérifie plutôt pourquoi la base est vide avant de valider quoi que ce soit.", 'warn');
+      setSyncBanner_("Firestore semble vide — données de démonstration chargées et envoyées automatiquement. Si ce n'est pas une toute première installation, vérifie plutôt pourquoi la base est vide.", 'warn');
+      afterDataLoaded_();
+      saveData();
+      return;
     } else {
       DATA = ensureIds_(rows);
       localStorage.setItem('rosarioData', JSON.stringify(DATA));
@@ -1438,7 +1417,6 @@ function pushData_(onDone) {
       unsavedChanges_ = false;
       localStorage.removeItem('rosarioDirty');
       setSyncBanner_(changedCount ? (changedCount + " fiche(s) enregistrée(s).") : "Connecté — modifications enregistrées.", 'ok');
-      showValidateFab_();
       // Événement Google Calendar à la confirmation : côté Firestore il n'y a plus de handler
       // serveur qui voit passer chaque écriture (contrairement à l'ancien doPost du Sheet), donc
       // c'est ici, juste après une validation réussie, qu'on détecte les fiches nouvellement
@@ -1465,8 +1443,12 @@ function pushData_(onDone) {
     })
     .catch(err => {
       pushInFlight_ = false;
-      setSyncBanner_("Erreur de synchronisation (" + err.message + ") — modification gardée en local seulement.", 'error');
-      showValidateFab_();
+      setSyncBanner_("Erreur de synchronisation (" + err.message + ") — nouvelle tentative automatique dans 10s.", 'error');
+      // Pas de bouton "Valider" pour relancer manuellement depuis le retour à l'autosave : on
+      // reprogramme nous-mêmes une tentative, qui se répétera tant que ça échoue. La copie locale
+      // (localStorage) reste de toute façon à jour entre-temps, rien n'est perdu.
+      clearTimeout(saveDebounceTimer_);
+      saveDebounceTimer_ = setTimeout(() => pushData_(), 10000);
       if (onDone) onDone();
     });
 }
@@ -1515,59 +1497,43 @@ function scanGmailInbox() {
   });
 }
 
-// saveData() est appelée à chaque frappe clavier sur pas mal de champs (finance, tâches...), et
-// par tous les autres écrans de l'outil (Paramètres compris — voir saveTemplates/saveTaskTemplate/
-// saveMenu_, qui appellent désormais saveData() au lieu de pousser directement). La copie locale
-// (localStorage) est écrite tout de suite à chaque appel — aucun risque, c'est instantané et propre
-// à ce navigateur. L'envoi vers Firestore, lui, N'EST JAMAIS automatique, dans AUCUN cas : la seule
-// façon d'envoyer une modification vers la base partagée est de cliquer sur le bouton flottant
-// "Valider" (voir showValidateFab_/validateChanges_ plus bas). C'est une règle absolue de l'outil
-// depuis le 30/08 (bug remonté à l'époque du Sheet : une modif s'est retrouvée écrasée par un envoi
-// automatique déclenché au rechargement de la page ; plusieurs autres envois automatiques ont été
-// retirés dans la foulée, ex. un ancien debounce de 800ms après chaque frappe, et un déclenchement
-// sur simple changement d'onglet). Y compris à la fermeture de l'onglet : PLUS AUCUN envoi de
-// secours (sendBeacon) n'est tenté — si Théo ferme l'onglet sans avoir cliqué "Valider", rien n'est
-// envoyé, un point c'est tout. La seule protection restante est une confirmation native du
-// navigateur ("quitter sans enregistrer ?") si on tente de fermer l'onglet alors qu'une modif n'a
-// pas encore été validée (ou est en cours d'envoi) — elle prévient, elle n'envoie rien elle-même.
-// La copie locale (localStorage 'rosarioData'/'rosarioDirty') reste disponible pour retrouver cette
-// modif au prochain chargement de la page, MAIS n'est plus jamais renvoyée sans une confirmation
-// explicite (voir loadData(), qui la PROPOSE seulement, sans jamais l'imposer).
-let unsavedChanges_ = false;
+// HISTORIQUE (pour comprendre le pourquoi si ça revient un jour) : cet outil est passé par 3
+// architectures de sauvegarde. (1) À l'origine, autosave avec un debounce de 800ms après chaque
+// frappe, envoyé au Sheet. (2) Le 30/08, un bug dans la reprise "modif non envoyée au rechargement"
+// a écrasé des données de Théo — remplacé par un bouton "Valider" manuel (rien n'était envoyé sans
+// clic explicite), le temps de fiabiliser l'envoi. (3) Une fois Firestore en place (écritures
+// ciblées par fiche, plus de réécriture globale — voir pushData_), Théo a choisi de revenir à
+// l'autosave : le risque d'oublier de cliquer "Valider" et de perdre une modif pesait plus lourd que
+// le bénéfice du contrôle manuel, maintenant que le risque d'écrasement qui avait motivé (2) n'existe
+// plus. saveData() est appelée à chaque frappe clavier sur pas mal de champs (finance, tâches...), et
+// par tous les autres écrans de l'outil (Paramètres compris). La copie locale (localStorage) est
+// écrite tout de suite à chaque appel ; l'envoi vers Firestore est debouncé (SAVE_DEBOUNCE_MS après
+// la dernière modif) pour ne pas écrire à chaque lettre tapée, mais reste automatique — pas de
+// bouton à cliquer.
+let unsavedChanges_ = false; // true tant que le debounce n'a pas fini de partir vers Firestore
 let pushInFlight_ = false;
+let saveDebounceTimer_ = null;
+const SAVE_DEBOUNCE_MS = 800;
 function saveData() {
   localStorage.setItem('rosarioData', JSON.stringify(DATA));
   unsavedChanges_ = true;
   localStorage.setItem('rosarioDirty', '1');
-  showValidateFab_();
+  clearTimeout(saveDebounceTimer_);
+  saveDebounceTimer_ = setTimeout(() => pushData_(), SAVE_DEBOUNCE_MS);
 }
-// Affiche/masque le bouton flottant "Valider" selon qu'il reste ou non une modif locale non
-// envoyée — appelé après chaque saveData() et à la fin de chaque envoi (succès, conflit ou erreur).
-function showValidateFab_() {
-  const btn = document.getElementById('validateFab');
-  if (btn) btn.classList.toggle('on', unsavedChanges_);
-}
-// Déclenché par le clic sur le bouton flottant : c'est désormais le SEUL moment où les
-// modifications partent réellement vers Firestore (voir commentaire au-dessus de saveData).
-function validateChanges_() {
-  if (!unsavedChanges_ || pushInFlight_) return;
-  const btn = document.getElementById('validateFab');
-  const label = document.getElementById('validateFabLabel');
-  if (btn) btn.disabled = true;
-  if (label) label.textContent = "Envoi en cours…";
-  pushData_(() => {
-    if (btn) btn.disabled = false;
-    if (label) label.textContent = "Valider les modifications";
-    showValidateFab_();
-  });
-}
-// Avertit seulement — n'envoie plus jamais rien (voir le commentaire au-dessus de saveData() pour
-// le pourquoi). Avant, cette page tentait un envoi de secours via sendBeacon à la fermeture de
-// l'onglet ; supprimé sur demande explicite de Théo après l'incident du 30/08 : aucun envoi ne doit
-// jamais avoir lieu sans un clic explicite sur "Valider", même comme filet de sécurité de dernier
-// recours. Si Théo ferme l'onglet sans valider, la modif reste seulement dans localStorage
-// ('rosarioData'/'rosarioDirty') — récupérable manuellement au prochain chargement (voir loadData(),
-// qui la PROPOSE seulement), jamais renvoyée toute seule.
+// Filet de sécurité : si l'onglet est masqué (changement d'onglet, minimisation, fermeture) alors
+// qu'un envoi debouncé n'est pas encore parti, on ne fait pas attendre les 800ms — on envoie tout de
+// suite. Sûr désormais avec Firestore (contrairement à l'ancien mécanisme Sheet) puisque pushData_
+// ne pousse jamais que les fiches réellement modifiées, jamais une réécriture globale.
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden' && unsavedChanges_ && !pushInFlight_) {
+    clearTimeout(saveDebounceTimer_);
+    pushData_();
+  }
+});
+// Avertit seulement si un envoi est encore en vol au moment de fermer l'onglet (fenêtre de
+// quelques centaines de ms tout au plus, couverte en pratique par le flush sur visibilitychange
+// ci-dessus) — n'empêche jamais la fermeture, prévient juste.
 window.addEventListener('beforeunload', (e) => {
   if (unsavedChanges_ || pushInFlight_) {
     e.preventDefault();
@@ -1923,8 +1889,8 @@ function renderReconTx_() {
 
 // Depuis la migration vers Firestore, le lien lui-même se fait directement en local (ajoute une
 // ligne de paiement normale sur la fiche, comme le ferait Théo depuis l'onglet Chiffrage) — plus
-// besoin de repasser par Code.gs pour ça. Comme toute autre modification, ça reste en attente
-// tant que "Valider" n'a pas été cliqué.
+// besoin de repasser par Code.gs pour ça. Comme toute autre modification, ça part automatiquement
+// (voir saveData()), pas besoin d'action supplémentaire.
 async function doLinkQonto_(txId) {
   const sel = document.getElementById('reconSel_' + txId);
   const id = sel ? sel.value : '';
@@ -1933,14 +1899,13 @@ async function doLinkQonto_(txId) {
   if (!tx) return;
   const rec = DATA.find(r => r.id === id);
   if (!rec) { uiAlert_("Demande introuvable."); return; }
-  if (!(await uiConfirm_("Lier cette transaction Qonto de " + fmtEUR(tx.montant) + " à cette demande comme paiement ? Cette transaction ne sera plus proposée ensuite (une fois validé)."))) return;
+  if (!(await uiConfirm_("Lier cette transaction Qonto de " + fmtEUR(tx.montant) + " à cette demande comme paiement ? Cette transaction ne sera plus proposée ensuite."))) return;
   rec.finance = rec.finance || {};
   rec.finance.paiements = rec.finance.paiements || [];
   rec.finance.paiements.push({ canal: "Qonto", montant: tx.montant, date: tx.date, origine: "Facture", qontoTxId: tx.txId });
   RECON_TX = RECON_TX.filter(t => t.txId !== txId);
   renderReconTx_();
   saveData();
-  uiAlert_("Paiement ajouté à la fiche — clique \"Valider\" en bas à droite pour l'enregistrer.");
 }
 
 function loadReconInvoices_() {
@@ -1996,14 +1961,13 @@ async function doLinkQontoInvoice_(invoiceId) {
   if (!inv) return;
   const rec = DATA.find(r => r.id === id);
   if (!rec) { uiAlert_("Demande introuvable."); return; }
-  if (!(await uiConfirm_("Lier la facture Qonto " + inv.number + " (" + fmtEUR(inv.montant) + ") à cette demande comme paiement ? Cette facture ne sera plus proposée ensuite (une fois validé)."))) return;
+  if (!(await uiConfirm_("Lier la facture Qonto " + inv.number + " (" + fmtEUR(inv.montant) + ") à cette demande comme paiement ? Cette facture ne sera plus proposée ensuite."))) return;
   rec.finance = rec.finance || {};
   rec.finance.paiements = rec.finance.paiements || [];
   rec.finance.paiements.push({ canal: "Qonto", montant: inv.montant, date: inv.date, origine: "Facture", qontoInvoiceId: inv.invoiceId });
   RECON_INV = RECON_INV.filter(i => i.invoiceId !== invoiceId);
   renderReconInv_();
   saveData();
-  uiAlert_("Paiement ajouté à la fiche — clique \"Valider\" en bas à droite pour l'enregistrer.");
 }
 
 function doBuildComptaSummary_() {
@@ -2586,6 +2550,7 @@ function renderHero_(r) {
       <span class="hero-field"><span class="hero-field-lbl">Owner</span><select class="status-select" style="border-color:var(--border-strong); color:var(--ink-2); background:var(--surface-2);" onchange="onOwnerInline_(this.value)" title="Owner">${ownerOptsFor_(r.owner)}</select></span>
       <span class="hero-field"><span class="hero-field-lbl">Canal</span><select class="status-select" style="border-color:var(--bordeaux-300); color:var(--bordeaux-dark); background:var(--bordeaux-100);" onchange="onCanalInline_(this.value)" title="Canal d'arrivée">${canalOptsFor_(r.canal)}</select></span>
       <span class="hero-field"><span class="hero-field-lbl">Statut</span><select class="status-select ${STATUT_SELECT_CLASS_[r.statut] || 'waiting'}" onchange="onStatutSelectChange_(this.value)">${statusOptions}</select></span>
+      <button class="archive-btn" style="width:30px; height:30px; align-self:flex-end; margin-bottom:1px;" onclick="deleteCurrentDemande_()" title="Supprimer définitivement (différent d'archiver)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6h16Z"/><path d="M10 11v6M14 11v6"/></svg></button>
     </div>
     <p class="hero-light-sub" onclick="${subClick}" title="${subTitle}">${subLine}</p>
     <div class="quad-row">${isPending ? quadRowPending_(r) : quadRowConfirmed_(r)}</div>
@@ -2903,6 +2868,23 @@ async function setStatut_(val) {
   }
   saveData();
   openDetail(DATA.indexOf(currentReq), backTarget);
+}
+
+// Différent d'archiver : l'archivage garde la fiche (statut "Archivée", visible dans les
+// archives, compté dans les stats) — ceci la retire complètement de DATA. Avec l'autosave,
+// l'envoi vers Firestore part automatiquement quelques centaines de ms après (voir saveData()) :
+// pas de fenêtre où revenir en arrière depuis l'outil une fois confirmé ici, d'où la confirmation
+// appuyée (nom du client redemandé) vu le caractère définitif.
+async function deleteCurrentDemande_() {
+  if (!currentReq) return;
+  const client = currentReq.client || "cette demande";
+  if (!(await uiConfirm_('Supprimer DÉFINITIVEMENT la demande de "' + client + '" ?\n\nContrairement à l\'archivage, cette action retire la fiche (et sa timeline, ses paiements) pour de bon — l\'envoi est automatique, il n\'y a pas de retour en arrière possible depuis l\'outil une fois confirmé.\n\nSi tu veux juste la sortir du suivi actif en gardant une trace, utilise plutôt "Archivée" dans le statut.'))) return;
+  const idx = DATA.indexOf(currentReq);
+  if (idx === -1) return;
+  DATA.splice(idx, 1);
+  currentReq = null;
+  saveData();
+  showView(backTarget || 'dashboard');
 }
 /* ---- Édition directe des infos restantes (email, citation du client) au clic ---- */
 function startInlineEditEmail_() {
@@ -3383,9 +3365,8 @@ function saveTemplates() {
   localStorage.setItem('rosarioTemplates', JSON.stringify(TEMPLATES));
   TARIF_GROUPE = Number(g('tarifGroupeInput')) || 45;
   localStorage.setItem('rosarioTarifGroupe', TARIF_GROUPE);
-  // Ne pousse plus directement vers le Sheet — passe par le même mécanisme que toute autre modif
-  // (marque "non envoyé", affiche le bouton flottant "Valider") pour qu'il n'existe qu'UN SEUL
-  // chemin d'envoi dans tout l'outil, plus simple à auditer et à faire confiance.
+  // Passe par le même mécanisme que toute autre modif (saveData(), autosave debouncé) pour qu'il
+  // n'existe qu'UN SEUL chemin d'envoi dans tout l'outil, plus simple à auditer et à faire confiance.
   saveData();
   showSaveNote_('tplSaveNote');
 }
