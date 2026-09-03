@@ -369,7 +369,11 @@
   .bar-col .bval.hi { color: var(--bordeaux-dark); }
   .bar-col .bcol { width: 100%; max-width: 30px; background: var(--bordeaux-200); border-radius: 4px 4px 0 0; }
   .bar-col .bcol.hi { background: var(--bordeaux); }
+  .bar-col .bcol.forecast { background: repeating-linear-gradient(45deg, var(--amber-bg), var(--amber-bg) 5px, var(--amber) 5px, var(--amber) 6px); border: 1px dashed var(--amber-d); }
   .bar-col .blab { font-size: 9.5px; color: var(--ink-3); }
+  .bar-col .blab.forecast { color: var(--amber-d); font-weight: 600; }
+  .chart-legend-forecast { font-size: 10.5px; color: var(--ink-3); display: flex; align-items: center; gap: 6px; margin-top: 8px; }
+  .chart-legend-forecast .sw { width: 10px; height: 10px; border-radius: 2px; background: repeating-linear-gradient(45deg, var(--amber-bg), var(--amber-bg) 3px, var(--amber) 3px, var(--amber) 4px); border: 1px dashed var(--amber-d); display: inline-block; }
 
   /* ---- Settings ---- */
   .settings-sub { display: flex; gap: 3px; margin-bottom: 16px; border-bottom: 0.5px solid var(--border); }
@@ -484,6 +488,7 @@
             <th>Client</th>
             <th class="sortable-th">Pax<span class="sort-carets"><span class="care" id="care-suivi-pax-up" onclick="suiviSetSort_('pax',1)">⌃</span><span class="care" id="care-suivi-pax-down" onclick="suiviSetSort_('pax',-1)">⌄</span></span></th>
             <th>Espace</th>
+            <th>Type</th>
             <th>Owner</th>
             <th class="sortable-th">Demande<span class="sort-carets"><span class="care" id="care-suivi-demande-up" onclick="suiviSetSort_('demande',1)">⌃</span><span class="care" id="care-suivi-demande-down" onclick="suiviSetSort_('demande',-1)">⌄</span></span></th>
             <th>Statut</th><th id="suiviLastCol"></th>
@@ -541,8 +546,9 @@
       <p class="sec-title"><span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10h12"/><path d="M4 14h9"/><path d="M19 6a7.7 7.7 0 0 0-5.2-2A7.9 7.9 0 0 0 6 12a7.9 7.9 0 0 0 7.8 8 7.7 7.7 0 0 0 5.2-2"/></svg></span> Chiffre d'affaires</p>
       <div id="confKpis"></div>
       <div class="chart-wrap">
-        <p class="panel-t">Chiffre d'affaires des privatisations par mois (HT, événements passés)</p>
+        <p class="panel-t">Chiffre d'affaires des privatisations par mois (HT)</p>
         <div class="bars" id="histChartStats"></div>
+        <div class="chart-legend-forecast"><span class="sw"></span> Mois à venir : CA déjà confirmé à date (forecast, continuera d'augmenter)</div>
       </div>
     </div>
 
@@ -720,8 +726,9 @@
   <!-- ============ CONFIRMÉES (à venir + passées) ============ -->
   <div class="view" id="view-confirmed">
     <div class="chart-wrap">
-      <p class="panel-t">Chiffre d'affaires des privatisations par mois (HT, événements passés)</p>
+      <p class="panel-t">Chiffre d'affaires des privatisations par mois (HT)</p>
       <div class="bars" id="histChart"></div>
+      <div class="chart-legend-forecast"><span class="sw"></span> Mois à venir : CA déjà confirmé à date (forecast, continuera d'augmenter)</div>
     </div>
     <div class="toolbar" style="margin-bottom:6px;">
       <input type="text" id="confSearch" placeholder="Rechercher un client, une société, un email..." oninput="onConfSearch(this.value)">
@@ -1642,10 +1649,31 @@ const MOIS_COURT_ = ["janv", "févr", "mars", "avr", "mai", "juin", "juil", "ao�
 // Sans ça, le mois en cours restait invisible jusqu'au premier événement déjà passé dans ce
 // mois-là (les graphiques ne comptent que le CA réalisé, pas le CA à venir) — en tout début de
 // mois, la barre la plus récente affichée pouvait donc être celle du mois précédent.
-function ensureCurrentMonthKey_(byMonth) {
+// Construit le CA HT par mois pour les graphs "Chiffre d'affaires par mois" : les mois passés
+// restent du réalisé, le mois en cours prend TOUT ce qui a été confirmé sur ce mois (y compris les
+// dates encore à venir dans le mois — c'est la "projection" du mois en cours),
+// et les 2 mois suivants sont ajoutés en plus comme barres de "forecast" : le CA déjà confirmé pour
+// ces mois-là, qui va continuer à grimper d'ici là. `confirmedRows` doit être la liste complète des
+// demandes confirmées (pas seulement les passées) pour que le mois en cours et le forecast soient
+// corrects.
+function buildCaByMonth_(confirmedRows) {
   const now = new Date();
-  const k = now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, "0");
-  if (!(k in byMonth)) byMonth[k] = 0;
+  const curKey = now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, "0");
+  const forecastKeys = [];
+  for (let i = 1; i <= 2; i++) {
+    const fd = new Date(now.getFullYear(), now.getMonth() + i, 1);
+    forecastKeys.push(fd.getFullYear() + "-" + String(fd.getMonth() + 1).padStart(2, "0"));
+  }
+  const byMonth = {};
+  confirmedRows.forEach(r => {
+    const d = parseDate(r.date); if (!d) return;
+    const k = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0");
+    if (k <= curKey || forecastKeys.includes(k)) byMonth[k] = (byMonth[k] || 0) + financeTotals(r.finance).totalHT;
+  });
+  if (!(curKey in byMonth)) byMonth[curKey] = 0;
+  forecastKeys.forEach(k => { if (!(k in byMonth)) byMonth[k] = 0; });
+  const keys = Object.keys(byMonth).sort().slice(-9);
+  return { byMonth, keys, forecastKeys, curKey };
 }
 const MOIS_LONG_ = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"];
 function fmtDateLong_(str) { const d = parseDate(str); if (!d) return str || "date à définir"; return JOURS_LONG_[d.getDay()] + " " + d.getDate() + " " + MOIS_LONG_[d.getMonth()] + " " + d.getFullYear(); }
@@ -2095,9 +2123,11 @@ function eventRow_(r) {
   if (t > 0.01 && paid < t * DEPOSIT_RATE - 0.01 && dju !== null && dju <= 10) flag = '<span class="tag red">Acompte en retard</span>';
   else if (openTaskCount_(r) > 0 && dju !== null && dju <= 7) flag = '<span class="tag amber">' + openTaskCount_(r) + ' tâche' + (openTaskCount_(r) > 1 ? 's' : '') + '</span>';
   const sub = [toNumber(r.pax) > 0 ? "👥 " + r.pax + " pers" : null, r.finance && r.finance.service ? "🍽 " + r.finance.service.toLowerCase() : null, r.espace].filter(Boolean);
+  const curType = (r.finance && r.finance.type) || "Privatisation";
+  const typeOpts = ["Privatisation", "Prestation", "Formule groupe"].map(o => `<option ${o === curType ? "selected" : ""}>${o}</option>`).join("");
   return `<div class="ev" onclick="openDetail(${idx}, 'dashboard')">
     <div class="dblock"><p class="m">${d ? MOIS_COURT_[d.getMonth()] : "—"}</p><p class="d">${d ? d.getDate() : "?"}</p><p class="w">${d ? JOURS_COURT_[d.getDay()] : ""}</p></div>
-    <div class="ev-main"><p class="ev-name">${esc(r.client)} ${flag} ${typeTagHtml_((r.finance && r.finance.type) || "Privatisation")}</p><p class="ev-sub">${sub.map(s => "<span>" + esc(s) + "</span>").join("")}</p></div>
+    <div class="ev-main"><p class="ev-name">${esc(r.client)} ${flag} <select onclick="event.stopPropagation()" onchange="onSuiviTypeInline_(${idx}, this.value)" class="type-tag ${curType === 'Formule groupe' ? 'groupe' : curType === 'Prestation' ? 'prestation' : 'privatisation'}" style="border:none; cursor:pointer; appearance:none; -webkit-appearance:none;">${typeOpts}</select></p><p class="ev-sub">${sub.map(s => "<span>" + esc(s) + "</span>").join("")}</p></div>
     <div class="ev-prog"><p class="pt"><span>Encaissé</span><span>${pct} %</span></p><div class="bar"><i style="width:${Math.max(2, pct)}%;background:${barColor}"></i></div></div>
     <p class="ev-amt">${t > 0.01 ? fmtEUR(t) : "—"}</p>
   </div>`;
@@ -2163,7 +2193,7 @@ function renderSuivi_() {
 
   document.getElementById('suiviCount').textContent = rows.length + (rows.length > 1 ? " demandes" : " demande");
   const body = document.getElementById('suiviBody');
-  body.innerHTML = rows.length ? rows.map(r => suiviRow_(r)).join("") : '<tr><td colspan="8" style="padding:30px;text-align:center;color:var(--ink-3)">Aucune demande sur ce filtre.</td></tr>';
+  body.innerHTML = rows.length ? rows.map(r => suiviRow_(r)).join("") : '<tr><td colspan="9" style="padding:30px;text-align:center;color:var(--ink-3)">Aucune demande sur ce filtre.</td></tr>';
   const lastCol = document.getElementById('suiviLastCol');
   if (lastCol) lastCol.textContent = suiviFilter === 'archived' ? 'Motif' : '';
 
@@ -2186,11 +2216,14 @@ function onSuiviSearch(v) {
 }
 function suiviRow_(r) {
   const idx = DATA.indexOf(r);
+  const curType = (r.finance && r.finance.type) || "Privatisation";
+  const typeOpts = ["Privatisation", "Prestation", "Formule groupe"].map(o => `<option ${o === curType ? "selected" : ""}>${o}</option>`).join("");
   return `<tr class="row" onclick="openDetail(${idx}, 'dashboard')">
     <td>${dateBlockHtml_(r.date)}</td>
     <td><div class="cl-name">${esc(r.client)}</div>${r.email ? '<div class="cl-sub">' + esc(r.email) + '</div>' : ''}</td>
     <td class="pax-cell">${toNumber(r.pax) > 0 ? r.pax : "—"}</td>
     <td>${esc(r.espace || "—")}</td>
+    <td><select onclick="event.stopPropagation()" onchange="onSuiviTypeInline_(${idx}, this.value)" class="type-tag ${curType === 'Formule groupe' ? 'groupe' : curType === 'Prestation' ? 'prestation' : 'privatisation'}" style="border:none; cursor:pointer; appearance:none; -webkit-appearance:none;">${typeOpts}</select></td>
     <td><select onclick="event.stopPropagation()" onchange="onSuiviOwnerInline_(${idx}, this.value)" style="border:none; background:transparent; font:inherit; color:inherit; cursor:pointer; padding:0;">${ownerOptsFor_(r.owner)}</select></td>
     <td>${esc(fmtShortFR_(r.dateDemande))}</td>
     <td><select onclick="event.stopPropagation()" onchange="onSuiviStatutInline_(${idx}, this.value)" class="status-select ${STATUT_SELECT_CLASS_[r.statut] || 'waiting'}" style="padding:4px 8px; font-size:11.5px;">${ALL_STATUTS_.map(s => `<option value="${s}" ${s === r.statut ? "selected" : ""}>${s}</option>`).join("")}</select>${r.relance ? '<span class="tag amber" style="margin-left:6px">à relancer</span>' : ''}</td>
@@ -2340,16 +2373,13 @@ function renderStatsCA_(rows) {
     kpi_("Encaissements en attente", fmtEUR(enAttente), "acomptes + soldes dus") +
     '</div>';
 
-  const byMonth = {};
-  past.forEach(r => { const d = parseDate(r.date); if (!d) return; const k = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0"); byMonth[k] = (byMonth[k] || 0) + financeTotals(r.finance).totalHT; });
-  ensureCurrentMonthKey_(byMonth);
-  const keys = Object.keys(byMonth).sort().slice(-8);
+  const { byMonth, keys, forecastKeys, curKey } = buildCaByMonth_(confirmed);
   const max = Math.max(1, ...keys.map(k => byMonth[k]));
-  document.getElementById('histChartStats').innerHTML = keys.map((k, i) => {
-    const isHi = i === keys.length - 1;
+  document.getElementById('histChartStats').innerHTML = keys.map((k) => {
+    const isHi = k === curKey, isForecast = forecastKeys.includes(k);
     const h = Math.round(byMonth[k] / max * 100);
     const [y, m] = k.split("-");
-    return `<div class="bar-col"><span class="bval ${isHi ? 'hi' : ''}">${fmtEURCompact_(byMonth[k])}</span><div class="bcol ${isHi ? 'hi' : ''}" style="height:${Math.max(4, h)}%" title="${fmtEUR(byMonth[k])}"></div><span class="blab">${MOIS_COURT_[Number(m) - 1]}</span></div>`;
+    return `<div class="bar-col"><span class="bval ${isHi ? 'hi' : ''}">${fmtEURCompact_(byMonth[k])}</span><div class="bcol ${isHi ? 'hi' : ''} ${isForecast ? 'forecast' : ''}" style="height:${Math.max(4, h)}%" title="${fmtEUR(byMonth[k])}${isForecast ? ' (forecast)' : ''}"></div><span class="blab ${isForecast ? 'forecast' : ''}">${MOIS_COURT_[Number(m) - 1]}</span></div>`;
   }).join("") || '<span style="font-size:12px;color:var(--ink-3)">Pas encore de données.</span>';
 }
 
@@ -2471,16 +2501,13 @@ function renderConfirmedTab_() {
   // ici — cet onglet Confirmées n'a plus de KPI CA propre, seulement les tableaux ci-dessous. Le
   // graphique mensuel de cet onglet reste néanmoins affiché (histChart), non filtré dans le temps
   // (ni par la recherche, ni par une plage de dates — voir pastAll ci-dessus).
-  const byMonth = {};
-  pastAll.forEach(r => { const d = parseDate(r.date); if (!d) return; const k = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0"); byMonth[k] = (byMonth[k] || 0) + financeTotals(r.finance).totalHT; });
-  ensureCurrentMonthKey_(byMonth);
-  const keys = Object.keys(byMonth).sort().slice(-8);
+  const { byMonth, keys, forecastKeys, curKey } = buildCaByMonth_(confirmed);
   const max = Math.max(1, ...keys.map(k => byMonth[k]));
-  document.getElementById('histChart').innerHTML = keys.map((k, i) => {
-    const isHi = i === keys.length - 1;
+  document.getElementById('histChart').innerHTML = keys.map((k) => {
+    const isHi = k === curKey, isForecast = forecastKeys.includes(k);
     const h = Math.round(byMonth[k] / max * 100);
     const [y, m] = k.split("-");
-    return `<div class="bar-col"><span class="bval ${isHi ? 'hi' : ''}">${fmtEURCompact_(byMonth[k])}</span><div class="bcol ${isHi ? 'hi' : ''}" style="height:${Math.max(4, h)}%" title="${fmtEUR(byMonth[k])}"></div><span class="blab">${MOIS_COURT_[Number(m) - 1]}</span></div>`;
+    return `<div class="bar-col"><span class="bval ${isHi ? 'hi' : ''}">${fmtEURCompact_(byMonth[k])}</span><div class="bcol ${isHi ? 'hi' : ''} ${isForecast ? 'forecast' : ''}" style="height:${Math.max(4, h)}%" title="${fmtEUR(byMonth[k])}${isForecast ? ' (forecast)' : ''}"></div><span class="blab ${isForecast ? 'forecast' : ''}">${MOIS_COURT_[Number(m) - 1]}</span></div>`;
   }).join("") || '<span style="font-size:12px;color:var(--ink-3)">Pas encore de données.</span>';
 
   document.getElementById('confUpcomingBody').innerHTML = upcoming.map(r => confRow_(r, 'confirmed')).join("") || '<tr><td colspan="7" style="padding:30px;text-align:center;color:var(--ink-3)">Aucune privatisation confirmée à venir.</td></tr>';
@@ -2807,6 +2834,18 @@ function onConfPaxInline_(idx, val) {
   const r = DATA[idx]; if (!r) return;
   r.pax = toNumber(val) || 0;
   saveData();
+}
+// Édition rapide du type depuis Suivi / Événements à venir — la demande n'est pas encore
+// confirmée donc r.finance peut ne pas exister : on l'initialise avant d'appliquer le type
+// (même valeurs par défaut que lors d'un passage manuel en "Confirmé").
+function onSuiviTypeInline_(idx, val) {
+  const r = DATA[idx]; if (!r) return;
+  if (!r.finance) r.finance = { service: "Dîner", type: "Privatisation", societe: "", caCuisineHT: 0, caAlcoolsHT: 0, statutPaiement: "En attente d'acompte", paiements: [] };
+  applyTypeChange_(r, val);
+  saveData();
+  // renderDashboard() rafraîchit à la fois "Événements à venir" (eventRow_) et Suivi (renderSuivi_
+  // est appelé en interne) — couvre les deux endroits d'où ce handler peut être déclenché.
+  renderDashboard();
 }
 
 /* ---- Modal : informations client (relié à la Base clients) ---- */
