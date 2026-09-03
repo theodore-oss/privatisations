@@ -468,7 +468,18 @@
   <div class="view on" id="view-dashboard">
     <div class="upcoming-block">
       <p class="sec-title"><span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span> Événements à venir <span class="count" id="upcomingCount"></span></p>
-      <div id="dashUpcoming"></div>
+      <div class="tbl-wrap">
+        <table class="pipe fixed-cols">
+          <thead><tr>
+            <th style="width:60px">Date</th>
+            <th style="width:20%">Client</th>
+            <th style="width:50px">Pax</th>
+            <th style="width:15%">Espace</th>
+            <th style="width:14%">Type</th><th style="width:12%; text-align:right">Total HT</th><th style="width:20%">Encaissé</th>
+          </tr></thead>
+          <tbody id="dashUpcoming"></tbody>
+        </table>
+      </div>
     </div>
 
     <div class="section-divider"><span>Suivi</span></div>
@@ -2105,32 +2116,33 @@ function renderDashboard() {
   document.getElementById('upcomingCount').textContent = upcoming.length + (upcoming.length > 1 ? " privatisations confirmées" : " privatisation confirmée");
   const box = document.getElementById('dashUpcoming');
   if (!upcoming.length) {
-    box.innerHTML = '<div class="empty-box">Aucune privatisation confirmée à venir. Les demandes en cours sont dans le suivi ci-dessous.</div>';
+    box.innerHTML = '<tr><td colspan="7" style="padding:30px;text-align:center;color:var(--ink-3)">Aucune privatisation confirmée à venir. Les demandes en cours sont dans le suivi ci-dessous.</td></tr>';
   } else {
     box.innerHTML = upcoming.slice(0, 6).map(r => eventRow_(r)).join("");
-    if (upcoming.length > 6) box.innerHTML += `<p style="font-size:12px;color:var(--ink-3);margin:6px 2px 0;">+ ${upcoming.length - 6} autre${upcoming.length - 6 > 1 ? "s" : ""} à venir</p>`;
+    if (upcoming.length > 6) box.innerHTML += `<tr><td colspan="7" style="padding:8px 2px;text-align:center;font-size:12px;color:var(--ink-3)">+ ${upcoming.length - 6} autre${upcoming.length - 6 > 1 ? "s" : ""} à venir</td></tr>`;
   }
   renderSuivi_();
 }
 
+// Même photo que confRow_ (Confirmées) : mêmes colonnes Date/Client/Pax/Espace/Type, mêmes
+// tailles. Seule différence : la dernière colonne montre "Encaissé" (% + barre de progression)
+// à la place du statut de paiement (Soldé/Partiel/Impayé) affiché dans Confirmées.
 function eventRow_(r) {
-  const d = parseDate(r.date), idx = DATA.indexOf(r);
-  const t = financeTotals(r.finance).totalTTC, paid = paidAmount_(r.finance);
+  const idx = DATA.indexOf(r), tot = financeTotals(r.finance), t = tot.totalTTC, paid = paidAmount_(r.finance);
   const pct = t > 0 ? Math.min(100, Math.round(paid / t * 100)) : 0;
   const barColor = pct >= 100 ? "var(--green)" : (pct > 0 ? "var(--amber)" : "var(--red)");
-  const dju = daysUntil_(r.date);
-  let flag = "";
-  if (t > 0.01 && paid < t * DEPOSIT_RATE - 0.01 && dju !== null && dju <= 10) flag = '<span class="tag red">Acompte en retard</span>';
-  else if (openTaskCount_(r) > 0 && dju !== null && dju <= 7) flag = '<span class="tag amber">' + openTaskCount_(r) + ' tâche' + (openTaskCount_(r) > 1 ? 's' : '') + '</span>';
-  const sub = [toNumber(r.pax) > 0 ? "👥 " + r.pax + " pers" : null, r.finance && r.finance.service ? "🍽 " + r.finance.service.toLowerCase() : null, r.espace].filter(Boolean);
+  const espaceOpts = ["Salon privatif", "Étage", "Restaurant entier", "Terrasse"].map(o => `<option ${o === (r.espace || "Salon privatif") ? "selected" : ""}>${o}</option>`).join("");
   const curType = (r.finance && r.finance.type) || "Privatisation";
   const typeOpts = ["Privatisation", "Prestation", "Formule groupe"].map(o => `<option ${o === curType ? "selected" : ""}>${o}</option>`).join("");
-  return `<div class="ev" onclick="openDetail(${idx}, 'dashboard')">
-    <div class="dblock"><p class="m">${d ? MOIS_COURT_[d.getMonth()] : "—"}</p><p class="d">${d ? d.getDate() : "?"}</p><p class="w">${d ? JOURS_COURT_[d.getDay()] : ""}</p></div>
-    <div class="ev-main"><p class="ev-name">${esc(r.client)} ${flag} <select onclick="event.stopPropagation()" onchange="onSuiviTypeInline_(${idx}, this.value)" class="type-tag ${curType === 'Formule groupe' ? 'groupe' : curType === 'Prestation' ? 'prestation' : 'privatisation'}" style="border:none; cursor:pointer; appearance:none; -webkit-appearance:none;">${typeOpts}</select></p><p class="ev-sub">${sub.map(s => "<span>" + esc(s) + "</span>").join("")}</p></div>
-    <div class="ev-prog"><p class="pt"><span>Encaissé</span><span>${pct} %</span></p><div class="bar"><i style="width:${Math.max(2, pct)}%;background:${barColor}"></i></div></div>
-    <p class="ev-amt">${t > 0.01 ? fmtEUR(t) : "—"}</p>
-  </div>`;
+  return `<tr class="row" onclick="openDetail(${idx}, 'dashboard')">
+    <td>${dateBlockHtml_(r.date)}</td>
+    <td><div class="cl-name">${esc(r.client)}</div><div class="cl-sub">${esc((r.finance && r.finance.service) || "")}</div></td>
+    <td class="pax-cell"><input type="number" min="0" value="${toNumber(r.pax) || ""}" placeholder="—" onclick="event.stopPropagation()" onchange="onConfPaxInline_(${idx}, this.value)" style="width:52px; border:none; background:transparent; font:inherit; font-weight:inherit; color:inherit; padding:0;"></td>
+    <td><select onclick="event.stopPropagation()" onchange="onConfEspaceInline_(${idx}, this.value)" style="border:none; background:transparent; font:inherit; color:inherit; cursor:pointer; padding:0;">${espaceOpts}</select></td>
+    <td><select onclick="event.stopPropagation()" onchange="onSuiviTypeInline_(${idx}, this.value)" class="type-tag ${curType === 'Formule groupe' ? 'groupe' : curType === 'Prestation' ? 'prestation' : 'privatisation'}" style="border:none; cursor:pointer; appearance:none; -webkit-appearance:none;">${typeOpts}</select></td>
+    <td class="amt-cell">${fmtEUR(tot.totalHT)}</td>
+    <td><div class="ev-prog"><p class="pt"><span>Encaissé</span><span>${pct} %</span></p><div class="bar"><i style="width:${Math.max(2, pct)}%;background:${barColor}"></i></div></div></td>
+  </tr>`;
 }
 
 /* ---- Suivi des demandes (tableau simple, hors confirmées) ---- */
