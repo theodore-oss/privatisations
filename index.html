@@ -938,9 +938,10 @@
           <label>Espace souhaité</label>
           <select id="newReqEspace">
             <option>Salon privatif</option>
+            <option>RDC 300</option>
+            <option>RDC 200</option>
             <option>Étage</option>
             <option>Restaurant entier</option>
-            <option>Terrasse</option>
           </select>
         </div>
         <div class="modal-row">
@@ -2131,7 +2132,7 @@ function eventRow_(r) {
   const idx = DATA.indexOf(r), tot = financeTotals(r.finance), t = tot.totalTTC, paid = paidAmount_(r.finance);
   const pct = t > 0 ? Math.min(100, Math.round(paid / t * 100)) : 0;
   const barColor = pct >= 100 ? "var(--green)" : (pct > 0 ? "var(--amber)" : "var(--red)");
-  const espaceOpts = ["Salon privatif", "Étage", "Restaurant entier", "Terrasse"].map(o => `<option ${o === (r.espace || "Salon privatif") ? "selected" : ""}>${o}</option>`).join("");
+  const espaceOpts = ESPACE_OPTIONS_.map(o => `<option ${o === (r.espace || "Salon privatif") ? "selected" : ""}>${o}</option>`).join("");
   const curType = (r.finance && r.finance.type) || "Privatisation";
   const typeOpts = ["Privatisation", "Prestation", "Formule groupe"].map(o => `<option ${o === curType ? "selected" : ""}>${o}</option>`).join("");
   return `<tr class="row" onclick="openDetail(${idx}, 'dashboard')">
@@ -2244,6 +2245,12 @@ function suiviRow_(r) {
       : '<button class="archive-btn" onclick="event.stopPropagation(); archiveFromSuivi_(' + idx + ')" title="Archiver"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>'}</td>
   </tr>`;
 }
+// Liste des espaces proposés (menu "Espace souhaité" à la création, puis dans Confirmées /
+// Suivi / Événements à venir / la fiche détail). Un enregistrement existant dont r.espace ne
+// figure plus dans cette liste (ex. ancien "Terrasse") garde sa valeur telle quelle tant que
+// personne ne la modifie manuellement — seul l'affichage du <select> ne matchera plus.
+const ESPACE_OPTIONS_ = ["Salon privatif", "RDC 300", "RDC 200", "Étage", "Restaurant entier"];
+
 // Motifs d'archivage : capturés à chaque archivage manuel pour pouvoir faire des stats plus tard
 // (combien de demandes perdues vs annulées vs sans réponse). "Sans réponse" n'est jamais proposé
 // au clic : c'est la valeur posée automatiquement par computeAutoArchive_ (archivage silencieux
@@ -2461,7 +2468,7 @@ function caRealiseHT_(r) {
 function confRow_(r, origin) {
   const idx = DATA.indexOf(r), tot = financeTotals(r.finance), t = tot.totalTTC, paid = paidAmount_(r.finance);
   const status = paid >= t - 0.01 ? '<span class="pill confirmed">Soldé</span>' : (paid > 0 ? '<span class="pill waiting">Partiel</span>' : '<span class="pill answer">Impayé</span>');
-  const espaceOpts = ["Salon privatif", "Étage", "Restaurant entier", "Terrasse"].map(o => `<option ${o === (r.espace || "Salon privatif") ? "selected" : ""}>${o}</option>`).join("");
+  const espaceOpts = ESPACE_OPTIONS_.map(o => `<option ${o === (r.espace || "Salon privatif") ? "selected" : ""}>${o}</option>`).join("");
   const curType = (r.finance && r.finance.type) || "Privatisation";
   const typeOpts = ["Privatisation", "Prestation", "Formule groupe"].map(o => `<option ${o === curType ? "selected" : ""}>${o}</option>`).join("");
   return `<tr class="row" onclick="openDetail(${idx}, '${origin}')">
@@ -2648,7 +2655,7 @@ function quadRowConfirmed_(r) {
   const totHT = financeTotals(f).totalHT;
   const d = parseDate(r.date);
   const dateVal = d ? capitalize_(JOURS_COURT_[d.getDay()]) + " " + d.getDate() + " " + MOIS_COURT_[d.getMonth()] : (r.date || "—");
-  const espaceOptions = ["Salon privatif", "Étage", "Restaurant entier", "Terrasse"].map(o => `<option ${o === (r.espace || "Salon privatif") ? "selected" : ""}>${o}</option>`).join("");
+  const espaceOptions = ESPACE_OPTIONS_.map(o => `<option ${o === (r.espace || "Salon privatif") ? "selected" : ""}>${o}</option>`).join("");
   return `
     <div class="quad-box editable" onclick="startQuadEdit_(this,'date')"><span class="qic">${TILE_ICONS_.calendar}</span><p class="qv">${esc(dateVal)}</p><p class="qs">date de l'événement</p></div>
     <div class="quad-box editable" onclick="startQuadEdit_(this,'pax')"><span class="qic">${TILE_ICONS_.people}</span><p class="qv">${toNumber(r.pax) > 0 ? r.pax + " personnes" : "?"}</p><p class="qs">personnes attendues</p></div>
