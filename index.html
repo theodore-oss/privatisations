@@ -242,6 +242,7 @@
   .status-select.cancelled { border-color: var(--border-strong); color: var(--ink-3); background: #f1efe8; }
 
   .quad-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 18px 0 0; }
+  .quad-row.pending5 { grid-template-columns: repeat(5, 1fr); }
   .quad-box { background: var(--surface-2); border-radius: 10px; padding: 14px; }
   .quad-box.ok { background: var(--green-bg); }
   .quad-box.warn { background: var(--amber-bg); }
@@ -254,7 +255,7 @@
   .quad-box.ok .qs { color: var(--green-d); }
   .quad-box.warn .qs { color: var(--amber-d); }
   .quad-box input { font-size: 13px; padding: 6px 8px; }
-  @media (max-width: 720px) { .quad-row { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 720px) { .quad-row, .quad-row.pending5 { grid-template-columns: repeat(2, 1fr); } }
 
   .tabs { display: flex; gap: 3px; margin-bottom: 16px; border-bottom: 0.5px solid var(--border); overflow-x: auto; }
   .tab { font-size: 13.5px; padding: 9px 15px; cursor: pointer; color: var(--ink-2); border: none; background: none; border-bottom: 2px solid transparent; margin-bottom: -0.5px; display: flex; align-items: center; gap: 7px; white-space: nowrap; }
@@ -926,7 +927,10 @@
       <div class="modal-grid2">
         <div class="modal-row">
           <label>Date souhaitée</label>
-          <input type="text" id="newReqDate" placeholder="jj/mm/aaaa">
+          <div style="display:flex; gap:8px; align-items:center;">
+            <input type="text" id="newReqDate" placeholder="jj/mm/aaaa" style="flex:1">
+            <input type="time" id="newReqHeure" title="Heure (optionnel) — utilisée pour l'événement Calendar créé à la confirmation" style="width:110px;">
+          </div>
         </div>
         <div class="modal-row">
           <label>Nombre de personnes</label>
@@ -2626,7 +2630,7 @@ function renderHero_(r) {
       <button class="archive-btn" style="width:30px; height:30px; align-self:flex-end; margin-bottom:1px;" onclick="deleteCurrentDemande_()" title="Supprimer définitivement (différent d'archiver)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6h16Z"/><path d="M10 11v6M14 11v6"/></svg></button>
     </div>
     <p class="hero-light-sub" onclick="${subClick}" title="${subTitle}">${subLine}</p>
-    <div class="quad-row">${isPending ? quadRowPending_(r) : quadRowConfirmed_(r)}</div>
+    <div class="quad-row ${isPending ? 'pending5' : ''}">${isPending ? quadRowPending_(r) : quadRowConfirmed_(r)}</div>
     <p class="quote" id="detQuote" style="display:none; margin:16px 0 0;" onclick="startInlineEditQuote_()" title="Cliquer pour modifier"></p>`;
 }
 
@@ -2645,6 +2649,7 @@ function quadRowPending_(r) {
   const dateVal = d ? capitalize_(JOURS_COURT_[d.getDay()]) + " " + d.getDate() + " " + MOIS_COURT_[d.getMonth()] : (r.date || "—");
   return `
     <div class="quad-box editable" onclick="startQuadEdit_(this,'date')"><span class="qic">${TILE_ICONS_.calendar}</span><p class="qv">${esc(dateVal)}</p><p class="qs">date souhaitée</p></div>
+    <div class="quad-box editable" onclick="startQuadEdit_(this,'heure')"><span class="qic">${TILE_ICONS_.clock}</span><p class="qv">${esc(r.heure || "—")}</p><p class="qs">heure (optionnel)</p></div>
     <div class="quad-box editable" onclick="startQuadEdit_(this,'pax')"><span class="qic">${TILE_ICONS_.people}</span><p class="qv">${toNumber(r.pax) > 0 ? r.pax + " personnes" : "?"}</p><p class="qs">pax annoncé</p></div>
     <div class="quad-box editable" onclick="startQuadEdit_(this,'espace')"><span class="qic">${TILE_ICONS_.door}</span><p class="qv">${esc(r.espace || "—")}</p><p class="qs">espace souhaité</p></div>
     ${conflictBoxHtml_(r)}`;
@@ -2689,13 +2694,14 @@ function onStatutSelectChange_(val) {
   if (!currentReq) return;
   setStatut_(val);
 }
-const QUAD_FIELD_LABEL_ = { date: "date souhaitée", pax: "pax annoncé", espace: "espace souhaité" };
+const QUAD_FIELD_LABEL_ = { date: "date souhaitée", pax: "pax annoncé", espace: "espace souhaité", heure: "heure (optionnel)" };
 function startQuadEdit_(boxEl, field) {
   if (boxEl.querySelector('input')) return;
   const current = field === "pax" ? toNumber(currentReq.pax) : (currentReq[field] || "");
-  const type = field === "pax" ? "number" : "text";
+  const type = field === "pax" ? "number" : field === "heure" ? "time" : "text";
   const placeholder = field === "date" ? "jj/mm/aaaa" : "";
-  boxEl.innerHTML = `<span class="qic">${TILE_ICONS_[field === "date" ? "calendar" : field === "pax" ? "people" : "door"]}</span><input type="${type}" value="${esc(current)}" placeholder="${placeholder}" onclick="event.stopPropagation()" onkeydown="if(event.key==='Enter') this.blur();" onblur="commitQuadEdit_('${field}', this.value)"><p class="qs">${QUAD_FIELD_LABEL_[field]}</p>`;
+  const icon = field === "date" ? "calendar" : field === "pax" ? "people" : field === "heure" ? "clock" : "door";
+  boxEl.innerHTML = `<span class="qic">${TILE_ICONS_[icon]}</span><input type="${type}" value="${esc(current)}" placeholder="${placeholder}" onclick="event.stopPropagation()" onkeydown="if(event.key==='Enter') this.blur();" onblur="commitQuadEdit_('${field}', this.value)"><p class="qs">${QUAD_FIELD_LABEL_[field]}</p>`;
   const inp = boxEl.querySelector('input'); inp.focus(); inp.select();
 }
 function commitQuadEdit_(field, val) {
@@ -2797,6 +2803,7 @@ const TILE_ICONS_ = {
   calendar: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>',
   people: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
   door: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="1"/><circle cx="14" cy="12" r="1"/></svg>',
+  clock: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>',
   calendarCheck: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M9 16l2 2 4-4"/></svg>',
   money: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/><line x1="12" y1="1" x2="12" y2="23"/></svg>'
 };
@@ -2996,7 +3003,10 @@ function renderFinance_(r) {
   const f = r.finance;
   document.getElementById('finSociete').value = f.societe || "";
   document.getElementById('finService').value = f.service || "Dîner";
-  document.getElementById('finHeure').value = f.heure || "";
+  // L'heure vit désormais au niveau de la demande (r.heure, saisissable dès la création / avant
+  // confirmation) et non plus dans finance — on garde f.heure en repli pour les fiches confirmées
+  // avant ce changement, qui l'avaient saisie uniquement ici.
+  document.getElementById('finHeure').value = r.heure || f.heure || "";
   document.getElementById('finCuisineHT').value = f.caCuisineHT || "";
   document.getElementById('finAlcoolsHT').value = f.caAlcoolsHT || "";
   renderPaymentLines();
@@ -3008,7 +3018,7 @@ function onFinanceInput() {
   const f = currentReq.finance;
   f.societe = document.getElementById('finSociete').value;
   f.service = document.getElementById('finService').value;
-  f.heure = document.getElementById('finHeure').value;
+  currentReq.heure = document.getElementById('finHeure').value;
   f.caCuisineHT = toNumber(document.getElementById('finCuisineHT').value);
   f.caAlcoolsHT = toNumber(document.getElementById('finAlcoolsHT').value);
   updateFinanceComputed();
@@ -3363,6 +3373,7 @@ function openNewRequest() {
   const g = id => document.getElementById(id);
   g('newReqClient').value = ""; g('newReqEmail').value = ""; g('newReqDate').value = "";
   g('newReqPax').value = ""; g('newReqEspace').value = "Salon privatif"; g('newReqComment').value = "";
+  g('newReqHeure').value = "";
   g('newReqOwner').value = "";
   g('newReqCanal').value = "";
   g('newReqErr').style.display = "none";
@@ -3391,6 +3402,7 @@ function submitNewRequest_() {
     client, email: g('newReqEmail').trim(),
     espace: g('newReqEspace'),
     date: g('newReqDate').trim(),
+    heure: g('newReqHeure').trim(),
     dateDemande: todayStr_(),
     pax: toNumber(g('newReqPax')) || 0,
     statut: isConfirmed ? "Confirmé" : "Nouvelle demande",
