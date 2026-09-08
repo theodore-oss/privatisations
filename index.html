@@ -242,7 +242,6 @@
   .status-select.cancelled { border-color: var(--border-strong); color: var(--ink-3); background: #f1efe8; }
 
   .quad-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 18px 0 0; }
-  .quad-row.pending5 { grid-template-columns: repeat(5, 1fr); }
   .quad-box { background: var(--surface-2); border-radius: 10px; padding: 14px; }
   .quad-box.ok { background: var(--green-bg); }
   .quad-box.warn { background: var(--amber-bg); }
@@ -251,11 +250,12 @@
   .quad-box.ok .qic { color: var(--green-d); }
   .quad-box.warn .qic { color: var(--amber-d); }
   .quad-box .qv { font-weight: 600; font-size: 14.5px; margin: 0; }
+  .quad-box .qv-heure { font-weight: 500; font-size: 12.5px; color: var(--ink-3); margin-left: 5px; }
   .quad-box .qs { font-size: 11px; color: var(--ink-3); margin: 3px 0 0; }
   .quad-box.ok .qs { color: var(--green-d); }
   .quad-box.warn .qs { color: var(--amber-d); }
-  .quad-box input { font-size: 13px; padding: 6px 8px; }
-  @media (max-width: 720px) { .quad-row, .quad-row.pending5 { grid-template-columns: repeat(2, 1fr); } }
+  .quad-box input, .quad-box select { font-size: 13px; padding: 6px 8px; }
+  @media (max-width: 720px) { .quad-row { grid-template-columns: repeat(2, 1fr); } }
 
   .tabs { display: flex; gap: 3px; margin-bottom: 16px; border-bottom: 0.5px solid var(--border); overflow-x: auto; }
   .tab { font-size: 13.5px; padding: 9px 15px; cursor: pointer; color: var(--ink-2); border: none; background: none; border-bottom: 2px solid transparent; margin-bottom: -0.5px; display: flex; align-items: center; gap: 7px; white-space: nowrap; }
@@ -2544,6 +2544,7 @@ function renderStatsCA_(rows) {
    ========================================================================= */
 const TARIF_TVA_ALCOOL_ = 0.20;
 const TARIF_TVA_RESTE_ = 0.10;
+const TARIF_GROUPE_PRIX_TTC_PERS_ = 45; // Formule groupe : prix fixe, hors outil de pricing.
 const TARIF_DEFAULT_CONFIG_ = {
   espaces: {
     "Salon privatif":    { minForfaitaire: 1200, prixPers: 70, paxMax: 25,  partAlcool: 15, majoEntreprise: 25 },
@@ -2680,9 +2681,25 @@ function computeTarifPrice_(espace, pax, clientTypeOverride) {
 // Prix théorique d'une demande (avant confirmation, où finance/chiffrage n'a pas encore la
 // vérité) : basé sur son pax + espace + r.clientType (défaut "particulier"), via la config de
 // l'onglet Tarifs. Retourne null si pas assez d'infos pour calculer (pas d'espace ou pax à 0).
+// Exception : "Formule groupe" n'utilise pas l'outil de pricing, c'est un prix fixe de
+// TARIF_GROUPE_PRIX_TTC_PERS_ €TTC/pers (pas besoin d'espace, juste le pax).
 function demandeTheorique_(r) {
   const pax = toNumber(r.pax);
-  if (!r.espace || !tarifConfig_.espaces[r.espace] || pax <= 0) return null;
+  if (pax <= 0) return null;
+  const curType = (r.finance && r.finance.type) || "Privatisation";
+  if (curType === "Formule groupe") {
+    const espaceCfg = r.espace && tarifConfig_.espaces[r.espace];
+    const p = (espaceCfg ? espaceCfg.partAlcool : 15) / 100;
+    const factor = (1 - p) * (1 + TARIF_TVA_RESTE_) + p * (1 + TARIF_TVA_ALCOOL_);
+    const totalTTC = TARIF_GROUPE_PRIX_TTC_PERS_ * pax;
+    const totalHT = totalTTC / factor;
+    const alcoolHT = totalHT * p;
+    const resteHT = totalHT - alcoolHT;
+    const tvaAlcool = alcoolHT * TARIF_TVA_ALCOOL_;
+    const tvaReste = resteHT * TARIF_TVA_RESTE_;
+    return { totalHT, totalTTC, alcoolHT, resteHT, tvaAlcool, tvaReste, roundedField: 'ttc', partAlcool: p * 100, formuleGroupe: true };
+  }
+  if (!r.espace || !tarifConfig_.espaces[r.espace]) return null;
   return computeTarifPrice_(r.espace, pax, r.clientType || 'particulier');
 }
 
@@ -2977,40 +2994,27 @@ function renderHero_(r) {
       <button class="archive-btn" style="width:30px; height:30px; align-self:flex-end; margin-bottom:1px;" onclick="deleteCurrentDemande_()" title="Supprimer définitivement (différent d'archiver)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6h16Z"/><path d="M10 11v6M14 11v6"/></svg></button>
     </div>
     <p class="hero-light-sub" onclick="${subClick}" title="${subTitle}">${subLine}</p>
-    <div class="quad-row ${isPending ? 'pending5' : ''}">${isPending ? quadRowPending_(r) : quadRowConfirmed_(r)}</div>
+    <div class="quad-row">${quadRow_(r)}</div>
     <p class="quote" id="detQuote" style="display:none; margin:16px 0 0;" onclick="startInlineEditQuote_()" title="Cliquer pour modifier"></p>`;
 }
 
-function conflictBoxHtml_(r) {
-  const av = availability_(r);
-  let avClass = "ok", avVal = "Date libre", avSub = "aucun conflit", avClick = "";
-  if (av.state === "double") { avClass = "warn"; avVal = "Double confirmation"; avSub = esc(av.other.client) + " · confirmée aussi"; avClick = ' onclick="openAvailConflict()" style="cursor:pointer"'; }
-  else if (av.state === "busy") { avClass = "warn"; avVal = "Date prise"; avSub = esc(av.other.client) + " · confirmée"; avClick = ' onclick="openAvailConflict()" style="cursor:pointer"'; }
-  else if (av.state === "pending") { avClass = "warn"; avVal = "Demande concurrente"; avSub = esc(av.other.client); avClick = ' onclick="openAvailConflict()" style="cursor:pointer"'; }
-  else if (av.state === "none") { avVal = "—"; avSub = "date à préciser"; avClass = ""; }
-  return `<div class="quad-box ${avClass}"${avClick}><span class="qic">${TILE_ICONS_.calendarCheck}</span><p class="qv">${avVal}</p><p class="qs">${avSub}</p></div>`;
-}
-
-function quadRowPending_(r) {
-  const d = parseDate(r.date);
-  const dateVal = d ? capitalize_(JOURS_COURT_[d.getDay()]) + " " + d.getDate() + " " + MOIS_COURT_[d.getMonth()] : (r.date || "—");
-  return `
-    <div class="quad-box editable" onclick="startQuadEdit_(this,'date')"><span class="qic">${TILE_ICONS_.calendar}</span><p class="qv">${esc(dateVal)}</p><p class="qs">date souhaitée</p></div>
-    <div class="quad-box editable" onclick="startQuadEdit_(this,'heure')"><span class="qic">${TILE_ICONS_.clock}</span><p class="qv">${esc(r.heure || "—")}</p><p class="qs">heure (optionnel)</p></div>
-    <div class="quad-box editable" onclick="startQuadEdit_(this,'pax')"><span class="qic">${TILE_ICONS_.people}</span><p class="qv">${toNumber(r.pax) > 0 ? r.pax + " personnes" : "?"}</p><p class="qs">pax annoncé</p></div>
-    <div class="quad-box editable" onclick="startQuadEdit_(this,'espace')"><span class="qic">${TILE_ICONS_.door}</span><p class="qv">${esc(r.espace || "—")}</p><p class="qs">espace souhaité</p></div>
-    ${conflictBoxHtml_(r)}`;
-}
-
-function quadRowConfirmed_(r) {
+// En-tête unique (4 boîtes) pour toutes les fiches, demande ou confirmée — seuls les libellés
+// changent légèrement selon le statut. L'heure n'est plus une boîte à part : elle s'affiche à
+// côté de la date, dans la même boîte, et se modifie avec elle (voir startQuadEdit_ 'date').
+function quadRow_(r) {
+  const isConfirmed = r.statut === "Confirmé";
   const f = r.finance || {};
-  const totHT = financeTotals(f).totalHT;
   const d = parseDate(r.date);
   const dateVal = d ? capitalize_(JOURS_COURT_[d.getDay()]) + " " + d.getDate() + " " + MOIS_COURT_[d.getMonth()] : (r.date || "—");
+  const dateLbl = isConfirmed ? "date de l'événement" : "date souhaitée";
+  const paxLbl = isConfirmed ? "personnes attendues" : "pax annoncé";
   const espaceOptions = ESPACE_OPTIONS_.map(o => `<option ${o === (r.espace || "Salon privatif") ? "selected" : ""}>${o}</option>`).join("");
+  const theo = demandeTheorique_(r);
+  const totHT = financeTotals(f).totalHT;
+  const budgetVal = totHT > 0.01 ? fmtEUR(totHT) : (theo ? fmtEUR(theo.roundedField === 'ht' ? theo.totalHT : theo.totalTTC) + ' <span class="qv-heure">(théo.)</span>' : "à chiffrer");
   return `
-    <div class="quad-box editable" onclick="startQuadEdit_(this,'date')"><span class="qic">${TILE_ICONS_.calendar}</span><p class="qv">${esc(dateVal)}</p><p class="qs">date de l'événement</p></div>
-    <div class="quad-box editable" onclick="startQuadEdit_(this,'pax')"><span class="qic">${TILE_ICONS_.people}</span><p class="qv">${toNumber(r.pax) > 0 ? r.pax + " personnes" : "?"}</p><p class="qs">personnes attendues</p></div>
+    <div class="quad-box editable" onclick="startQuadEdit_(this,'date')"><span class="qic">${TILE_ICONS_.calendar}</span><p class="qv">${esc(dateVal)}${r.heure ? ` <span class="qv-heure">${esc(r.heure)}</span>` : ""}</p><p class="qs">${dateLbl}</p></div>
+    <div class="quad-box editable" onclick="startQuadEdit_(this,'pax')"><span class="qic">${TILE_ICONS_.people}</span><p class="qv">${toNumber(r.pax) > 0 ? r.pax + " personnes" : "?"}</p><p class="qs">${paxLbl}</p></div>
     <div class="quad-box" style="border-left:3px solid ${f.type === 'Formule groupe' ? 'var(--blue)' : f.type === 'Prestation' ? 'var(--slate)' : 'var(--violet)'}"><span class="qic">${TILE_ICONS_.prestation}</span>
       <select id="detTypeSelect" onchange="onTypeInline_(this.value)" style="font-size:13px; padding:5px 0 0; margin:2px 0 0; border:none; background:transparent; font-weight:600; cursor:pointer; color:${f.type === 'Formule groupe' ? 'var(--blue-d)' : f.type === 'Prestation' ? 'var(--slate-d)' : 'var(--violet-d)'}">
         <option ${(f.type || "Privatisation") === "Privatisation" ? "selected" : ""}>Privatisation</option>
@@ -3019,7 +3023,7 @@ function quadRowConfirmed_(r) {
       </select>
       <select onchange="onEspaceInline_(this.value)" style="font-size:12px; padding:2px 0 0; margin:0; border:none; background:transparent; color:var(--ink-2); cursor:pointer;">${espaceOptions}</select>
     </div>
-    <div class="quad-box editable" onclick="showPane('finance')"><span class="qic">${TILE_ICONS_.money}</span><p class="qv">${totHT > 0.01 ? fmtEUR(totHT) : "à chiffrer"}</p><p class="qs">Budget HT</p></div>`;
+    <div class="quad-box editable" onclick="showPane('finance')"><span class="qic">${TILE_ICONS_.money}</span><p class="qv">${budgetVal}</p><p class="qs">Budget HT</p></div>`;
 }
 
 function startInlineEditName_() {
@@ -3041,20 +3045,39 @@ function onStatutSelectChange_(val) {
   if (!currentReq) return;
   setStatut_(val);
 }
-const QUAD_FIELD_LABEL_ = { date: "date souhaitée", pax: "pax annoncé", espace: "espace souhaité", heure: "heure (optionnel)" };
 function startQuadEdit_(boxEl, field) {
-  if (boxEl.querySelector('input')) return;
+  if (boxEl.querySelector('input,select')) return;
+  if (field === "date") {
+    // Date + heure s'éditent ensemble, dans la même boîte : on ne recommite/ré-affiche qu'une
+    // fois que le focus quitte complètement la boîte (sinon tabuler de la date vers l'heure
+    // déclencherait un re-render en plein milieu et casserait la saisie).
+    const isConfirmed = currentReq.statut === "Confirmé";
+    const dateLbl = isConfirmed ? "date de l'événement" : "date souhaitée";
+    const curDate = currentReq.date || "";
+    const curHeure = currentReq.heure || "";
+    boxEl.innerHTML = `<span class="qic">${TILE_ICONS_.calendar}</span><input type="text" value="${esc(curDate)}" placeholder="jj/mm/aaaa" onclick="event.stopPropagation()" onkeydown="if(event.key==='Enter') this.blur();"><input type="time" value="${esc(curHeure)}" onclick="event.stopPropagation()" style="margin-top:4px;" onkeydown="if(event.key==='Enter') this.blur();"><p class="qs">${dateLbl}</p>`;
+    boxEl.onfocusout = function (e) {
+      if (boxEl.contains(e.relatedTarget)) return;
+      boxEl.onfocusout = null;
+      const inputs = boxEl.querySelectorAll('input');
+      commitQuadEdit_('date', inputs[0].value, inputs[1].value);
+    };
+    const inp = boxEl.querySelector('input'); inp.focus(); inp.select();
+    return;
+  }
   const current = field === "pax" ? toNumber(currentReq.pax) : (currentReq[field] || "");
-  const type = field === "pax" ? "number" : field === "heure" ? "time" : "text";
-  const placeholder = field === "date" ? "jj/mm/aaaa" : "";
-  const icon = field === "date" ? "calendar" : field === "pax" ? "people" : field === "heure" ? "clock" : "door";
-  boxEl.innerHTML = `<span class="qic">${TILE_ICONS_[icon]}</span><input type="${type}" value="${esc(current)}" placeholder="${placeholder}" onclick="event.stopPropagation()" onkeydown="if(event.key==='Enter') this.blur();" onblur="commitQuadEdit_('${field}', this.value)"><p class="qs">${QUAD_FIELD_LABEL_[field]}</p>`;
+  const type = field === "pax" ? "number" : "text";
+  const paxLbl = currentReq.statut === "Confirmé" ? "personnes attendues" : "pax annoncé";
+  boxEl.innerHTML = `<span class="qic">${TILE_ICONS_.people}</span><input type="${type}" value="${esc(current)}" onclick="event.stopPropagation()" onkeydown="if(event.key==='Enter') this.blur();" onblur="commitQuadEdit_('${field}', this.value)"><p class="qs">${paxLbl}</p>`;
   const inp = boxEl.querySelector('input'); inp.focus(); inp.select();
 }
-function commitQuadEdit_(field, val) {
+function commitQuadEdit_(field, val, heureVal) {
   if (!currentReq) return;
   if (field === "pax") currentReq.pax = toNumber(val);
-  else currentReq[field] = val.trim();
+  else if (field === "date") {
+    currentReq.date = val.trim();
+    if (heureVal !== undefined) currentReq.heure = heureVal.trim();
+  } else currentReq[field] = val.trim();
   saveData();
   openDetail(DATA.indexOf(currentReq), backTarget);
 }
