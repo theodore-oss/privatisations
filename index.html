@@ -299,6 +299,8 @@
   .fin-tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; }
   .fin-ic-input { display: flex; align-items: flex-end; gap: 10px; }
   .fin-ic { font-size: 20px; line-height: 1; padding-bottom: 8px; }
+  .fin-theo-val { font-size: 15px; font-weight: 600; margin: 5px 0 0; color: var(--bordeaux-dark); }
+  .fin-theo-val .unit { font-size: 11px; font-weight: 500; color: var(--ink-3); margin-left: 4px; }
   .pay-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 0.5px solid #f2f1ed; }
   .pay-row:last-child { border: none; }
   .pay-ic { width: 28px; height: 28px; border-radius: 8px; background: var(--bordeaux-100); color: var(--bordeaux); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; flex-shrink: 0; }
@@ -555,6 +557,7 @@
             <th class="sortable-th">Pax<span class="sort-carets"><span class="care" id="care-suivi-pax-up" onclick="suiviSetSort_('pax',1)">⌃</span><span class="care" id="care-suivi-pax-down" onclick="suiviSetSort_('pax',-1)">⌄</span></span></th>
             <th>Espace</th>
             <th>Type</th>
+            <th title="Estimation à partir de l'onglet Tarifs (pax, espace, type de client)">Prix théo.</th>
             <th>Owner</th>
             <th class="sortable-th">Demande<span class="sort-carets"><span class="care" id="care-suivi-demande-up" onclick="suiviSetSort_('demande',1)">⌃</span><span class="care" id="care-suivi-demande-down" onclick="suiviSetSort_('demande',-1)">⌄</span></span></th>
             <th>Statut</th><th id="suiviLastCol"></th>
@@ -705,6 +708,15 @@
           </div>
           <div><label class="k">Société / raison sociale</label><input id="finSociete" oninput="onFinanceInput()" placeholder="ex. Acme Corp"></div>
         </div>
+        <div class="grid2" style="margin-top:14px; align-items:end;">
+          <div><label class="k">Type de client</label>
+            <div class="tarif-toggle-group">
+              <button type="button" id="finClientParticulier" onclick="onFinanceClientType_('particulier')">Particulier</button>
+              <button type="button" id="finClientEntreprise" onclick="onFinanceClientType_('entreprise')">Entreprise</button>
+            </div>
+          </div>
+          <div id="finTheoriqueBox" style="display:none;"><label class="k">Prix théorique (Tarifs)</label><p class="fin-theo-val" id="finTheoriqueVal">—</p></div>
+        </div>
         <div class="grid2" style="margin-top:14px">
           <div class="fin-ic-input">
             <span class="fin-ic">🍽</span>
@@ -722,7 +734,7 @@
           <div class="itile center"><p class="k">Total TTC</p><p class="v" id="finTotalTTC">—</p></div>
         </div>
       </div>
-      <div class="panel">
+      <div class="panel" id="finEncaissementsPanel">
         <p class="panel-t">Encaissements</p>
         <div class="fin-head">
           <div><p class="fin-big" id="finBig">—</p><p class="fin-note" id="finNote"></p></div>
@@ -2324,7 +2336,7 @@ function renderSuivi_() {
 
   document.getElementById('suiviCount').textContent = rows.length + (rows.length > 1 ? " demandes" : " demande");
   const body = document.getElementById('suiviBody');
-  body.innerHTML = rows.length ? rows.map(r => suiviRow_(r)).join("") : '<tr><td colspan="9" style="padding:30px;text-align:center;color:var(--ink-3)">Aucune demande sur ce filtre.</td></tr>';
+  body.innerHTML = rows.length ? rows.map(r => suiviRow_(r)).join("") : '<tr><td colspan="10" style="padding:30px;text-align:center;color:var(--ink-3)">Aucune demande sur ce filtre.</td></tr>';
   const lastCol = document.getElementById('suiviLastCol');
   if (lastCol) lastCol.textContent = suiviFilter === 'archived' ? 'Motif' : '';
 
@@ -2349,12 +2361,17 @@ function suiviRow_(r) {
   const idx = DATA.indexOf(r);
   const curType = (r.finance && r.finance.type) || "Privatisation";
   const typeOpts = ["Privatisation", "Prestation", "Formule groupe"].map(o => `<option ${o === curType ? "selected" : ""}>${o}</option>`).join("");
+  const theo = demandeTheorique_(r);
+  const theoCell = theo
+    ? fmtEUR(theo.roundedField === 'ht' ? theo.totalHT : theo.totalTTC) + ' <span style="font-size:10px;color:var(--ink-3);">' + (theo.roundedField === 'ht' ? 'HT' : 'TTC') + '</span>'
+    : '<span class="cl-sub">—</span>';
   return `<tr class="row" onclick="openDetail(${idx}, 'dashboard')">
     <td>${dateBlockHtml_(r.date)}</td>
     <td><div class="cl-name">${esc(r.client)}</div>${r.email ? '<div class="cl-sub">' + esc(r.email) + '</div>' : ''}</td>
     <td class="pax-cell">${toNumber(r.pax) > 0 ? r.pax : "—"}</td>
     <td>${esc(r.espace || "—")}</td>
     <td><select onclick="event.stopPropagation()" onchange="onSuiviTypeInline_(${idx}, this.value)" class="type-tag ${curType === 'Formule groupe' ? 'groupe' : curType === 'Prestation' ? 'prestation' : 'privatisation'}" style="border:none; cursor:pointer; appearance:none; -webkit-appearance:none;">${typeOpts}</select></td>
+    <td class="amt-cell">${theoCell}</td>
     <td><select onclick="event.stopPropagation()" onchange="onSuiviOwnerInline_(${idx}, this.value)" style="border:none; background:transparent; font:inherit; color:inherit; cursor:pointer; padding:0;">${ownerOptsFor_(r.owner)}</select></td>
     <td>${esc(fmtShortFR_(r.dateDemande))}</td>
     <td><select onclick="event.stopPropagation()" onchange="onSuiviStatutInline_(${idx}, this.value)" class="status-select ${STATUT_SELECT_CLASS_[r.statut] || 'waiting'}" style="padding:4px 8px; font-size:11.5px;">${ALL_STATUTS_.map(s => `<option value="${s}" ${s === r.statut ? "selected" : ""}>${s}</option>`).join("")}</select>${r.relance ? '<span class="tag amber" style="margin-left:6px">à relancer</span>' : ''}</td>
@@ -2624,12 +2641,16 @@ function setTarifClientType_(t) {
 // Arrondi à la centaine inférieure : sur le HT pour une entreprise (c'est son chiffre de
 // référence), sur le TTC pour un particulier — puis on recalcule l'autre montant et toute la TVA
 // à partir de ce total arrondi, en conservant la proportion alcool/reste (partAlcool).
-function computeTarifPrice_(espace, pax) {
+// `clientTypeOverride` permet d'appeler ce calcul pour une demande précise (son propre
+// r.clientType) sans dépendre du toggle affiché dans l'onglet Tarifs — utilisé par
+// demandeTheorique_ ci-dessous, pour le prix théorique dans Suivi et la fiche.
+function computeTarifPrice_(espace, pax, clientTypeOverride) {
+  const ct = clientTypeOverride || tarifClientType_;
   const c = tarifConfig_.espaces[espace];
   const perPersTotal = pax * c.prixPers;
   const minApplied = perPersTotal < c.minForfaitaire;
   const sousTotal = Math.max(c.minForfaitaire, perPersTotal);
-  const majoPct = tarifClientType_ === 'entreprise' ? (c.majoEntreprise || 0) : 0;
+  const majoPct = ct === 'entreprise' ? (c.majoEntreprise || 0) : 0;
   const majoMontant = sousTotal * majoPct / 100;
   const rawHT = sousTotal + majoMontant;
 
@@ -2638,7 +2659,7 @@ function computeTarifPrice_(espace, pax) {
   const factor = (1 - p) * (1 + TARIF_TVA_RESTE_) + p * (1 + TARIF_TVA_ALCOOL_);
 
   let totalHT, totalTTC, roundedField;
-  if (tarifClientType_ === 'entreprise') {
+  if (ct === 'entreprise') {
     totalHT = Math.floor(rawHT / 100) * 100;
     totalTTC = totalHT * factor;
     roundedField = 'ht';
@@ -2654,6 +2675,15 @@ function computeTarifPrice_(espace, pax) {
   const tvaReste = resteHT * TARIF_TVA_RESTE_;
   const outOfRange = pax > c.paxMax;
   return { minForfaitaire: c.minForfaitaire, perPersTotal, minApplied, sousTotal, majoPct, majoMontant, totalHT, alcoolHT, resteHT, tvaAlcool, tvaReste, totalTTC, roundedField, outOfRange, paxMax: c.paxMax, partAlcool: c.partAlcool };
+}
+
+// Prix théorique d'une demande (avant confirmation, où finance/chiffrage n'a pas encore la
+// vérité) : basé sur son pax + espace + r.clientType (défaut "particulier"), via la config de
+// l'onglet Tarifs. Retourne null si pas assez d'infos pour calculer (pas d'espace ou pax à 0).
+function demandeTheorique_(r) {
+  const pax = toNumber(r.pax);
+  if (!r.espace || !tarifConfig_.espaces[r.espace] || pax <= 0) return null;
+  return computeTarifPrice_(r.espace, pax, r.clientType || 'particulier');
 }
 
 function renderTarifBreakdown_() {
@@ -3029,6 +3059,12 @@ function commitQuadEdit_(field, val) {
   openDetail(DATA.indexOf(currentReq), backTarget);
 }
 
+// Toutes les fiches (demande ou confirmée) ont désormais un Chiffrage — initialisé dès qu'on
+// ouvre la fiche, comme ensureTasks_ ci-dessous pour les tâches. Mêmes valeurs par défaut que
+// celles posées à la confirmation, pour ne rien changer au comportement une fois confirmé.
+function ensureFinance_(r) {
+  if (!r.finance) r.finance = { service: "Dîner", type: "Privatisation", societe: "", caCuisineHT: 0, caAlcoolsHT: 0, statutPaiement: "En attente d'acompte", paiements: [] };
+}
 function openDetail(idx, origin) {
   const r = DATA[idx];
   if (!r) return;
@@ -3036,17 +3072,21 @@ function openDetail(idx, origin) {
   currentReq = r;
   backTarget = origin || backTarget || "dashboard";
   ensureTasks_(r);
+  ensureFinance_(r);
 
   renderHero_(r);
 
-  const isClosed = r.statut === "Confirmé" || r.statut === "Archivée";
+  const isConfirmed = r.statut === "Confirmé";
+  const isClosed = isConfirmed || r.statut === "Archivée";
   document.getElementById('tabCompose').style.display = isClosed ? "none" : "flex";
   const finTab = document.querySelector('.tab[data-pane="finance"]');
   const taskTab = document.querySelector('.tab[data-pane="tasks"]');
   const menuTab = document.querySelector('.tab[data-pane="menu"]');
-  if (finTab) finTab.style.display = r.statut === "Confirmé" ? "flex" : "none";
-  if (taskTab) taskTab.style.display = r.statut === "Confirmé" ? "flex" : "none";
-  if (menuTab) menuTab.style.display = r.statut === "Confirmé" ? "flex" : "none";
+  // Finances (Chiffrage) reste visible sur toute demande, confirmée ou non — seuls Tâches et Menu
+  // restent réservés aux fiches confirmées.
+  if (finTab) finTab.style.display = "flex";
+  if (taskTab) taskTab.style.display = isConfirmed ? "flex" : "none";
+  if (menuTab) menuTab.style.display = isConfirmed ? "flex" : "none";
   const badge = document.getElementById('taskBadge'), open = openTaskCount_(r);
   badge.textContent = open; badge.style.display = open ? "inline-block" : "none";
 
@@ -3054,16 +3094,16 @@ function openDetail(idx, origin) {
   renderDetInfo_(r);
   renderDetActions_(r);
   renderTimeline_(r);
-  if (r.statut === "Confirmé") renderFinance_(r);
-  if (r.statut === "Confirmé") renderTasks_(r);
-  if (r.statut === "Confirmé") renderDemandeMenu_(r);
+  renderFinance_(r);
+  if (isConfirmed) renderTasks_(r);
+  if (isConfirmed) renderDemandeMenu_(r);
   if (!isClosed) resetCompose();
 
   let defaultPane;
   if (currentView === "detail" && currentPane) defaultPane = currentPane;
-  else defaultPane = r.statut === "Confirmé" ? "finance" : (r.statut === "Archivée" ? "timeline" : "compose");
+  else defaultPane = isConfirmed ? "finance" : (r.statut === "Archivée" ? "timeline" : "compose");
   showView("detail");
-  showPane((defaultPane === "compose" && isClosed) || (defaultPane === "finance" && r.statut !== "Confirmé") || (defaultPane === "tasks" && r.statut !== "Confirmé") ? "timeline" : defaultPane);
+  showPane((defaultPane === "compose" && isClosed) || (defaultPane === "tasks" && !isConfirmed) || (defaultPane === "menu" && !isConfirmed) ? "timeline" : defaultPane);
 }
 
 function showPane(p) {
@@ -3316,8 +3356,36 @@ function commitInlineQuote_(val) {
 }
 
 /* ---- pane finance ---- */
+// Préremplissage ponctuel : si Cuisine HT et Alcools HT sont encore tous les deux à 0 (personne
+// n'a chiffré cette demande à la main) et qu'on a de quoi calculer un prix théorique (pax +
+// espace), on les préremplit à partir de l'onglet Tarifs. Ne se déclenche plus jamais dès qu'un
+// des deux montants devient non nul, à la main ou via ce préremplissage lui-même.
+function maybeAutofillTheorique_(r) {
+  const f = r.finance;
+  if (!f || toNumber(f.caCuisineHT) > 0 || toNumber(f.caAlcoolsHT) > 0) return false;
+  const t = demandeTheorique_(r);
+  if (!t) return false;
+  f.caCuisineHT = Math.round(t.resteHT);
+  f.caAlcoolsHT = Math.round(t.alcoolHT);
+  return true;
+}
 function renderFinance_(r) {
   const f = r.finance;
+  const isConfirmed = r.statut === "Confirmé";
+
+  document.getElementById('finClientParticulier').classList.toggle('on', (r.clientType || 'particulier') === 'particulier');
+  document.getElementById('finClientEntreprise').classList.toggle('on', r.clientType === 'entreprise');
+  const theo = demandeTheorique_(r);
+  const theoBox = document.getElementById('finTheoriqueBox');
+  if (theo) {
+    theoBox.style.display = "";
+    document.getElementById('finTheoriqueVal').innerHTML = fmtEUR(theo.roundedField === 'ht' ? theo.totalHT : theo.totalTTC) + '<span class="unit">' + (theo.roundedField === 'ht' ? 'HT' : 'TTC') + '</span>';
+  } else {
+    theoBox.style.display = "none";
+  }
+
+  if (maybeAutofillTheorique_(r)) saveData();
+
   document.getElementById('finSociete').value = f.societe || "";
   document.getElementById('finService').value = f.service || "Dîner";
   // L'heure vit désormais au niveau de la demande (r.heure, saisissable dès la création / avant
@@ -3326,9 +3394,20 @@ function renderFinance_(r) {
   document.getElementById('finHeure').value = r.heure || f.heure || "";
   document.getElementById('finCuisineHT').value = f.caCuisineHT || "";
   document.getElementById('finAlcoolsHT').value = f.caAlcoolsHT || "";
-  renderPaymentLines();
-  renderFactureLinks_(r);
+
+  const encPanel = document.getElementById('finEncaissementsPanel');
+  if (encPanel) encPanel.style.display = isConfirmed ? "" : "none";
+  if (isConfirmed) {
+    renderPaymentLines();
+    renderFactureLinks_(r);
+  }
   updateFinanceComputed();
+}
+function onFinanceClientType_(t) {
+  if (!currentReq) return;
+  currentReq.clientType = t;
+  saveData();
+  renderFinance_(currentReq);
 }
 function onFinanceInput() {
   if (!currentReq || !currentReq.finance) return;
