@@ -3013,7 +3013,7 @@ function quadRow_(r) {
   const totHT = financeTotals(f).totalHT;
   const budgetVal = totHT > 0.01 ? fmtEUR(totHT) : (theo ? fmtEUR(theo.roundedField === 'ht' ? theo.totalHT : theo.totalTTC) + ' <span class="qv-heure">(théo.)</span>' : "à chiffrer");
   return `
-    <div class="quad-box editable" onclick="startQuadEdit_(this,'date')"><span class="qic">${TILE_ICONS_.calendar}</span><p class="qv">${esc(dateVal)}${r.heure ? ` <span class="qv-heure">${esc(r.heure)}</span>` : ""}</p><p class="qs">${dateLbl}</p></div>
+    <div class="quad-box editable" onclick="startQuadEdit_(this,'date')"><span class="qic">${TILE_ICONS_.calendar}</span><p class="qv">${esc(dateVal)} <span class="qv-heure">${r.heure ? esc(r.heure) : "--:--"}</span></p><p class="qs">${dateLbl}</p></div>
     <div class="quad-box editable" onclick="startQuadEdit_(this,'pax')"><span class="qic">${TILE_ICONS_.people}</span><p class="qv">${toNumber(r.pax) > 0 ? r.pax + " personnes" : "?"}</p><p class="qs">${paxLbl}</p></div>
     <div class="quad-box" style="border-left:3px solid ${f.type === 'Formule groupe' ? 'var(--blue)' : f.type === 'Prestation' ? 'var(--slate)' : 'var(--violet)'}"><span class="qic">${TILE_ICONS_.prestation}</span>
       <select id="detTypeSelect" onchange="onTypeInline_(this.value)" style="font-size:13px; padding:5px 0 0; margin:2px 0 0; border:none; background:transparent; font-weight:600; cursor:pointer; color:${f.type === 'Formule groupe' ? 'var(--blue-d)' : f.type === 'Prestation' ? 'var(--slate-d)' : 'var(--violet-d)'}">
@@ -3056,12 +3056,19 @@ function startQuadEdit_(boxEl, field) {
     const curDate = currentReq.date || "";
     const curHeure = currentReq.heure || "";
     boxEl.innerHTML = `<span class="qic">${TILE_ICONS_.calendar}</span><input type="text" value="${esc(curDate)}" placeholder="jj/mm/aaaa" onclick="event.stopPropagation()" onkeydown="if(event.key==='Enter') this.blur();"><input type="time" value="${esc(curHeure)}" onclick="event.stopPropagation()" style="margin-top:4px;" onkeydown="if(event.key==='Enter') this.blur();"><p class="qs">${dateLbl}</p>`;
-    boxEl.onfocusout = function (e) {
-      if (boxEl.contains(e.relatedTarget)) return;
-      boxEl.onfocusout = null;
-      const inputs = boxEl.querySelectorAll('input');
-      commitQuadEdit_('date', inputs[0].value, inputs[1].value);
+    // e.relatedTarget n'est pas fiable pour repérer "le focus est resté dans la boîte" (surtout
+    // dans ce navigateur embarqué) : on reporte la vérification au tick suivant et on regarde
+    // document.activeElement, qui lui est toujours à jour une fois le nouveau focus posé.
+    const onBoxFocusOut = function () {
+      setTimeout(() => {
+        if (boxEl.contains(document.activeElement)) return;
+        boxEl.removeEventListener('focusout', onBoxFocusOut);
+        const inputs = boxEl.querySelectorAll('input');
+        if (inputs.length < 2) return;
+        commitQuadEdit_('date', inputs[0].value, inputs[1].value);
+      }, 0);
     };
+    boxEl.addEventListener('focusout', onBoxFocusOut);
     const inp = boxEl.querySelector('input'); inp.focus(); inp.select();
     return;
   }
