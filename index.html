@@ -701,10 +701,7 @@
         <p class="panel-t">Chiffrage</p>
         <div class="grid2">
           <div><label class="k">Service</label>
-            <div style="display:flex; gap:8px; align-items:center;">
-              <select id="finService" onchange="onFinanceInput()" style="flex:1"><option>Déjeuner</option><option>Dîner</option></select>
-              <input id="finHeure" type="time" oninput="onFinanceInput()" title="Heure de début — utilisée pour l'événement Calendar créé à la confirmation" style="width:110px;">
-            </div>
+            <select id="finService" onchange="onFinanceInput()"><option>Déjeuner</option><option>Dîner</option></select>
           </div>
           <div><label class="k">Société / raison sociale</label><input id="finSociete" oninput="onFinanceInput()" placeholder="ex. Acme Corp"></div>
         </div>
@@ -2241,16 +2238,19 @@ function updateNavBadges_() {
    ========================================================================= */
 function renderDashboard() {
   const today = new Date(); today.setHours(0, 0, 0, 0);
+  const windowEnd = new Date(today); windowEnd.setDate(windowEnd.getDate() + 3);
   const confirmed = DATA.filter(r => r.statut === "Confirmé");
-  const upcoming = confirmed.filter(r => { const d = parseDate(r.date); return d && d >= today; }).sort((a, b) => parseDate(a.date) - parseDate(b.date));
+  // "Événements à venir" ne montre que les 4 prochains jours (aujourd'hui inclus) — une fenêtre
+  // glissante plutôt qu'une "semaine" calendaire, pour qu'un samedi/dimanche voie quand même
+  // les événements de lundi.
+  const upcoming = confirmed.filter(r => { const d = parseDate(r.date); return d && d >= today && d <= windowEnd; }).sort((a, b) => parseDate(a.date) - parseDate(b.date));
 
-  document.getElementById('upcomingCount').textContent = upcoming.length + (upcoming.length > 1 ? " privatisations confirmées" : " privatisation confirmée");
+  document.getElementById('upcomingCount').textContent = upcoming.length + (upcoming.length > 1 ? " privatisations confirmées dans les 4 prochains jours" : " privatisation confirmée dans les 4 prochains jours");
   const box = document.getElementById('dashUpcoming');
   if (!upcoming.length) {
-    box.innerHTML = '<tr><td colspan="7" style="padding:30px;text-align:center;color:var(--ink-3)">Aucune privatisation confirmée à venir. Les demandes en cours sont dans le suivi ci-dessous.</td></tr>';
+    box.innerHTML = '<tr><td colspan="7" style="padding:30px;text-align:center;color:var(--ink-3)">Aucune privatisation confirmée dans les 4 prochains jours.</td></tr>';
   } else {
-    box.innerHTML = upcoming.slice(0, 6).map(r => eventRow_(r)).join("");
-    if (upcoming.length > 6) box.innerHTML += `<tr><td colspan="7" style="padding:8px 2px;text-align:center;font-size:12px;color:var(--ink-3)">+ ${upcoming.length - 6} autre${upcoming.length - 6 > 1 ? "s" : ""} à venir</td></tr>`;
+    box.innerHTML = upcoming.map(r => eventRow_(r)).join("");
   }
   renderSuivi_();
 }
@@ -3087,6 +3087,10 @@ function commitQuadEdit_(field, val, heureVal) {
 // celles posées à la confirmation, pour ne rien changer au comportement une fois confirmé.
 function ensureFinance_(r) {
   if (!r.finance) r.finance = { service: "Dîner", type: "Privatisation", societe: "", caCuisineHT: 0, caAlcoolsHT: 0, statutPaiement: "En attente d'acompte", paiements: [] };
+  // Migration ponctuelle : anciennes fiches confirmées où l'heure n'existait que dans finance.heure
+  // (avant que r.heure devienne le champ de référence, éditable dès la demande). On la remonte une
+  // fois pour toutes au niveau de la demande.
+  if (!r.heure && r.finance.heure) r.heure = r.finance.heure;
 }
 function openDetail(idx, origin) {
   const r = DATA[idx];
@@ -3411,10 +3415,6 @@ function renderFinance_(r) {
 
   document.getElementById('finSociete').value = f.societe || "";
   document.getElementById('finService').value = f.service || "Dîner";
-  // L'heure vit désormais au niveau de la demande (r.heure, saisissable dès la création / avant
-  // confirmation) et non plus dans finance — on garde f.heure en repli pour les fiches confirmées
-  // avant ce changement, qui l'avaient saisie uniquement ici.
-  document.getElementById('finHeure').value = r.heure || f.heure || "";
   document.getElementById('finCuisineHT').value = f.caCuisineHT || "";
   document.getElementById('finAlcoolsHT').value = f.caAlcoolsHT || "";
 
@@ -3426,18 +3426,31 @@ function renderFinance_(r) {
   }
   updateFinanceComputed();
 }
+// Si le chiffrage affiché est toujours exactement celui du préremplissage théorique (personne n'y
+// a touché à la main), on le recalcule avec le nouveau type client. Dès qu'un montant a été
+// modifié manuellement, il ne colle plus au théorique et on le laisse tel quel — seul l'encart
+// "Prix théorique" au-dessus continue de refléter le nouveau type.
 function onFinanceClientType_(t) {
   if (!currentReq) return;
-  currentReq.clientType = t;
+  const r = currentReq, f = r.finance;
+  const oldTheo = demandeTheorique_(r);
+  const wasAutoValue = f && oldTheo && Math.round(oldTheo.resteHT) === toNumber(f.caCuisineHT) && Math.round(oldTheo.alcoolHT) === toNumber(f.caAlcoolsHT);
+  r.clientType = t;
+  if (wasAutoValue) {
+    const newTheo = demandeTheorique_(r);
+    if (newTheo) {
+      f.caCuisineHT = Math.round(newTheo.resteHT);
+      f.caAlcoolsHT = Math.round(newTheo.alcoolHT);
+    }
+  }
   saveData();
-  renderFinance_(currentReq);
+  renderFinance_(r);
 }
 function onFinanceInput() {
   if (!currentReq || !currentReq.finance) return;
   const f = currentReq.finance;
   f.societe = document.getElementById('finSociete').value;
   f.service = document.getElementById('finService').value;
-  currentReq.heure = document.getElementById('finHeure').value;
   f.caCuisineHT = toNumber(document.getElementById('finCuisineHT').value);
   f.caAlcoolsHT = toNumber(document.getElementById('finAlcoolsHT').value);
   updateFinanceComputed();
