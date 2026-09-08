@@ -419,6 +419,59 @@
   .auth-btn:disabled { opacity: .6; cursor: default; }
   .auth-err { font-size: 12px; color: var(--red-d); background: var(--red-bg); border-radius: 8px; padding: 8px 12px; margin-top: 16px; display: none; }
   .auth-err.on { display: block; }
+
+  /* ---- Onglet Tarifs (simulateur de pricing) ---- */
+  .tarif-wrap { max-width: 760px; }
+  .tarif-lead { font-size: 13.5px; color: var(--ink-3); margin: 0 0 26px; line-height: 1.5; }
+  .tarif-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: 14px; padding: 22px 24px; margin-bottom: 18px; }
+  .tarif-card h2 { font-size: 15.5px; margin: 0 0 4px; color: var(--ink); display: flex; align-items: center; gap: 8px; }
+  .tarif-card .tarif-sub { font-size: 11.5px; color: var(--ink-3); margin: 0 0 16px; line-height: 1.5; }
+  .tarif-sim-row { display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
+  .tarif-sim-field { flex: 1; min-width: 130px; }
+  .tarif-sim-field label { display: block; font-size: 10.5px; font-weight: 600; color: var(--ink-3); text-transform: uppercase; letter-spacing: .03em; margin-bottom: 5px; }
+  .tarif-sim-field input, .tarif-sim-field select { width: 100%; border: 0.5px solid var(--border-strong); border-radius: 8px; padding: 10px 11px; font-size: 14.5px; font-family: inherit; background: var(--surface); }
+  .tarif-toggle-group { display: flex; border: 0.5px solid var(--border-strong); border-radius: 8px; overflow: hidden; }
+  .tarif-toggle-group button { flex: 1; border: none; background: var(--surface); padding: 10px 10px; font-size: 13.5px; font-family: inherit; cursor: pointer; color: var(--ink-3); }
+  .tarif-toggle-group button.on { background: var(--bordeaux); color: #fff; font-weight: 600; }
+  .tarif-result { background: linear-gradient(135deg,var(--bordeaux-100),var(--bordeaux-200)); border-radius: 12px; padding: 20px 22px; margin-top: 6px; }
+  .tarif-result .tarif-cap-warn { font-size: 12px; color: var(--red-d); background: var(--red-bg); border-radius: 6px; padding: 7px 11px; margin-bottom: 14px; display: none; }
+  .tarif-result .tarif-cap-warn.on { display: block; }
+  .tarif-breakdown { font-size: 13px; color: var(--bordeaux-dark); }
+  .tarif-breakdown div { display: flex; justify-content: space-between; padding: 3.5px 0; }
+  .tarif-breakdown .tarif-sub-line { color: var(--bordeaux-300); font-size: 12px; }
+  .tarif-breakdown .tarif-subtotal-ht { font-weight: 500; font-size: 13px; border-top: 1px solid rgba(140,56,35,.25); margin-top: 8px; padding-top: 9px; color: var(--bordeaux-300); }
+  .tarif-breakdown .tarif-line-total { font-weight: 700; font-size: 21px; margin-top: 8px; padding-top: 9px; }
+  .tarif-compare h2 { font-size: 13.5px; margin: 0 0 12px; }
+  .tarif-comp-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-size: 12px; }
+  .tarif-comp-row .tarif-lbl { width: 110px; flex-shrink: 0; color: var(--bordeaux-dark); font-weight: 600; }
+  .tarif-comp-row .tarif-bar-wrap { flex: 1; background: var(--surface-2); border-radius: 5px; height: 20px; position: relative; overflow: hidden; }
+  .tarif-comp-row .tarif-bar { height: 100%; background: var(--bordeaux-300); border-radius: 5px; display: flex; align-items: center; }
+  .tarif-comp-row .tarif-bar.current { background: var(--bordeaux); }
+  .tarif-comp-row .tarif-val { width: 74px; text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .tarif-comp-row .tarif-warn-flag { color: var(--red-d); font-size: 10.5px; margin-left: 4px; }
+  .tarif-params-details { background: var(--surface); border: 0.5px solid var(--border); border-radius: 14px; padding: 4px 24px 4px; margin-bottom: 18px; }
+  .tarif-params-details summary { cursor: pointer; padding: 16px 0; font-size: 13.5px; font-weight: 600; color: var(--bordeaux-dark); list-style: none; display: flex; align-items: center; justify-content: space-between; }
+  .tarif-params-details summary::-webkit-details-marker { display: none; }
+  .tarif-params-details summary .tarif-car { transition: transform .15s; color: var(--ink-3); }
+  .tarif-params-details[open] summary .tarif-car { transform: rotate(90deg); }
+  .tarif-params-body { padding-bottom: 20px; }
+  .tarif-params-body .tarif-sub { margin-top: -8px; }
+  table.tarif-params-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  table.tarif-params-table th { text-align: left; font-weight: 600; color: var(--ink-3); font-size: 10px; text-transform: uppercase; letter-spacing: .03em; padding: 0 6px 8px; border-bottom: 1px solid var(--border); }
+  table.tarif-params-table td { padding: 7px 6px; border-bottom: 1px solid var(--surface-2); vertical-align: middle; }
+  table.tarif-params-table input { width: 100%; border: 0.5px solid var(--border-strong); border-radius: 6px; padding: 5px 6px; font-size: 12.5px; font-family: inherit; background: var(--surface); }
+  table.tarif-params-table input:focus { outline: none; border-color: var(--bordeaux); }
+  table.tarif-params-table td.tarif-espace-name { font-weight: 600; font-size: 12.5px; white-space: nowrap; }
+  table.tarif-params-table tr.tarif-bulk-row td { border-bottom: 1px dashed var(--border-strong); padding-bottom: 10px; }
+  table.tarif-params-table tr.tarif-bulk-row .tarif-bulk-lbl { font-weight: 600; font-style: italic; font-size: 11.5px; color: var(--ink-3); white-space: normal; }
+  table.tarif-params-table tr.tarif-bulk-row input { background: var(--surface-2); border-style: dashed; }
+  table.tarif-params-table tr.tarif-bulk-row input::placeholder { color: var(--ink-3); }
+  .tarif-global-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border); }
+  .tarif-global-row label { font-size: 12.5px; font-weight: 600; }
+  .tarif-global-row .tarif-hint { font-size: 11px; color: var(--ink-3); font-weight: 400; display: block; margin-top: 2px; }
+  .tarif-reset-btn { margin-top: 16px; background: none; border: 0.5px solid var(--border-strong); color: var(--ink-3); font-size: 11.5px; padding: 7px 12px; border-radius: 7px; cursor: pointer; }
+  .tarif-reset-btn:hover { border-color: var(--bordeaux); color: var(--bordeaux); }
+  .tarif-foot-note { font-size: 11px; color: var(--ink-3); margin-top: 6px; line-height: 1.6; }
 </style>
 </head>
 <body>
@@ -446,6 +499,7 @@
       <button id="nav-confirmed" onclick="showView('confirmed')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4 12 14.01l-3-3"/></svg><span class="lbl">Confirmées</span></button>
       <button id="nav-tasks" onclick="showView('tasks')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="6" height="6" rx="1"/><path d="M11 6h9"/><rect x="3" y="14" width="6" height="6" rx="1"/><path d="M11 15h9"/></svg><span class="lbl">Tâches</span><span class="navb" id="navTasksBadge" style="display:none">0</span></button>
       <button id="nav-stats" onclick="showView('stats')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg><span class="lbl">Statistiques</span></button>
+      <button id="nav-pricing" onclick="showView('pricing')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg><span class="lbl">Tarifs</span></button>
       <div class="plus-wrap" tabindex="0">
         <button id="nav-plus-trigger" type="button"><span class="lbl">Plus</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>
         <div class="plus-menu">
@@ -732,6 +786,65 @@
           </div>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- ============ TARIFS (simulateur de pricing) ============ -->
+  <div class="view" id="view-pricing">
+    <div class="tarif-wrap">
+      <p class="tarif-lead">Simulateur pour caler la grille tarifaire des privatisations. Les valeurs sont des exemples à corriger — indépendant du reste de l'outil, tes réglages restent dans ce navigateur.</p>
+
+      <div class="tarif-card">
+        <h2>Simulateur</h2>
+        <p class="tarif-sub">Choisis un scénario pour voir le prix calculé, HT et TTC.</p>
+        <div class="tarif-sim-row">
+          <div class="tarif-sim-field">
+            <label>Nombre de personnes</label>
+            <input type="number" id="tarifSimPax" min="1" value="20" oninput="renderTarifAll_()">
+          </div>
+          <div class="tarif-sim-field">
+            <label>Espace</label>
+            <select id="tarifSimEspace" onchange="renderTarifAll_()"></select>
+          </div>
+        </div>
+        <div class="tarif-sim-row">
+          <div class="tarif-sim-field">
+            <label>Type de client</label>
+            <div class="tarif-toggle-group">
+              <button id="tarifBtnParticulier" type="button" onclick="setTarifClientType_('particulier')">Particulier</button>
+              <button id="tarifBtnEntreprise" type="button" onclick="setTarifClientType_('entreprise')">Entreprise</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="tarif-result">
+          <div class="tarif-cap-warn" id="tarifCapWarn"></div>
+          <div class="tarif-breakdown" id="tarifBreakdown"></div>
+        </div>
+      </div>
+
+      <div class="tarif-card tarif-compare">
+        <h2>Comparatif tous espaces (mêmes pax / type client)</h2>
+        <div id="tarifCompareBody"></div>
+      </div>
+
+      <details class="tarif-params-details">
+        <summary>Paramètres <span class="tarif-car">›</span></summary>
+        <div class="tarif-params-body">
+          <p class="tarif-sub">Par espace : un minimum forfaitaire (facturé quel que soit le nombre de personnes), un prix par personne (HT), une capacité maxi, la part d'alcool dans le total HT et une majoration entreprise. Total HT = le plus élevé entre le minimum forfaitaire et (pax × prix/pers), puis majoration entreprise si applicable.</p>
+          <table class="tarif-params-table">
+            <thead><tr><th>Espace</th><th>Minimum forfaitaire</th><th>€/pers HT</th><th>Pax maxi</th><th>% alcool</th><th>Majo. entreprise</th></tr></thead>
+            <tbody id="tarifParamsBody"></tbody>
+          </table>
+          <p class="tarif-sub" style="margin-top:12px;">La ligne "Appliquer à tous" écrit la valeur saisie dans toutes les lignes ci-dessous — utile pour partir d'une base commune. C'est un remplissage ponctuel, pas un lien permanent : tu peux ensuite modifier une case individuellement sans que ça touche les autres.</p>
+          <div class="tarif-global-row" style="border-top:none; margin-top:0; padding-top:0;">
+            <label>TVA<span class="tarif-hint">Taux fixes : 10 % hors alcool, 20 % sur la part alcool</span></label>
+          </div>
+          <button class="tarif-reset-btn" onclick="resetTarifParams_()">↺ Réinitialiser les valeurs par défaut</button>
+        </div>
+      </details>
+
+      <p class="tarif-foot-note">Réglages sauvegardés automatiquement dans ce navigateur (localStorage) — ils ne sont visibles que par toi ici, pas partagés avec Adrien ni synchronisés avec le reste de l'outil.</p>
     </div>
   </div>
 
@@ -2098,6 +2211,7 @@ function renderCurrentView_() {
   else if (currentView === 'tasks') renderTasksTab_();
   else if (currentView === 'stats') renderStats_();
   else if (currentView === 'settings') loadSettingsForms();
+  else if (currentView === 'pricing') renderTarifView_();
 }
 
 function updateNavBadges_() {
@@ -2404,6 +2518,187 @@ function renderStatsCA_(rows) {
     const [y, m] = k.split("-");
     return `<div class="bar-col"><span class="bval ${isHi ? 'hi' : ''}">${fmtEURCompact_(byMonth[k])}</span><div class="bcol ${isHi ? 'hi' : ''} ${isForecast ? 'forecast' : ''}" style="height:${Math.max(4, h)}%" title="${fmtEUR(byMonth[k])}${isForecast ? ' (forecast)' : ''}"></div><span class="blab ${isForecast ? 'forecast' : ''}">${MOIS_COURT_[Number(m) - 1]}</span></div>`;
   }).join("") || '<span style="font-size:12px;color:var(--ink-3)">Pas encore de données.</span>';
+}
+
+/* =========================================================================
+   TARIFS — simulateur de pricing (onglet indépendant, bac à sable localStorage)
+   Toutes les fonctions/variables sont préfixées tarif/Tarif pour ne jamais entrer en
+   collision avec le reste de l'outil (ex. fmtEUR est réutilisé tel quel depuis plus haut).
+   ========================================================================= */
+const TARIF_TVA_ALCOOL_ = 0.20;
+const TARIF_TVA_RESTE_ = 0.10;
+const TARIF_DEFAULT_CONFIG_ = {
+  espaces: {
+    "Salon privatif":    { minForfaitaire: 1200, prixPers: 70, paxMax: 25,  partAlcool: 15, majoEntreprise: 25 },
+    "RDC 300":           { minForfaitaire: 1000, prixPers: 70, paxMax: 20,  partAlcool: 15, majoEntreprise: 25 },
+    "RDC 200":           { minForfaitaire: 800,  prixPers: 70, paxMax: 12,  partAlcool: 15, majoEntreprise: 25 },
+    "Étage":             { minForfaitaire: 3400, prixPers: 70, paxMax: 70,  partAlcool: 15, majoEntreprise: 25 },
+    "Restaurant entier": { minForfaitaire: 6500, prixPers: 70, paxMax: 140, partAlcool: 15, majoEntreprise: 25 }
+  }
+};
+const TARIF_STORAGE_KEY_ = "rosario_pricing_sim_v3";
+const TARIF_BULK_FIELDS_ = ["minForfaitaire", "prixPers", "paxMax", "partAlcool", "majoEntreprise"];
+let tarifConfig_ = loadTarifConfig_();
+let tarifClientType_ = "particulier";
+
+function loadTarifConfig_() {
+  try {
+    const raw = localStorage.getItem(TARIF_STORAGE_KEY_);
+    if (!raw) return JSON.parse(JSON.stringify(TARIF_DEFAULT_CONFIG_));
+    const parsed = JSON.parse(raw);
+    const valid = parsed.espaces && ESPACE_OPTIONS_.every(e => parsed.espaces[e] && typeof parsed.espaces[e].minForfaitaire === "number" && typeof parsed.espaces[e].partAlcool === "number" && typeof parsed.espaces[e].majoEntreprise === "number");
+    if (!valid) return JSON.parse(JSON.stringify(TARIF_DEFAULT_CONFIG_));
+    return parsed;
+  } catch (e) {
+    return JSON.parse(JSON.stringify(TARIF_DEFAULT_CONFIG_));
+  }
+}
+function saveTarifConfig_() {
+  try { localStorage.setItem(TARIF_STORAGE_KEY_, JSON.stringify(tarifConfig_)); } catch (e) { console.warn("localStorage indisponible", e); }
+}
+function resetTarifParams_() {
+  tarifConfig_ = JSON.parse(JSON.stringify(TARIF_DEFAULT_CONFIG_));
+  saveTarifConfig_();
+  renderTarifParams_();
+  renderTarifAll_();
+}
+
+// Rendu de l'onglet, appelé à chaque fois qu'on y navigue (voir renderCurrentView_).
+function renderTarifView_() {
+  renderTarifParams_();
+  updateTarifToggleUI_();
+  renderTarifAll_();
+}
+
+function renderTarifParams_() {
+  const body = document.getElementById('tarifParamsBody');
+  const bulkRow = `<tr class="tarif-bulk-row">
+    <td class="tarif-espace-name tarif-bulk-lbl">Appliquer à tous ↓</td>
+    ${TARIF_BULK_FIELDS_.map(f => `<td><input type="number" placeholder="—" onchange="bulkSetTarif_('${f}', this.value); this.value='';"></td>`).join("")}
+  </tr>`;
+  const rows = ESPACE_OPTIONS_.map(esp => {
+    const c = tarifConfig_.espaces[esp];
+    return `<tr>
+      <td class="tarif-espace-name">${esp}</td>
+      <td><input type="number" min="0" step="10" value="${c.minForfaitaire}" onchange="updateTarifParam_('${esp}','minForfaitaire',this.value)"></td>
+      <td><input type="number" min="0" step="1" value="${c.prixPers}" onchange="updateTarifParam_('${esp}','prixPers',this.value)"></td>
+      <td><input type="number" min="0" step="1" value="${c.paxMax}" onchange="updateTarifParam_('${esp}','paxMax',this.value)"></td>
+      <td><input type="number" min="0" max="100" step="1" value="${c.partAlcool}" onchange="updateTarifParam_('${esp}','partAlcool',this.value)"></td>
+      <td><input type="number" min="0" step="1" value="${c.majoEntreprise}" onchange="updateTarifParam_('${esp}','majoEntreprise',this.value)"></td>
+    </tr>`;
+  }).join("");
+  body.innerHTML = bulkRow + rows;
+  const simEspace = document.getElementById('tarifSimEspace');
+  if (!simEspace.dataset.built) {
+    simEspace.innerHTML = ESPACE_OPTIONS_.map(e => `<option value="${e}">${e}</option>`).join("");
+    simEspace.dataset.built = "1";
+  }
+}
+function updateTarifParam_(espace, field, val) {
+  tarifConfig_.espaces[espace][field] = Number(val) || 0;
+  saveTarifConfig_();
+  renderTarifAll_();
+}
+// Remplissage ponctuel : écrit la valeur dans toutes les lignes au moment du changement, puis
+// n'a plus aucun lien avec elles — modifier une case ensuite ne touche pas les autres.
+function bulkSetTarif_(field, val) {
+  if (val === "") return;
+  const v = Number(val);
+  if (isNaN(v)) return;
+  ESPACE_OPTIONS_.forEach(esp => { tarifConfig_.espaces[esp][field] = v; });
+  saveTarifConfig_();
+  renderTarifParams_();
+  renderTarifAll_();
+}
+
+function updateTarifToggleUI_() {
+  document.getElementById('tarifBtnParticulier').classList.toggle('on', tarifClientType_ === 'particulier');
+  document.getElementById('tarifBtnEntreprise').classList.toggle('on', tarifClientType_ === 'entreprise');
+}
+function setTarifClientType_(t) {
+  tarifClientType_ = t;
+  updateTarifToggleUI_();
+  renderTarifAll_();
+}
+
+function computeTarifPrice_(espace, pax) {
+  const c = tarifConfig_.espaces[espace];
+  const perPersTotal = pax * c.prixPers;
+  const minApplied = perPersTotal < c.minForfaitaire;
+  const sousTotal = Math.max(c.minForfaitaire, perPersTotal);
+  const majoPct = tarifClientType_ === 'entreprise' ? (c.majoEntreprise || 0) : 0;
+  const majoMontant = sousTotal * majoPct / 100;
+  const totalHT = sousTotal + majoMontant;
+  const alcoolHT = totalHT * (c.partAlcool || 0) / 100;
+  const resteHT = totalHT - alcoolHT;
+  const tvaAlcool = alcoolHT * TARIF_TVA_ALCOOL_;
+  const tvaReste = resteHT * TARIF_TVA_RESTE_;
+  const totalTTC = totalHT + tvaAlcool + tvaReste;
+  const outOfRange = pax > c.paxMax;
+  return { minForfaitaire: c.minForfaitaire, perPersTotal, minApplied, sousTotal, majoPct, majoMontant, totalHT, alcoolHT, resteHT, tvaAlcool, tvaReste, totalTTC, outOfRange, paxMax: c.paxMax, partAlcool: c.partAlcool };
+}
+
+function renderTarifBreakdown_() {
+  const pax = Math.max(0, Number(document.getElementById('tarifSimPax').value) || 0);
+  const espace = document.getElementById('tarifSimEspace').value;
+  const r = computeTarifPrice_(espace, pax);
+
+  const warnEl = document.getElementById('tarifCapWarn');
+  if (r.outOfRange) {
+    warnEl.textContent = `${pax} pers dépasse la capacité de "${espace}" (max ${r.paxMax} pers).`;
+    warnEl.classList.add('on');
+  } else {
+    warnEl.classList.remove('on');
+  }
+
+  const lines = [
+    [`${pax} pers × ${fmtEUR(tarifConfig_.espaces[espace].prixPers)}`, fmtEUR(r.perPersTotal)],
+    ['Minimum forfaitaire' + (r.minApplied ? ' (appliqué)' : ''), fmtEUR(r.minForfaitaire)]
+  ];
+  if (tarifClientType_ === 'entreprise') lines.push([`Majoration entreprise (${r.majoPct}%)`, '+ ' + fmtEUR(r.majoMontant)]);
+
+  const tvaLines = [
+    [`dont alcool (${r.partAlcool}%)`, fmtEUR(r.alcoolHT)],
+    [`TVA 10% (hors alcool)`, '+ ' + fmtEUR(r.tvaReste)],
+    [`TVA 20% (alcool)`, '+ ' + fmtEUR(r.tvaAlcool)]
+  ];
+
+  // Entreprise → le HT est le chiffre qui compte (TVA récupérable), donc il passe en gros ; le
+  // TTC redescend en ligne secondaire. Particulier → l'inverse, c'est le TTC qui compte.
+  const htHtml = tarifClientType_ === 'entreprise'
+    ? `<div class="tarif-line-total"><span>Total HT</span><span>${fmtEUR(r.totalHT)}</span></div>`
+    : `<div class="tarif-subtotal-ht"><span>Total HT</span><span>${fmtEUR(r.totalHT)}</span></div>`;
+  const ttcHtml = tarifClientType_ === 'entreprise'
+    ? `<div class="tarif-subtotal-ht"><span>Total TTC (info)</span><span>${fmtEUR(r.totalTTC)}</span></div>`
+    : `<div class="tarif-line-total"><span>Total TTC</span><span>${fmtEUR(r.totalTTC)}</span></div>`;
+
+  document.getElementById('tarifBreakdown').innerHTML =
+    lines.map(([l, v]) => `<div><span>${l}</span><span>${v}</span></div>`).join("") +
+    htHtml +
+    tvaLines.map(([l, v]) => `<div class="tarif-sub-line"><span>${l}</span><span>${v}</span></div>`).join("") +
+    ttcHtml;
+}
+
+function renderTarifCompare_() {
+  const pax = Math.max(0, Number(document.getElementById('tarifSimPax').value) || 0);
+  const currentEspace = document.getElementById('tarifSimEspace').value;
+  const results = ESPACE_OPTIONS_.map(e => ({ espace: e, ...computeTarifPrice_(e, pax) }));
+  // Même logique que le simulateur : HT pour entreprise, TTC pour particulier.
+  const key = tarifClientType_ === 'entreprise' ? 'totalHT' : 'totalTTC';
+  const max = Math.max(1, ...results.map(r => r[key]));
+  document.getElementById('tarifCompareBody').innerHTML = results.map(r => `
+    <div class="tarif-comp-row">
+      <span class="tarif-lbl">${r.espace}</span>
+      <div class="tarif-bar-wrap"><div class="tarif-bar ${r.espace === currentEspace ? 'current' : ''}" style="width:${Math.max(3, Math.round(r[key] / max * 100))}%"></div></div>
+      <span class="tarif-val">${fmtEUR(r[key])}</span>
+      ${r.outOfRange ? '<span class="tarif-warn-flag">⚠ pax hors capacité</span>' : ''}
+    </div>
+  `).join("") + `<p style="font-size:10.5px;color:var(--ink-3);margin:10px 0 0;">Montants ${tarifClientType_ === 'entreprise' ? 'HT' : 'TTC'}.</p>`;
+}
+
+function renderTarifAll_() {
+  renderTarifBreakdown_();
+  renderTarifCompare_();
 }
 
 /* =========================================================================
