@@ -928,6 +928,7 @@
       <button class="tab" data-sub="tasks" onclick="showSettingsSub('tasks')">Modèle de tâches</button>
       <button class="tab" data-sub="options" onclick="showSettingsSub('options')">Espaces & formules</button>
       <button class="tab" data-sub="menu" onclick="showSettingsSub('menu')">Menu</button>
+      <button class="tab" data-sub="calendar" onclick="showSettingsSub('calendar')">Calendrier</button>
       <button class="tab" data-sub="data" onclick="showSettingsSub('data')">Données</button>
     </div>
 
@@ -1005,6 +1006,13 @@
         </table>
       </div>
       <button class="add-line" onclick="addMenuRow_()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg> Ajouter un plat</button>
+    </div>
+
+    <div id="set-calendar" style="display:none">
+      <p style="font-size:12.5px; color:var(--ink-2); margin:0 0 14px;">Invités ajoutés automatiquement à l'événement Google Calendar créé quand une demande passe en <b>Confirmée</b>, en plus de toi (organisateur).
+        <button class="btn sm primary" style="float:right" onclick="saveCalendarGuests_()">Enregistrer</button><span class="save-note" id="calGuestsSaveNote">Enregistré.</span></p>
+      <div id="calGuestsList"></div>
+      <button class="add-line" onclick="addCalendarGuestRow_()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg> Ajouter un invité</button>
     </div>
 
     <div id="set-data" style="display:none">
@@ -1556,7 +1564,7 @@ function pushData_(onDone) {
   lastServerSnapshot_.forEach((_, id) => {
     if (!seenIds.has(id)) { batch.delete(db.collection('demandes').doc(id)); changedCount++; }
   });
-  batch.set(db.collection('config').doc('main'), { templates: TEMPLATES, menu: MENU, taskTpl: TASK_TEMPLATE, tarifGroupe: TARIF_GROUPE });
+  batch.set(db.collection('config').doc('main'), { templates: TEMPLATES, menu: MENU, taskTpl: TASK_TEMPLATE, tarifGroupe: TARIF_GROUPE, calendarGuests: CALENDAR_GUESTS });
 
   batch.commit()
     .then(() => {
@@ -1571,10 +1579,15 @@ function pushData_(onDone) {
       // l'événement. Un échec ici n'affecte jamais la donnée déjà enregistrée dans Firestore.
       newlyConfirmed_.forEach(rec => {
         if (!SYNC_MODE) return;
+        // Code.gs n'a pas accès à MENU/r.menu ni CALENDAR_GUESTS (state front uniquement) : on
+        // calcule ici le texte du menu (quantités = qtePerPers × pax réel, comme dans l'onglet Menu)
+        // et on envoie la liste d'invités réglée dans Paramètres > Calendrier — juste pour cet appel,
+        // jamais persisté tel quel sur rec/Firestore.
+        const payload = Object.assign({}, rec, { menuText: buildMenuTextForCalendar_(rec), guests: CALENDAR_GUESTS });
         fetch(SCRIPT_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain' },
-          body: JSON.stringify({ action: 'create_calendar_event', demande: rec })
+          body: JSON.stringify({ action: 'create_calendar_event', demande: payload })
         })
           .then(r => r.json())
           .then(json => {
@@ -1742,6 +1755,10 @@ let MENU = JSON.parse(localStorage.getItem('rosarioMenu') || 'null') || MENU_DEF
 // Tarif fixe des formules groupe (€ HT par personne, nourriture uniquement — le reste est
 // réglé sur place à la caisse et n'est pas suivi ici). Réglable dans Paramètres > Espaces & formules.
 let TARIF_GROUPE = Number(localStorage.getItem('rosarioTarifGroupe')) || 45;
+// Invités systématiquement ajoutés à l'événement Google Calendar créé à la confirmation, en plus
+// de Théo (organisateur) — éditable dans Paramètres > Calendrier, sans repasser par Code.gs.
+const CALENDAR_GUESTS_DEFAULT = ["adrien@grupodomingo.io", "andrea@grupodomingo.io", "jose@grupodomingo.io", "elena@grupodomingo.io"];
+let CALENDAR_GUESTS = JSON.parse(localStorage.getItem('rosarioCalendarGuests') || 'null') || CALENDAR_GUESTS_DEFAULT;
 
 function applyCloudConfig_(config) {
   if (!config) return;
@@ -1749,6 +1766,7 @@ function applyCloudConfig_(config) {
   if (config.menu) { MENU = config.menu; localStorage.setItem('rosarioMenu', JSON.stringify(MENU)); }
   if (config.taskTpl) { TASK_TEMPLATE = config.taskTpl; localStorage.setItem('rosarioTaskTpl', JSON.stringify(TASK_TEMPLATE)); }
   if (config.tarifGroupe) { TARIF_GROUPE = Number(config.tarifGroupe) || 45; localStorage.setItem('rosarioTarifGroupe', TARIF_GROUPE); }
+  if (config.calendarGuests) { CALENDAR_GUESTS = config.calendarGuests; localStorage.setItem('rosarioCalendarGuests', JSON.stringify(CALENDAR_GUESTS)); }
 }
 
 let currentReq = null;
@@ -3863,10 +3881,11 @@ function submitNewRequest_() {
    PARAMÈTRES
    ========================================================================= */
 function showSettingsSub(name) {
-  ['templates', 'tasks', 'options', 'menu', 'data'].forEach(s => document.getElementById('set-' + s).style.display = s === name ? "block" : "none");
+  ['templates', 'tasks', 'options', 'menu', 'calendar', 'data'].forEach(s => document.getElementById('set-' + s).style.display = s === name ? "block" : "none");
   document.querySelectorAll('.settings-sub .tab').forEach(b => b.classList.toggle('on', b.dataset.sub === name));
   if (name === 'tasks') renderTaskTplForm();
   if (name === 'menu') renderMenuForm_();
+  if (name === 'calendar') renderCalendarGuestsForm_();
   if (name === 'data') document.getElementById('setSyncInfo').textContent = FIRESTORE_MODE
     ? "Connecté à Firestore — données partagées avec Adrien, synchronisées en temps réel."
     : "Mode local — non connecté au cloud.";
@@ -3917,6 +3936,23 @@ function saveTaskTemplate() {
   saveData(); // même mécanisme d'envoi que partout ailleurs — voir commentaire dans saveTemplates()
   showSaveNote_('taskSaveNote');
 }
+function renderCalendarGuestsForm_() {
+  document.getElementById('calGuestsList').innerHTML = CALENDAR_GUESTS.map((email, i) => `
+    <div style="display:flex; gap:8px; align-items:center; margin-bottom:8px;">
+      <input type="email" value="${esc(email)}" placeholder="email@grupodomingo.io" style="flex:1" oninput="CALENDAR_GUESTS[${i}]=this.value.trim()">
+      <button class="btn sm ghost" onclick="removeCalendarGuestRow_(${i})" title="Retirer">✕</button>
+    </div>`).join("") || '<p style="font-size:12.5px; color:var(--ink-3);">Aucun invité — seul toi seras sur l\'événement.</p>';
+}
+function addCalendarGuestRow_() { CALENDAR_GUESTS.push(""); renderCalendarGuestsForm_(); }
+function removeCalendarGuestRow_(i) { CALENDAR_GUESTS.splice(i, 1); renderCalendarGuestsForm_(); }
+function saveCalendarGuests_() {
+  CALENDAR_GUESTS = CALENDAR_GUESTS.map(e => e.trim()).filter(Boolean);
+  localStorage.setItem('rosarioCalendarGuests', JSON.stringify(CALENDAR_GUESTS));
+  saveData(); // même mécanisme d'envoi que partout ailleurs — voir commentaire dans saveTemplates()
+  renderCalendarGuestsForm_();
+  showSaveNote_('calGuestsSaveNote');
+}
+
 // Vide en une fois les tâches déjà créées sur TOUTES les fiches (contrairement au modèle
 // ci-dessus, qui ne concerne que les futures confirmations) — pour éviter de devoir les retirer
 // une par une sur chaque demande.
@@ -3977,6 +4013,15 @@ function saveMenu_() {
    qui n'est jamais touché par ces modifications.
    ========================================================================= */
 function demandeMenuActive_(r) { return (r.menu && r.menu.length) ? r.menu : MENU; }
+// Une ligne par plat inclus, quantité = qtePerPers arrondie au pax réel de la demande (même calcul
+// que la colonne "Qté" de l'onglet Menu) — texte inséré tel quel dans la description de
+// l'invitation Calendar créée à la confirmation (voir pushData_ / createConfirmedCalendarEvent_).
+function buildMenuTextForCalendar_(r) {
+  const pax = toNumber(r.pax) || 0;
+  const list = demandeMenuActive_(r).filter(m => m.included);
+  if (!list.length || !pax) return "";
+  return list.map(m => "- " + Math.ceil(toNumber(m.qtePerPers) * pax) + "x " + m.nom).join("\n");
+}
 function ensureDemandeMenuOverride_(r) {
   if (!r.menu || !r.menu.length) r.menu = JSON.parse(JSON.stringify(MENU));
   return r.menu;
