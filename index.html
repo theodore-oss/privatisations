@@ -42,23 +42,26 @@
   button { font-family: inherit; }
   a { color: var(--bordeaux); }
 
-  /* ---- Topbar + nav ---- */
-  .topbar { background: var(--surface); border-bottom: 0.5px solid var(--border); position: sticky; top: 0; z-index: 20; }
-  .topbar-in { max-width: 1180px; margin: 0 auto; padding: 0 22px; display: flex; align-items: center; gap: 16px; height: 66px; flex-wrap: nowrap; }
-  .brand { display: flex; align-items: center; gap: 9px; font-family: 'Fraunces', serif; font-weight: 600; font-size: 18px; color: var(--bordeaux-dark); white-space: nowrap; }
-  .brand-mark { height: 40px; width: auto; display: block; flex-shrink: 0; }
-  .nav { display: flex; gap: 2px; flex-shrink: 0; }
-  .nav button { background: none; border: none; font-size: 13.5px; color: var(--ink-2); padding: 8px 12px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 6px; white-space: nowrap; flex-shrink: 0; }
+  /* ---- Coquille : sidebar (nav en colonne) + contenu ---- */
+  .shell { display: flex; align-items: stretch; min-height: 100vh; }
+  .sidebar {
+    width: 218px; flex-shrink: 0;
+    background: var(--surface); border-right: 0.5px solid var(--border);
+    display: flex; flex-direction: column; gap: 18px;
+    padding: 18px 14px; position: sticky; top: 0; height: 100vh; overflow-y: auto; z-index: 20;
+  }
+  .brand { display: flex; align-items: center; gap: 9px; padding: 0 4px; font-family: 'Fraunces', serif; font-weight: 600; font-size: 18px; color: var(--bordeaux-dark); white-space: nowrap; }
+  .brand-mark { height: 34px; width: auto; display: block; flex-shrink: 0; }
+  .nav { display: flex; flex-direction: column; gap: 2px; }
+  .nav button { background: none; border: none; font-size: 13.5px; color: var(--ink-2); padding: 9px 10px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 10px; white-space: nowrap; flex-shrink: 0; width: 100%; text-align: left; }
   .nav button:hover { background: var(--surface-2); color: var(--ink); }
   .nav button.on { background: var(--bordeaux-100); color: var(--bordeaux-dark); font-weight: 500; }
-  .nav button .navb { font-size: 10px; background: var(--red-bg); color: var(--red-d); border-radius: 99px; padding: 0 6px; min-width: 16px; text-align: center; }
-  .plus-wrap { position: relative; flex-shrink: 0; }
-  .plus-menu { position: absolute; top: 40px; left: 0; background: var(--surface); border: 0.5px solid var(--border); border-radius: 10px; box-shadow: 0 6px 20px rgba(0,0,0,.08); min-width: 190px; padding: 6px; display: none; z-index: 30; }
-  .plus-wrap:hover .plus-menu, .plus-wrap:focus-within .plus-menu { display: block; }
-  .plus-menu button { width: 100%; justify-content: flex-start; }
-  .top-actions { margin-left: auto; display: flex; flex-direction: column; align-items: center; gap: 3px; flex-shrink: 0; }
-  .top-actions .link-btn { background: none; border: none; font-size: 11.5px; color: var(--ink-3); padding: 0; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; }
+  .nav button .navb { font-size: 10px; background: var(--red-bg); color: var(--red-d); border-radius: 99px; padding: 0 6px; min-width: 16px; text-align: center; margin-left: auto; }
+  .nav-sep { height: 0.5px; background: var(--border); margin: 8px 6px; }
+  .top-actions { display: flex; flex-direction: column; gap: 3px; flex-shrink: 0; margin-top: auto; }
+  .top-actions .link-btn { background: none; border: none; font-size: 11.5px; color: var(--ink-3); padding: 0 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; }
   .top-actions .link-btn:hover { color: var(--bordeaux); }
+  .main { flex: 1; min-width: 0; }
 
   .wrap { max-width: 1180px; margin: 0 auto; padding: 22px; }
   .view { display: none; }
@@ -404,6 +407,11 @@
     .kpi-groups { grid-template-columns: 1fr; }
     .compose-grid, .grid2 { grid-template-columns: 1fr; }
     .fin-tiles { grid-template-columns: 1fr; }
+    .shell { flex-direction: column; }
+    .sidebar { width: 100%; height: auto; position: static; flex-direction: row; flex-wrap: wrap; align-items: center; overflow-x: auto; gap: 10px; }
+    .nav { flex-direction: row; }
+    .nav-sep { display: none; }
+    .top-actions { flex-direction: row; margin-top: 0; }
     .nav button span.lbl { display: none; }
     .ev-prog { display: none; }
   }
@@ -493,31 +501,32 @@
   </div>
 </div>
 
-<div class="topbar">
-  <div class="topbar-in">
-    <img src="logo.png" alt="Rosario" class="brand-mark">
+<div class="shell">
+  <aside class="sidebar">
+    <div class="brand"><img src="logo.png" alt="Rosario" class="brand-mark"></div>
+
+    <button class="btn sm primary" style="width:100%" onclick="openNewRequest()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg> Nouvelle demande</button>
+
     <nav class="nav">
       <button id="nav-dashboard" class="on" onclick="showView('dashboard')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg><span class="lbl">Tableau de bord</span><span class="navb" id="navDashBadge" style="display:none">0</span></button>
       <button id="nav-confirmed" onclick="showView('confirmed')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4 12 14.01l-3-3"/></svg><span class="lbl">Confirmées</span></button>
       <button id="nav-tasks" onclick="showView('tasks')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="6" height="6" rx="1"/><path d="M11 6h9"/><rect x="3" y="14" width="6" height="6" rx="1"/><path d="M11 15h9"/></svg><span class="lbl">Tâches</span><span class="navb" id="navTasksBadge" style="display:none">0</span></button>
       <button id="nav-stats" onclick="showView('stats')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg><span class="lbl">Statistiques</span></button>
       <button id="nav-pricing" onclick="showView('pricing')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg><span class="lbl">Tarifs</span></button>
-      <div class="plus-wrap" tabindex="0">
-        <button id="nav-plus-trigger" type="button"><span class="lbl">Plus</span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>
-        <div class="plus-menu">
-          <button id="nav-recon" onclick="showView('recon')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg><span class="lbl">Réconciliation</span></button>
-          <button id="nav-clients" onclick="showView('clients')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span class="lbl">Base clients</span></button>
-          <button id="nav-settings" onclick="showView('settings')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span class="lbl">Paramètres</span></button>
-        </div>
-      </div>
+
+      <div class="nav-sep"></div>
+
+      <button id="nav-recon" onclick="showView('recon')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg><span class="lbl">Réconciliation</span></button>
+      <button id="nav-clients" onclick="showView('clients')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span class="lbl">Base clients</span></button>
+      <button id="nav-settings" onclick="showView('settings')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span class="lbl">Paramètres</span></button>
     </nav>
+
     <div class="top-actions">
-      <button class="btn sm primary" onclick="openNewRequest()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg> Nouvelle demande</button>
       <button class="link-btn" id="scanGmailBtn" onclick="scanGmailInbox()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.5 0 4.8 1 6.5 2.6"/><path d="M21 3v6h-6"/></svg>Scanner mes emails</button>
     </div>
-  </div>
-</div>
+  </aside>
 
+  <div class="main">
 <div class="wrap">
   <div id="syncBanner"></div>
 
@@ -1027,6 +1036,8 @@
         <button class="btn" id="importHistoriqueBtn" onclick="importHistoriqueIntoSheet()">Réimporter l'historique dans Firestore</button>
       </div>
     </div>
+  </div>
+</div>
   </div>
 </div>
 
