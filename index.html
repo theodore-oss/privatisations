@@ -320,18 +320,6 @@
   .facture-link:hover { color: var(--bordeaux); border-color: var(--bordeaux-300); }
 
 
-  /* ---- Tasks ---- */
-  .task { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 0.5px solid #f2f1ed; }
-  .task:last-child { border: none; }
-  .cbox { width: 20px; height: 20px; border-radius: 6px; border: 1.5px solid #cfccc4; flex-shrink: 0; cursor: pointer; display: flex; align-items: center; justify-content: center; background: var(--surface); }
-  .cbox.done { background: var(--bordeaux); border-color: var(--bordeaux); }
-  .task .tt { flex: 1; min-width: 0; }
-  .task .tt p { margin: 0; }
-  .task .t1 { font-size: 13.5px; }
-  .task.done .t1 { color: var(--ink-3); text-decoration: line-through; }
-  .task .t2 { font-size: 11px; color: var(--ink-3); margin-top: 2px; }
-  .due { font-size: 11px; font-weight: 500; padding: 3px 9px; border-radius: 99px; white-space: nowrap; }
-  .task-resp { width: 110px; flex-shrink: 0; font-size: 12px; padding: 6px 9px; }
   .add-line { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--bordeaux); margin-top: 10px; cursor: pointer; background: none; border: none; padding: 0; }
   .add-line:hover { color: var(--bordeaux-dark); }
 
@@ -561,7 +549,7 @@ table.devis-tbl .num-col { text-align: right; white-space: nowrap; }
   <aside class="sidebar">
     <div class="brand"><img src="logo.png" alt="Rosario" class="brand-mark"></div>
 
-    <button class="btn sm primary" style="width:100%; font-size:15px; padding:10px 12px; font-weight:600;" onclick="openNewRequest()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg> Nouvelle demande</button>
+    <button class="btn sm primary" style="width:100%; font-size:13.5px; padding:10px 12px; font-weight:600;" onclick="openNewRequest()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg> Nouvelle demande</button>
 
     <nav class="nav">
       <button id="nav-dashboard" class="on" onclick="showView('dashboard')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg><span class="lbl">Tableau de bord</span><span class="navb" id="navDashBadge" style="display:none">0</span></button>
@@ -705,7 +693,6 @@ table.devis-tbl .num-col { text-align: right; white-space: nowrap; }
     <div class="tabs">
       <button class="tab" data-pane="finance" onclick="showPane('finance')">Finances</button>
       <button class="tab" data-pane="menu" onclick="showPane('menu')">Menu</button>
-      <button class="tab" data-pane="tasks" onclick="showPane('tasks')">Tâches <span class="tb" id="taskBadge" style="display:none">0</span></button>
       <button class="tab on" data-pane="timeline" onclick="showPane('timeline')">Historique</button>
       <button class="tab" data-pane="compose" id="tabCompose" onclick="showPane('compose')">Répondre</button>
     </div>
@@ -801,16 +788,6 @@ table.devis-tbl .num-col { text-align: right; white-space: nowrap; }
         </div>
         <div id="finFactures" style="margin-top:14px"></div>
       </div>
-    </div>
-
-    <!-- pane: tasks -->
-    <div class="tabpane" id="pane-tasks">
-      <div class="panel">
-        <p class="panel-t">Tâches de préparation</p>
-        <div id="taskList"></div>
-        <button class="add-line" onclick="addTask()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg> Ajouter une tâche</button>
-      </div>
-      <p style="font-size:11.5px; color:var(--ink-3); margin:0 0 8px;">Les tâches sont générées automatiquement à la confirmation, selon le modèle défini dans Paramètres. Tu peux les cocher, en ajouter ou en retirer.</p>
     </div>
 
     <!-- pane: timeline -->
@@ -2029,20 +2006,6 @@ function ensureTasks_(r) {
   if (r.tasks && r.tasks.length) return;
   r.tasks = TASK_TEMPLATE.map((t, i) => ({ id: "t" + i + "_" + Date.now(), label: t.label, offset: t.offset, blocking: t.blocking, responsable: t.responsable || "", done: false }));
 }
-function taskDueDate_(r, offset) { const d = parseDate(r.date); if (!d) return null; const due = new Date(d.getTime()); due.setDate(due.getDate() - offset); return due; }
-function taskDueLabel_(r, t) {
-  const due = taskDueDate_(r, t.offset);
-  if (!due) return { txt: "—", cls: "" };
-  const days = Math.round((due.getTime() - new Date().setHours(0, 0, 0, 0)) / 86400000);
-  const jx = t.offset === 0 ? "Jour J" : (t.offset > 0 ? "J-" + t.offset : "J+" + (-t.offset));
-  const base = jx + " · " + due.getDate() + " " + MOIS_COURT_[due.getMonth()];
-  if (t.done) return { txt: base, cls: "waiting" };
-  if (days < 0) return { txt: "En retard · " + base, cls: "answer" };
-  if (days <= 2) return { txt: base, cls: "amber" };
-  return { txt: base, cls: "waiting" };
-}
-function openTaskCount_(r) { return (r.tasks || []).filter(t => !t.done).length; }
-
 /* ---- Rapprochement Qonto ----
    Lecture seule + confirmation manuelle uniquement : on ne crée jamais un paiement tout seul.
    Toute la logique de calcul de solde reste ici (financeTotals/paidAmount_, déjà utilisés
@@ -3464,22 +3427,18 @@ function openDetail(idx, origin) {
   const isClosed = isConfirmed || r.statut === "Archivée";
   document.getElementById('tabCompose').style.display = isClosed ? "none" : "flex";
   const finTab = document.querySelector('.tab[data-pane="finance"]');
-  const taskTab = document.querySelector('.tab[data-pane="tasks"]');
   const menuTab = document.querySelector('.tab[data-pane="menu"]');
-  // Finances (Chiffrage) reste visible sur toute demande, confirmée ou non — seuls Tâches et Menu
-  // restent réservés aux fiches confirmées.
+  // Finances (Chiffrage) reste visible sur toute demande, confirmée ou non — seul Menu reste
+  // réservé aux fiches confirmées. L'onglet Tâches a été retiré de la fiche : les tâches
+  // continuent d'être générées à la confirmation (r.tasks), elles ne sont simplement plus affichées.
   if (finTab) finTab.style.display = "flex";
-  if (taskTab) taskTab.style.display = isConfirmed ? "flex" : "none";
   if (menuTab) menuTab.style.display = isConfirmed ? "flex" : "none";
-  const badge = document.getElementById('taskBadge'), open = openTaskCount_(r);
-  badge.textContent = open; badge.style.display = open ? "inline-block" : "none";
 
   renderConflictAlert_(r);
   renderDetInfo_(r);
   renderDetActions_(r);
   renderTimeline_(r);
   renderFinance_(r);
-  if (isConfirmed) renderTasks_(r);
   if (isConfirmed) renderDemandeMenu_(r);
   if (!isClosed) resetCompose();
 
@@ -3487,10 +3446,13 @@ function openDetail(idx, origin) {
   if (currentView === "detail" && currentPane) defaultPane = currentPane;
   else defaultPane = isConfirmed ? "finance" : (r.statut === "Archivée" ? "timeline" : "compose");
   showView("detail");
-  showPane((defaultPane === "compose" && isClosed) || (defaultPane === "tasks" && !isConfirmed) || (defaultPane === "menu" && !isConfirmed) ? "timeline" : defaultPane);
+  showPane((defaultPane === "compose" && isClosed) || (defaultPane === "menu" && !isConfirmed) ? "timeline" : defaultPane);
 }
 
 function showPane(p) {
+  // Repli sur Historique si l'onglet demandé n'existe plus (ex. "tasks", retiré) ou est masqué
+  // pour ce statut — currentPane peut encore pointer dessus après une navigation précédente.
+  if (!document.getElementById('pane-' + p)) p = "timeline";
   const tab = document.querySelector('.tab[data-pane="' + p + '"]');
   if (tab && tab.style.display === "none") p = "timeline";
   currentPane = p;
@@ -3906,39 +3868,6 @@ function renderFactureLinks_(r) {
     list.map(f => `<a href="${esc(f.url)}" target="_blank" class="facture-link">📄 ${esc(f.number || 'Facture')}</a>`).join('');
 }
 
-/* ---- pane tasks ---- */
-function renderTasks_(r) {
-  const box = document.getElementById('taskList');
-  const tasks = (r.tasks || []).slice().sort((a, b) => b.offset - a.offset);
-  if (!tasks.length) { box.innerHTML = '<p style="font-size:12.5px;color:var(--ink-3);margin:0">Aucune tâche. Ajoute-en une ci-dessous.</p>'; return; }
-  box.innerHTML = tasks.map(t => {
-    const due = taskDueLabel_(r, t);
-    return `<div class="task ${t.done ? 'done' : ''}">
-      <div class="cbox ${t.done ? 'done' : ''}" onclick="toggleTask('${t.id}')">${t.done ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg>' : ''}</div>
-      <div class="tt"><p class="t1">${esc(t.label)}</p>${t.blocking ? '<p class="t2">Bloquant</p>' : ''}</div>
-      <input class="task-resp" placeholder="Responsable" value="${esc(t.responsable || '')}" oninput="updateTaskResponsable('${t.id}', this.value)">
-      <span class="due"><span class="pill ${due.cls === 'amber' ? 'answer' : due.cls}" style="${due.cls === 'amber' ? 'background:#faedd4;color:var(--amber-d)' : ''}">${due.txt}</span></span>
-      <button class="btn sm ghost" onclick="removeTask('${t.id}')">✕</button>
-    </div>`;
-  }).join("");
-}
-function updateTaskResponsable(id, val) {
-  const t = (currentReq.tasks || []).find(x => x.id === id);
-  if (t) { t.responsable = val; saveData(); }
-}
-function toggleTask(id) { const t = (currentReq.tasks || []).find(x => x.id === id); if (t) { t.done = !t.done; saveData(); renderTasks_(currentReq); updateTaskBadge_(); } }
-function removeTask(id) { currentReq.tasks = (currentReq.tasks || []).filter(x => x.id !== id); saveData(); renderTasks_(currentReq); updateTaskBadge_(); }
-function addTask() {
-  const label = prompt("Intitulé de la tâche :"); if (!label) return;
-  const offStr = prompt("Échéance en jours avant l'événement (ex. 3 pour J-3, 0 pour le jour J) :", "3");
-  const offset = offStr === null ? 3 : (parseInt(offStr, 10) || 0);
-  const responsable = prompt("Responsable (optionnel) :", "") || "";
-  currentReq.tasks = currentReq.tasks || [];
-  currentReq.tasks.push({ id: "t_" + Date.now(), label, offset, blocking: false, responsable, done: false });
-  saveData(); renderTasks_(currentReq); updateTaskBadge_();
-}
-function updateTaskBadge_() { const badge = document.getElementById('taskBadge'), o = openTaskCount_(currentReq); badge.textContent = o; badge.style.display = o ? "inline-block" : "none"; }
-
 /* ---- pane timeline ---- */
 function renderTimeline_(r) {
   const el = document.getElementById('detTimeline');
@@ -4039,17 +3968,29 @@ function openMailto() {
     + "&cc=" + encodeURIComponent(cc) + "&su=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(body);
   window.open(url, '_blank');
 }
-// Détecte le niveau d'une ligne à puce dans les templates texte :
-//   "• texte"        (aucune indentation)        → niveau 1
-//   "  - texte" / "  • texte" (2 espaces ou plus d'indentation) → niveau 2, imbriquée sous
-//                                                                  la puce de niveau 1 juste au-dessus
-// Renvoie null si la ligne n'est pas une puce (paragraphe alors traité comme texte normal).
+// Détecte le niveau d'une ligne à puce. VOLONTAIREMENT TOLÉRANT : ce texte est édité à la main
+// dans la zone de réponse, souvent en dupliquant une ligne existante, et la moindre différence
+// d'écriture (un espace au lieu de deux, une tabulation, un tiret collé à gauche) ne doit pas
+// casser la mise en forme. Avant, une seule de ces variantes faisait basculer TOUT le bloc en
+// paragraphe <p> avec des <br> : à l'écran dans la zone de saisie les espaces restaient visibles,
+// mais en HTML ils sont supprimés — d'où l'alignement qui sautait une fois le mail envoyé.
+//   ligne sans indentation        → niveau 1
+//   ligne indentée (espace/tab)   → niveau 2
+//   marqueur ◦ ‣ ▪ (sous-puce)    → niveau 2 même sans indentation
+// Marqueurs acceptés : • ◦ ‣ ▪ - – — *
+// Renvoie null si la ligne n'est pas une puce.
+const BULLET_SUB_MARKS_ = "◦‣▪";
 function bulletLevel_(line) {
-  let m = line.match(/^•\s+(.*)$/);
-  if (m) return { level: 1, text: m[1] };
-  m = line.match(/^\s{2,}[•-]\s+(.*)$/);
-  if (m) return { level: 2, text: m[1] };
-  return null;
+  // L'espace après le marqueur est facultatif, pour attraper AUSSI les lignes réduites à un
+  // marqueur seul ("  - ", "•") : ce sont des puces restées vides après une suppression de texte,
+  // et c'est elles qui produisaient une puce fantôme dans le mail. Elles sont reconnues ici puis
+  // écartées plus bas (texte vide), plutôt que de finir en <li> vide ou en tiret orphelin.
+  //   = espace insécable, fréquent quand on copie-colle depuis un mail.
+  const m = String(line).match(/^([ \t ]*)([•◦‣▪*\-–—])(?:[ \t ]+(.*))?$/);
+  if (!m) return null;
+  const indent = m[1].length > 0;
+  const sousPuce = BULLET_SUB_MARKS_.indexOf(m[2]) !== -1;
+  return { level: (indent || sousPuce) ? 2 : 1, text: (m[3] || "").trim() };
 }
 // Texte en **gras** dans un template → <strong>gras</strong> dans le brouillon HTML. Appliqué
 // après esc() (les astérisques ne sont pas affectés par l'échappement HTML, donc l'ordre ne
@@ -4062,22 +4003,42 @@ function boldify_(escapedText) {
 function stripBold_(text) {
   return String(text || "").replace(/\*\*(.+?)\*\*/g, "$1");
 }
+// Même retrait (BULLET_INDENT_) aux deux niveaux : un cran d'imbrication = toujours le même pas.
+// Avant, le niveau 1 était à 22px et le niveau 2 à 18px — l'écart se voyait à peine dans la
+// fenêtre de rédaction Gmail mais ressortait à l'affichage chez le destinataire, chaque client
+// mail appliquant en plus ses propres marges par défaut. Les styles sont posés en ligne sur
+// chaque <ul>/<li> : c'est la seule mise en forme qui survit aux nettoyeurs HTML des messageries.
+const BULLET_INDENT_ = 24;
+const UL_STYLE_ = 'style="margin:0 0 14px;padding:0 0 0 ' + BULLET_INDENT_ + 'px;list-style-type:disc;"';
+const UL_SUB_STYLE_ = 'style="margin:6px 0 0;padding:0 0 0 ' + BULLET_INDENT_ + 'px;list-style-type:circle;"';
+const LI_STYLE_ = 'style="margin:0 0 4px;"';
+// Contenu d'une puce : gras + échappement, et les retours à la ligne internes (lignes sans
+// puce rattachées à la puce précédente) deviennent de vrais <br>, sinon ils s'affichent
+// comme un simple espace.
+function bulletInline_(text) { return boldify_(esc(text)).replace(/\n/g, "<br>"); }
 function buildBulletHtml_(items) {
-  let html = '<ul style="margin:0 0 14px;padding-left:22px;">';
-  let subOpen = false, first = true;
+  let html = '<ul ' + UL_STYLE_ + '>';
+  let liOpen = false, subOpen = false;
   items.forEach(it => {
     if (it.level === 1) {
       if (subOpen) { html += "</ul>"; subOpen = false; }
-      if (!first) html += "</li>";
-      html += "<li>" + boldify_(esc(it.text));
+      if (liOpen) { html += "</li>"; liOpen = false; }
+      html += "<li " + LI_STYLE_ + ">" + bulletInline_(it.text);
+      liOpen = true;
     } else {
-      if (!subOpen) { html += '<ul style="margin:6px 0 0;padding-left:18px;">'; subOpen = true; }
-      html += "<li>" + boldify_(esc(it.text)) + "</li>";
+      // Sous-puce sans puce parente au-dessus : on la remonte au niveau 1 plutôt que d'ouvrir un
+      // <li> vide pour l'accueillir — une puce sans texte se voit dans le mail envoyé.
+      if (!liOpen) {
+        html += "<li " + LI_STYLE_ + ">" + bulletInline_(it.text) + "</li>";
+        return;
+      }
+      if (!subOpen) { html += "<ul " + UL_SUB_STYLE_ + ">"; subOpen = true; }
+      html += "<li " + LI_STYLE_ + ">" + bulletInline_(it.text) + "</li>";
     }
-    first = false;
   });
   if (subOpen) html += "</ul>";
-  html += "</li></ul>";
+  if (liOpen) html += "</li>";
+  html += "</ul>";
   return html;
 }
 // Convertit un texte brut (paragraphes séparés par une ligne vide) en HTML, pour l'envoyer comme
@@ -4089,10 +4050,38 @@ function toHtmlBody_(text) {
     const lines = p.split("\n").filter(l => l.trim().length);
     if (!lines.length) return "";
     const items = lines.map(bulletLevel_);
-    if (items.every(it => it) && items[0].level === 1) {
-      return buildBulletHtml_(items);
+    const premierePuce = items.findIndex(it => it);
+
+    // Aucune puce dans le bloc → paragraphe simple.
+    if (premierePuce === -1) {
+      return '<p style="margin:0 0 14px;">' + lines.map(l => boldify_(esc(l))).join("<br>") + "</p>";
     }
-    return '<p style="margin:0 0 14px;">' + lines.map(l => boldify_(esc(l))).join("<br>") + "</p>";
+
+    // Les lignes AVANT la première puce (typiquement le titre "**Privatisation du salon — …**",
+    // écrit juste au-dessus des puces sans ligne vide) sortent en paragraphe, puis les puces en
+    // vraie liste. Avant, ce titre suffisait à faire basculer tout le bloc en <p> : les puces
+    // devenaient du texte brut et l'indentation disparaissait à l'envoi.
+    let html = "";
+    if (premierePuce > 0) {
+      html += '<p style="margin:0 0 6px;">' + lines.slice(0, premierePuce).map(l => boldify_(esc(l))).join("<br>") + "</p>";
+    }
+
+    // À partir de la première puce : une ligne sans puce (remarque ajoutée à la volée, phrase qui
+    // déborde) est rattachée à la puce précédente au lieu d'annuler la liste entière. Une première
+    // puce indentée est remontée au niveau 1 — il n'y a rien sous quoi l'imbriquer.
+    const norm = [];
+    for (let i = premierePuce; i < lines.length; i++) {
+      const it = items[i];
+      // Puce sans texte → ignorée. C'est le cas typique d'une ligne qu'on a vidée de son contenu
+      // sans supprimer le tiret : à l'écran elle ne se voit pas, mais elle sortait en puce vide
+      // dans le mail envoyé.
+      if (it && !it.text) continue;
+      if (it) norm.push({ level: norm.length === 0 ? 1 : it.level, text: it.text });
+      else if (norm.length) norm[norm.length - 1].text += "\n" + lines[i].trim();
+      else norm.push({ level: 1, text: lines[i].trim() });
+    }
+    if (!norm.length) return html;
+    return html + buildBulletHtml_(norm);
   }).join("");
 }
 // Signature HTML avec le logo Rosario (hébergé au même endroit que la page, sur GitHub Pages) —
