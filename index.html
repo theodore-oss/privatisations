@@ -806,7 +806,7 @@ table.devis-tbl .num-col { text-align: right; white-space: nowrap; }
         <div id="composeLeftCol">
           <p class="panel-t">Blocs de la proposition</p>
           <div id="composeBlocks"></div>
-          <p class="vartip">Variables auto : <span class="hl">{prenom}</span> <span class="hl">{date}</span> <span class="hl">{pax}</span> — remplacées avec les infos de la demande. Modèles éditables dans Paramètres.</p>
+          <p class="vartip">Variables auto : <span class="hl">{prenom}</span> <span class="hl">{date}</span> <span class="hl">{dateFR}</span> <span class="hl">{pax}</span> <span class="hl">{service}</span> — remplacées avec les infos de la demande (<span class="hl">{dateFR}</span> = "20 septembre", <span class="hl">{service}</span> = déjeuner/dîner). Modèles éditables dans Paramètres.</p>
         </div>
         <div>
           <p class="panel-t">Aperçu du message</p>
@@ -1013,7 +1013,7 @@ table.devis-tbl .num-col { text-align: right; white-space: nowrap; }
     </div>
 
     <div id="set-templates">
-      <p style="font-size:12.5px; color:var(--ink-2); margin:0 0 14px;">Ces blocs composent les réponses. <span class="hl">{prenom}</span>, <span class="hl">{date}</span>, <span class="hl">{pax}</span> sont remplacés automatiquement. Mise en forme (brouillon Gmail uniquement) : une ligne commençant par <span class="hl">• </span> = puce, indentée de 2 espaces + <span class="hl">- </span> = sous-puce, et <span class="hl">**texte**</span> = texte en gras.
+      <p style="font-size:12.5px; color:var(--ink-2); margin:0 0 14px;">Ces blocs composent les réponses. <span class="hl">{prenom}</span>, <span class="hl">{date}</span>, <span class="hl">{dateFR}</span> (ex. "20 septembre"), <span class="hl">{pax}</span>, <span class="hl">{service}</span> (déjeuner/dîner) sont remplacés automatiquement. Mise en forme (brouillon Gmail uniquement) : une ligne commençant par <span class="hl">• </span> = puce, indentée de 2 espaces + <span class="hl">- </span> = sous-puce, et <span class="hl">**texte**</span> = texte en gras.
         <button class="btn sm primary" style="float:right" onclick="saveTemplates()">Enregistrer</button><span class="save-note" id="tplSaveNote">Enregistré.</span></p>
       <div class="tpl-card"><p class="name">Introduction</p><textarea id="tplIntro" rows="4"></textarea></div>
       <div class="tpl-card"><p class="name">Réponse au client (après sa réponse)</p><textarea id="tplReply" rows="3"></textarea></div>
@@ -1785,7 +1785,7 @@ function stageLabel_(s) { return STAGE_LABEL[s] || s; }
 const DEPOSIT_RATE = 0.5;
 
 const DEFAULT_TEMPLATES = {
-  intro: "Hola {prenom},\n\nMerci beaucoup pour l'intérêt porté à Rosario pour votre événement, nous vous accueillerons avec plaisir !\n\nVoici ce que nous pouvons vous proposer pour {pax} personnes :\n",
+  intro: "Hola {prenom},\n\nMerci beaucoup pour l'intérêt porté à Rosario, nous serions ravis de vous accueillir pour votre évènement !\n\nVoici ce que nous pouvons vous proposer pour votre {service} du {dateFR} :\n",
   relance: "Bonjour {prenom},\n\nAvez-vous pu prendre connaissance de mon dernier message ?\n\nNous restons naturellement disponibles pour échanger sur les modalités de notre proposition.\n\nJe vous remercie et vous souhaite une excellente journée,\n",
   salon: "• date : {date}\n• lieu : privatisation du salon privatif, staff dédié pour l'événement, système son dédié, possibilité de décorer le lieu si besoin\n• format : cocktail dînatoire avec assises disponibles également, assortiment de tapas (~3/4 par personne), assortiment de desserts (1 par personne), boissons : forfait à définir ensemble\n• budget : [PRIX]€ TTC",
   etage: "• date : {date}\n• lieu : privatisation de l'étage, staff dédié pour l'événement, système son dédié, possibilité de décorer le lieu si besoin\n• format : cocktail dînatoire avec assises disponibles également, assortiment de tapas (~3/4 par personne), assortiment de desserts (1 par personne), boissons : forfait à définir ensemble\n• budget : [PRIX]€ TTC",
@@ -3888,7 +3888,11 @@ function renderTimeline_(r) {
    ========================================================================= */
 function fillPlaceholders(text) {
   if (!currentReq) return text;
-  return String(text).replace(/{prenom}/g, firstName(currentReq.client)).replace(/{date}/g, currentReq.date || "").replace(/{pax}/g, currentReq.pax || "");
+  const d = parseDate(currentReq.date);
+  const dateFR = d ? d.getDate() + " " + MOIS_LONG_[d.getMonth()] : (currentReq.date || "");
+  const serviceRaw = (currentReq.finance && currentReq.finance.service) || "";
+  const service = serviceRaw ? serviceRaw.charAt(0).toLowerCase() + serviceRaw.slice(1) : "";
+  return String(text).replace(/{prenom}/g, firstName(currentReq.client)).replace(/{date}/g, currentReq.date || "").replace(/{dateFR}/g, dateFR).replace(/{pax}/g, currentReq.pax || "").replace(/{service}/g, service);
 }
 function mailSubject_(r) {
   if (!r) return "";
