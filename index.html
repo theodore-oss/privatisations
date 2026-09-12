@@ -806,7 +806,7 @@ table.devis-tbl .num-col { text-align: right; white-space: nowrap; }
         <div id="composeLeftCol">
           <p class="panel-t">Blocs de la proposition</p>
           <div id="composeBlocks"></div>
-          <p class="vartip">Variables auto : <span class="hl">{prenom}</span> <span class="hl">{date}</span> <span class="hl">{dateFR}</span> <span class="hl">{pax}</span> <span class="hl">{service}</span> — remplacées avec les infos de la demande (<span class="hl">{dateFR}</span> = "20 septembre", <span class="hl">{service}</span> = déjeuner/dîner). Modèles éditables dans Paramètres.</p>
+          <p class="vartip">Variables auto : <span class="hl">{prenom}</span> <span class="hl">{date}</span> <span class="hl">{dateFR}</span> <span class="hl">{pax}</span> <span class="hl">{service}</span> <span class="hl">{prix}</span> — remplacées avec les infos de la demande (<span class="hl">{dateFR}</span> = "20 septembre", <span class="hl">{service}</span> = déjeuner/dîner, <span class="hl">{prix}</span> = prix théorique TTC calculé par l'outil de pricing). Modèles éditables dans Paramètres.</p>
         </div>
         <div>
           <p class="panel-t">Aperçu du message</p>
@@ -1013,7 +1013,7 @@ table.devis-tbl .num-col { text-align: right; white-space: nowrap; }
     </div>
 
     <div id="set-templates">
-      <p style="font-size:12.5px; color:var(--ink-2); margin:0 0 14px;">Ces blocs composent les réponses. <span class="hl">{prenom}</span>, <span class="hl">{date}</span>, <span class="hl">{dateFR}</span> (ex. "20 septembre"), <span class="hl">{pax}</span>, <span class="hl">{service}</span> (déjeuner/dîner) sont remplacés automatiquement. Mise en forme (brouillon Gmail uniquement) : une ligne commençant par <span class="hl">• </span> = puce, indentée de 2 espaces + <span class="hl">- </span> = sous-puce, et <span class="hl">**texte**</span> = texte en gras.
+      <p style="font-size:12.5px; color:var(--ink-2); margin:0 0 14px;">Ces blocs composent les réponses. <span class="hl">{prenom}</span>, <span class="hl">{date}</span>, <span class="hl">{dateFR}</span> (ex. "20 septembre"), <span class="hl">{pax}</span>, <span class="hl">{service}</span> (déjeuner/dîner), <span class="hl">{prix}</span> (prix théorique TTC de l'outil de pricing) sont remplacés automatiquement. Mise en forme (brouillon Gmail uniquement) : une ligne commençant par <span class="hl">• </span> = puce, indentée de 2 espaces + <span class="hl">- </span> = sous-puce, et <span class="hl">**texte**</span> = texte en gras.
         <button class="btn sm primary" style="float:right" onclick="saveTemplates()">Enregistrer</button><span class="save-note" id="tplSaveNote">Enregistré.</span></p>
       <div class="tpl-card"><p class="name">Introduction</p><textarea id="tplIntro" rows="4"></textarea></div>
       <div class="tpl-card"><p class="name">Réponse au client (après sa réponse)</p><textarea id="tplReply" rows="3"></textarea></div>
@@ -1800,9 +1800,9 @@ const DEPOSIT_RATE = 0.5;
 const DEFAULT_TEMPLATES = {
   intro: "Hola {prenom},\n\nMerci beaucoup pour l'intérêt porté à Rosario, nous serions ravis de vous accueillir pour votre évènement !\n\nVoici ce que nous pouvons vous proposer pour votre {service} du {dateFR} :\n",
   relance: "Bonjour {prenom},\n\nAvez-vous pu prendre connaissance de mon dernier message ?\n\nNous restons naturellement disponibles pour échanger sur les modalités de notre proposition.\n\nJe vous remercie et vous souhaite une excellente journée,\n",
-  salon: "• date : {date}\n• lieu : privatisation du salon privatif, staff dédié pour l'événement, système son dédié, possibilité de décorer le lieu si besoin\n• format : cocktail dînatoire avec assises disponibles également, assortiment de tapas (~3/4 par personne), assortiment de desserts (1 par personne), boissons : forfait à définir ensemble\n• budget : [PRIX]€ TTC",
-  etage: "• date : {date}\n• lieu : privatisation de l'étage, staff dédié pour l'événement, système son dédié, possibilité de décorer le lieu si besoin\n• format : cocktail dînatoire avec assises disponibles également, assortiment de tapas (~3/4 par personne), assortiment de desserts (1 par personne), boissons : forfait à définir ensemble\n• budget : [PRIX]€ TTC",
-  etablissement: "• date : {date}\n• lieu : privatisation entière du restaurant, staff dédié pour l'événement, système son dédié, possibilité de décorer le lieu si besoin\n• format : cocktail dînatoire avec assises disponibles également, assortiment de tapas (~3/4 par personne), assortiment de desserts (1 par personne), boissons : forfait à définir ensemble\n• budget : [PRIX]€ TTC",
+  salon: "• date : {date}\n• lieu : privatisation du salon privatif, staff dédié pour l'événement, système son dédié, possibilité de décorer le lieu si besoin\n• format : cocktail dînatoire avec assises disponibles également, assortiment de tapas (~3/4 par personne), assortiment de desserts (1 par personne), boissons : forfait à définir ensemble\n• budget : {prix}€ TTC",
+  etage: "• date : {date}\n• lieu : privatisation de l'étage, staff dédié pour l'événement, système son dédié, possibilité de décorer le lieu si besoin\n• format : cocktail dînatoire avec assises disponibles également, assortiment de tapas (~3/4 par personne), assortiment de desserts (1 par personne), boissons : forfait à définir ensemble\n• budget : {prix}€ TTC",
+  etablissement: "• date : {date}\n• lieu : privatisation entière du restaurant, staff dédié pour l'événement, système son dédié, possibilité de décorer le lieu si besoin\n• format : cocktail dînatoire avec assises disponibles également, assortiment de tapas (~3/4 par personne), assortiment de desserts (1 par personne), boissons : forfait à définir ensemble\n• budget : {prix}€ TTC",
   groupe: "• date : {date}\n• format : menu fixe, assortiment de tapas à partager\n• budget : 45€ TTC par personne (boissons non incluses)",
   titleSalon: "Privatisation du salon — toute la soirée",
   titleEtage: "Privatisation de l'étage — toute la soirée",
@@ -3906,7 +3906,13 @@ function fillPlaceholders(text) {
   const dateFR = d ? d.getDate() + " " + MOIS_LONG_[d.getMonth()] : (currentReq.date || "");
   const serviceRaw = (currentReq.finance && currentReq.finance.service) || "";
   const service = serviceRaw ? serviceRaw.charAt(0).toLowerCase() + serviceRaw.slice(1) : "";
-  return String(text).replace(/{prenom}/g, firstName(currentReq.client)).replace(/{date}/g, currentReq.date || "").replace(/{dateFR}/g, dateFR).replace(/{pax}/g, currentReq.pax || "").replace(/{service}/g, service);
+  // {prix} : reprend le prix théorique TTC calculé par l'outil de pricing (Tarifs) pour l'espace
+  // et le nombre de pax de la demande — plus besoin de recopier le chiffre à la main dans les
+  // blocs salon/étage/établissement. Reste "[PRIX]" (visible, à compléter à la main) si le calcul
+  // n'est pas possible (pas d'espace choisi, pax à 0, formule groupe hors barème espace, etc.).
+  const theo = demandeTheorique_(currentReq);
+  const prix = theo ? Math.round(theo.totalTTC).toLocaleString("fr-FR") : "[PRIX]";
+  return String(text).replace(/{prenom}/g, firstName(currentReq.client)).replace(/{date}/g, currentReq.date || "").replace(/{dateFR}/g, dateFR).replace(/{pax}/g, currentReq.pax || "").replace(/{service}/g, service).replace(/{prix}/g, prix);
 }
 function mailSubject_(r) {
   if (!r) return "";
@@ -3979,7 +3985,11 @@ function openMailto() {
   const subject = mailSubject_(currentReq);
   const body = document.getElementById('composeBody').value;
   const sig = document.getElementById('composeSignature').value;
-  const cc = sig === "adrien" ? "theodore@grupodomingo.io" : (sig === "andrea" ? "theodore@grupodomingo.io,adrien@grupodomingo.io" : "adrien@grupodomingo.io");
+  // Andrea reste en copie de tout ce qui part (même quand ce n'est pas elle qui envoie) ; quand
+  // c'est elle qui signe, ce sont les deux cofondateurs qui restent en copie à sa place.
+  const cc = sig === "adrien" ? "theodore@grupodomingo.io,andrea@grupodomingo.io"
+    : (sig === "andrea" ? "theodore@grupodomingo.io,adrien@grupodomingo.io"
+    : "adrien@grupodomingo.io,andrea@grupodomingo.io");
   // URL de compose Gmail directe plutôt que mailto: — garantit l'ouverture dans un nouvel onglet
   // Gmail web (mailto: dépend du gestionnaire de mail par défaut de l'OS/navigateur).
   const url = "https://mail.google.com/mail/?view=cm&fs=1&to=" + encodeURIComponent(currentReq.email || "")
@@ -4141,7 +4151,11 @@ function createGmailDraft_() {
   const plainBody = document.getElementById('composeBody').value;
   const htmlBody = buildComposeHtmlBody_();
   const sig = document.getElementById('composeSignature').value;
-  const cc = sig === "adrien" ? "theodore@grupodomingo.io" : (sig === "andrea" ? "theodore@grupodomingo.io,adrien@grupodomingo.io" : "adrien@grupodomingo.io");
+  // Andrea reste en copie de tout ce qui part (même quand ce n'est pas elle qui envoie) ; quand
+  // c'est elle qui signe, ce sont les deux cofondateurs qui restent en copie à sa place.
+  const cc = sig === "adrien" ? "theodore@grupodomingo.io,andrea@grupodomingo.io"
+    : (sig === "andrea" ? "theodore@grupodomingo.io,adrien@grupodomingo.io"
+    : "adrien@grupodomingo.io,andrea@grupodomingo.io");
   // Un Apps Script Web App déployé "Exécuter en tant que : Moi" exécute TOUJOURS le code sous le
   // compte qui l'a déployé, peu importe qui appelle l'URL — donc si c'est Adrien qui signe, il
   // faut appeler SON PROPRE script (ADRIEN_SCRIPT_URL, le même que celui utilisé pour le scan de
