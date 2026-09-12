@@ -1684,6 +1684,10 @@ function pushData_(onDone) {
 // autorisé sous un compte d'accéder à la boîte d'un autre). Laisser vide tant qu'Adrien ne l'a
 // pas déployé : le scan se limite alors à ta propre boîte, sans erreur ni blocage.
 const ADRIEN_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz71CiJkrDMhr4r6zLaIOR8vTi076ju760QLlL42UGohQWFq7nnU_kDp_jkH349edyM/exec";
+// Même principe pour Andrea : laisser vide tant qu'elle n'a pas déployé sa propre copie de
+// Code.gs sous son compte Google (voir procédure donnée par Théo). Une fois qu'elle donne l'URL
+// du déploiement, la coller ici entre les guillemets.
+const ANDREA_SCRIPT_URL = "";
 
 function scanGmailInbox() {
   if (!SYNC_MODE) { setSyncBanner_("Connecte d'abord SCRIPT_URL pour pouvoir scanner tes emails.", 'error'); return; }
@@ -1704,6 +1708,14 @@ function scanGmailInbox() {
         .then(r => r.json())
         .then(json => ({ who: "Adrien", ok: !!json.ok, count: json.added, error: json.error }))
         .catch(err => ({ who: "Adrien", ok: false, error: err.message }))
+    );
+  }
+  if (ANDREA_SCRIPT_URL) {
+    calls.push(
+      fetch(ANDREA_SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: 'scan' }) })
+        .then(r => r.json())
+        .then(json => ({ who: "Andrea", ok: !!json.ok, count: json.added, error: json.error }))
+        .catch(err => ({ who: "Andrea", ok: false, error: err.message }))
     );
   }
 
@@ -4015,9 +4027,9 @@ function stripBold_(text) {
 // mail appliquant en plus ses propres marges par défaut. Les styles sont posés en ligne sur
 // chaque <ul>/<li> : c'est la seule mise en forme qui survit aux nettoyeurs HTML des messageries.
 const BULLET_INDENT_ = 24;
-const UL_STYLE_ = 'style="margin:0 0 14px;padding:0 0 0 ' + BULLET_INDENT_ + 'px;list-style-type:disc;"';
-const UL_SUB_STYLE_ = 'style="margin:6px 0 0;padding:0 0 0 ' + BULLET_INDENT_ + 'px;list-style-type:circle;"';
-const LI_STYLE_ = 'style="margin:0 0 4px;"';
+const UL_STYLE_ = 'style="margin:0 0 14px;padding:0 0 0 ' + BULLET_INDENT_ + 'px;list-style-type:disc;line-height:1.3;"';
+const UL_SUB_STYLE_ = 'style="margin:2px 0 0;padding:0 0 0 ' + BULLET_INDENT_ + 'px;list-style-type:circle;line-height:1.3;"';
+const LI_STYLE_ = 'style="margin:0 0 2px;line-height:1.3;"';
 // Contenu d'une puce : gras + échappement, et les retours à la ligne internes (lignes sans
 // puce rattachées à la puce précédente) deviennent de vrais <br>, sinon ils s'affichent
 // comme un simple espace.
@@ -4060,7 +4072,7 @@ function toHtmlBody_(text) {
 
     // Aucune puce dans le bloc → paragraphe simple.
     if (premierePuce === -1) {
-      return '<p style="margin:0 0 14px;">' + lines.map(l => boldify_(esc(l))).join("<br>") + "</p>";
+      return '<p style="margin:0 0 14px;line-height:1.3;">' + lines.map(l => boldify_(esc(l))).join("<br>") + "</p>";
     }
 
     // Les lignes AVANT la première puce (typiquement le titre "**Privatisation du salon — …**",
@@ -4069,7 +4081,7 @@ function toHtmlBody_(text) {
     // devenaient du texte brut et l'indentation disparaissait à l'envoi.
     let html = "";
     if (premierePuce > 0) {
-      html += '<p style="margin:0 0 6px;">' + lines.slice(0, premierePuce).map(l => boldify_(esc(l))).join("<br>") + "</p>";
+      html += '<p style="margin:0 0 6px;line-height:1.3;">' + lines.slice(0, premierePuce).map(l => boldify_(esc(l))).join("<br>") + "</p>";
     }
 
     // À partir de la première puce : une ligne sans puce (remarque ajoutée à la volée, phrase qui
@@ -4111,7 +4123,7 @@ function buildComposeHtmlBody_() {
   const ordered = OPTION_ORDER.filter(k => selectedOptions.includes(k));
   let html = toHtmlBody_(intro);
   if (ordered.length) {
-    html += ordered.map(k => '<p style="margin:0 0 4px;"><strong>' + esc(titleWithSchedule(k)) + '</strong></p>' + toHtmlBody_(fillPlaceholders(TEMPLATES[k]))).join("");
+    html += ordered.map(k => '<p style="margin:0 0 4px;line-height:1.3;"><strong>' + esc(titleWithSchedule(k)) + '</strong></p>' + toHtmlBody_(fillPlaceholders(TEMPLATES[k]))).join("");
   }
   const skipCloture = composeMode !== "proposition" && !ordered.length;
   if (!skipCloture) html += toHtmlBody_(TEMPLATES.cloture);
@@ -4136,9 +4148,12 @@ function createGmailDraft_() {
   // sa boîte, voir plus haut), sinon le brouillon est créé chez Théo au lieu de chez Adrien (bug
   // remonté : "ça ouvre bien sa page Brouillons mais le brouillon n'apparaît pas" — il se créait
   // bien, mais dans les brouillons de Théo).
-  const draftScriptUrl = (sig === "adrien" && ADRIEN_SCRIPT_URL) ? ADRIEN_SCRIPT_URL : SCRIPT_URL;
+  const draftScriptUrl = (sig === "adrien" && ADRIEN_SCRIPT_URL) ? ADRIEN_SCRIPT_URL : ((sig === "andrea" && ANDREA_SCRIPT_URL) ? ANDREA_SCRIPT_URL : SCRIPT_URL);
   if (sig === "adrien" && !ADRIEN_SCRIPT_URL) {
     alert("Le script Gmail d'Adrien n'est pas encore configuré (ADRIEN_SCRIPT_URL vide) — le brouillon va être créé dans les brouillons de Théo à la place.");
+  }
+  if (sig === "andrea" && !ANDREA_SCRIPT_URL) {
+    alert("Le script Gmail d'Andrea n'est pas encore configuré (ANDREA_SCRIPT_URL vide) — le brouillon va être créé dans les brouillons de Théo à la place.");
   }
   const btn = document.getElementById('draftBtn');
   if (btn) { btn.disabled = true; btn.textContent = "Création du brouillon…"; }
