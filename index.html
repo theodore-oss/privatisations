@@ -822,7 +822,7 @@ table.devis-tbl .num-col { text-align: right; white-space: nowrap; }
             </div>
           </div>
           <div class="sig-row">Signature :
-            <select id="composeSignature" onchange="rebuildComposeBody()"><option value="theodore">Théodore</option><option value="adrien">Adrien</option></select>
+            <select id="composeSignature" onchange="rebuildComposeBody()"><option value="theodore">Théodore</option><option value="adrien">Adrien</option><option value="andrea">Andrea</option></select>
           </div>
         </div>
       </div>
@@ -1022,6 +1022,7 @@ table.devis-tbl .num-col { text-align: right; white-space: nowrap; }
       <div class="grid2">
         <div class="tpl-card"><p class="name">Signature — Théodore</p><textarea id="tplSigTheodore" rows="5"></textarea></div>
         <div class="tpl-card"><p class="name">Signature — Adrien</p><textarea id="tplSigAdrien" rows="5"></textarea></div>
+        <div class="tpl-card"><p class="name">Signature — Andrea</p><textarea id="tplSigAndrea" rows="5"></textarea></div>
       </div>
     </div>
 
@@ -1797,7 +1798,8 @@ const DEFAULT_TEMPLATES = {
   titleGroupe: "Formule groupe — 19h-21h ou 21h15-minuit",
   cloture: "\nJe reste à votre disposition si vous avez la moindre question,\n\nMerci encore et très bonne journée,\n",
   sigTheodore: "Théodore\n\nThéodore Ballu\n06 62 70 99 38\nRosario – 96 rue de Richelieu, Paris 02",
-  sigAdrien: "Adrien\n\nAdrien DELRUE\nCo-fondateur\n06 86 75 65 66\nRosario – 96 rue de Richelieu, Paris 02"
+  sigAdrien: "Adrien\n\nAdrien DELRUE\nCo-fondateur\n06 86 75 65 66\nRosario – 96 rue de Richelieu, Paris 02",
+  sigAndrea: "Andrea\n\n07 82 65 69 28\nRosario – 96 rue de Richelieu, Paris 02"
 };
 let TEMPLATES = Object.assign({}, DEFAULT_TEMPLATES, JSON.parse(localStorage.getItem('rosarioTemplates') || 'null') || {});
 
@@ -3951,7 +3953,7 @@ function rebuildComposeBody() {
   const replyIntro = "Bonjour {prenom},\n\nMerci pour votre retour !\n\n";
   const intro = fillPlaceholders(composeMode === "relance" ? TEMPLATES.relance : (composeMode === "reply" ? replyIntro : TEMPLATES.intro));
   const sig = document.getElementById('composeSignature').value;
-  const signature = sig === "theodore" ? TEMPLATES.sigTheodore : TEMPLATES.sigAdrien;
+  const signature = sig === "andrea" ? TEMPLATES.sigAndrea : (sig === "adrien" ? TEMPLATES.sigAdrien : TEMPLATES.sigTheodore);
   const titleWithSchedule = k => TEMPLATES[TITLE_FIELD_[k]] || OPTION_TITLES[k];
   let optionsText = "";
   const ordered = OPTION_ORDER.filter(k => selectedOptions.includes(k));
@@ -3965,7 +3967,7 @@ function openMailto() {
   const subject = mailSubject_(currentReq);
   const body = document.getElementById('composeBody').value;
   const sig = document.getElementById('composeSignature').value;
-  const cc = sig === "adrien" ? "theodore@grupodomingo.io" : "adrien@grupodomingo.io";
+  const cc = sig === "adrien" ? "theodore@grupodomingo.io" : (sig === "andrea" ? "theodore@grupodomingo.io,adrien@grupodomingo.io" : "adrien@grupodomingo.io");
   // URL de compose Gmail directe plutôt que mailto: — garantit l'ouverture dans un nouvel onglet
   // Gmail web (mailto: dépend du gestionnaire de mail par défaut de l'OS/navigateur).
   const url = "https://mail.google.com/mail/?view=cm&fs=1&to=" + encodeURIComponent(currentReq.email || "")
@@ -4093,7 +4095,7 @@ function toHtmlBody_(text) {
 // prénom familier "Théodore"/"Adrien", en gras ; le reste — nom complet, tél, adresse — en
 // dessous), dérivées dynamiquement pour rester à jour si édités dans Paramètres.
 function signatureHtml_(sig) {
-  const text = sig === "theodore" ? TEMPLATES.sigTheodore : TEMPLATES.sigAdrien;
+  const text = sig === "andrea" ? TEMPLATES.sigAndrea : (sig === "adrien" ? TEMPLATES.sigAdrien : TEMPLATES.sigTheodore);
   const contactLines = String(text).split("\n").filter(l => l.trim().length);
   return '<table style="border-collapse:collapse;margin-top:6px;"><tr>'
     + '<td style="padding-right:14px;vertical-align:middle;"><img src="https://theodore-oss.github.io/privatisations/logo.png" alt="Rosario" style="height:44px;display:block;"></td>'
@@ -4127,7 +4129,7 @@ function createGmailDraft_() {
   const plainBody = document.getElementById('composeBody').value;
   const htmlBody = buildComposeHtmlBody_();
   const sig = document.getElementById('composeSignature').value;
-  const cc = sig === "adrien" ? "theodore@grupodomingo.io" : "adrien@grupodomingo.io";
+  const cc = sig === "adrien" ? "theodore@grupodomingo.io" : (sig === "andrea" ? "theodore@grupodomingo.io,adrien@grupodomingo.io" : "adrien@grupodomingo.io");
   // Un Apps Script Web App déployé "Exécuter en tant que : Moi" exécute TOUJOURS le code sous le
   // compte qui l'a déployé, peu importe qui appelle l'URL — donc si c'est Adrien qui signe, il
   // faut appeler SON PROPRE script (ADRIEN_SCRIPT_URL, le même que celui utilisé pour le scan de
@@ -4167,7 +4169,8 @@ function copyCompose() {
 function logSent_() {
   if (!currentReq) return;
   const titles = { proposition: "Proposition commerciale envoyée", reply: "Réponse envoyée au client", relance: "Relance envoyée" };
-  const sig = document.getElementById('composeSignature').value === "adrien" ? "Adrien" : "Théodore";
+  const sigVal = document.getElementById('composeSignature').value;
+  const sig = sigVal === "adrien" ? "Adrien" : (sigVal === "andrea" ? "Andrea" : "Théodore");
   currentReq.timeline = currentReq.timeline || [];
   currentReq.timeline.push({ dir: "out", title: titles[composeMode] || "Message envoyé", meta: todayStr_() + " — par " + sig + " (consigné depuis l'outil)", ts: Date.now() });
   if (currentReq.statut !== "Confirmé" && currentReq.statut !== "Archivée") currentReq.statut = computeAutoStatut_(currentReq);
@@ -4294,7 +4297,7 @@ function loadSettingsForms() {
   const g = id => document.getElementById(id);
   g('tplIntro').value = TEMPLATES.intro; g('tplReply').value = TEMPLATES.reply || "Bonjour {prenom},\n\nMerci pour votre retour !\n";
   g('tplRelance').value = TEMPLATES.relance; g('tplCloture').value = TEMPLATES.cloture;
-  g('tplSigTheodore').value = TEMPLATES.sigTheodore; g('tplSigAdrien').value = TEMPLATES.sigAdrien;
+  g('tplSigTheodore').value = TEMPLATES.sigTheodore; g('tplSigAdrien').value = TEMPLATES.sigAdrien; g('tplSigAndrea').value = TEMPLATES.sigAndrea || "";
   g('tplSalon').value = TEMPLATES.salon; g('tplEtage').value = TEMPLATES.etage; g('tplEtablissement').value = TEMPLATES.etablissement; g('tplGroupe').value = TEMPLATES.groupe;
   g('tplTitleSalon').value = TEMPLATES.titleSalon; g('tplTitleEtage').value = TEMPLATES.titleEtage;
   g('tplTitleEtablissement').value = TEMPLATES.titleEtablissement; g('tplTitleGroupe').value = TEMPLATES.titleGroupe;
@@ -4304,7 +4307,7 @@ function saveTemplates() {
   const g = id => document.getElementById(id).value;
   TEMPLATES = Object.assign({}, TEMPLATES, {
     intro: g('tplIntro'), reply: g('tplReply'), relance: g('tplRelance'), cloture: g('tplCloture'),
-    sigTheodore: g('tplSigTheodore'), sigAdrien: g('tplSigAdrien'),
+    sigTheodore: g('tplSigTheodore'), sigAdrien: g('tplSigAdrien'), sigAndrea: g('tplSigAndrea'),
     salon: g('tplSalon'), etage: g('tplEtage'), etablissement: g('tplEtablissement'), groupe: g('tplGroupe'),
     titleSalon: g('tplTitleSalon'), titleEtage: g('tplTitleEtage'), titleEtablissement: g('tplTitleEtablissement'), titleGroupe: g('tplTitleGroupe')
   });
