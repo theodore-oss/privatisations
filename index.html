@@ -3912,7 +3912,8 @@ function fillPlaceholders(text) {
   // n'est pas possible (pas d'espace choisi, pax à 0, formule groupe hors barème espace, etc.).
   const theo = demandeTheorique_(currentReq);
   const prix = theo ? Math.round(theo.totalTTC).toLocaleString("fr-FR") : "[PRIX]";
-  return String(text).replace(/{prenom}/g, firstName(currentReq.client)).replace(/{date}/g, currentReq.date || "").replace(/{dateFR}/g, dateFR).replace(/{pax}/g, currentReq.pax || "").replace(/{service}/g, service).replace(/{prix}/g, prix);
+  const prixHT = theo ? Math.round(theo.totalHT).toLocaleString("fr-FR") : "[PRIX]";
+  return String(text).replace(/{prenom}/g, firstName(currentReq.client)).replace(/{date}/g, currentReq.date || "").replace(/{dateFR}/g, dateFR).replace(/{pax}/g, currentReq.pax || "").replace(/{service}/g, service).replace(/{prix}/g, prix).replace(/{prixHT}/g, prixHT);
 }
 function mailSubject_(r) {
   if (!r) return "";
